@@ -1,0 +1,5 @@
+{
+  "provider": "dashscope",
+  "model": "text-embedding-v4",
+  "dimension": 1536
+}

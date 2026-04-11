@@ -19,4 +19,38 @@ rad.json
 #License-file
 *.flf
 #Test results file
-TestResults.xml
+TestResults.xml# 依赖
+__pycache__/
+*.pyc
+node_modules/
+.venv/
+venv/
+
+# 环境变量（含 API Key）
+.env
+.env.local
+.env.*.local
+
+# TTS 缓存
+tts_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.log
+*.tmp
+.trae/
+.uploads/
+
+# 音频样本（大文件，不入库）
+*.mp3
+*.wav
+!modules/digital-human/voice/.gitkeep
