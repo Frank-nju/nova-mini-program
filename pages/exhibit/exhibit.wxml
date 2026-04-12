@@ -1,0 +1,6 @@
+<web-view wx:if="{{webviewUrl}}" src="{{webviewUrl}}"></web-view>
+<view wx:else class="placeholder">
+  <text class="placeholder-title">尚未配置网页地址</text>
+  <text class="placeholder-desc">请编辑 utils/config.js，将 WEBVIEW_URL 设为你部署后的 https 地址（需与小程序后台「业务域名」一致）。</text>
+  <text class="placeholder-hint">静态站源码在本项目 pages/exhibit/web/（含 css、js），整份上传静态托管即可，不需要后端。</text>
+</view>
