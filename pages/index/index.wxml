@@ -1,1 +1,31 @@
-<view>欢迎来到追光健雄</view>
+<view class="page">
+  <!-- 背景粒子效果 -->
+  <view class="background-particles">
+    <view class="particle" wx:for="{{60}}" wx:key="index"></view>
+  </view>
+
+  <!-- 深空背景 -->
+  <view class="deep-space"></view>
+
+  <!-- 中心内容区 -->
+  <view class="center-content">
+    <view class="title-section">
+      <text class="main-title">追光</text>
+      <text class="sub-title">吴健雄传</text>
+    </view>
+
+    <view class="description">
+      <text>一位伟大的核物理学家</text>
+      <text>她用严谨改写科学历史</text>
+    </view>
+
+    <button class="btn-start" bindtap="goExhibit">
+      <text>进入展馆</text>
+    </button>
+  </view>
+
+  <!-- 底部署名 -->
+  <view class="footer-text">
+    <text>云端数字展馆</text>
+  </view>
+</view>

@@ -1,0 +1,493 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>追光健雄｜云端数字展馆</title>
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loader-text">追光健雄</div>
+  <div class="loader-bar"><div class="loader-bar-inner"></div></div>
+</div>
+
+<!-- Scroll Progress -->
+<div id="scroll-progress"></div>
+
+<!-- Navigation -->
+<nav id="main-nav">
+  <div class="nav-brand"><span>追光</span>健雄</div>
+  <ul class="nav-links">
+    <li><a href="#prologue" class="active">序章</a></li>
+    <li><a href="#biography">生平</a></li>
+    <li><a href="#spirit">风骨</a></li>
+    <li><a href="#research">科研</a></li>
+    <li><a href="#event-cloud">云图</a></li>
+    <li><a href="#ai-qa">问答</a></li>
+    <li><a href="#achievements">成就</a></li>
+  </ul>
+</nav>
+
+<!-- Chapter Indicator -->
+<div class="chapter-indicator" id="chapter-indicator">
+  <div class="chapter-dot active" data-section="prologue"><span class="tooltip">序章</span></div>
+  <div class="chapter-dot" data-section="biography"><span class="tooltip">生平履历</span></div>
+  <div class="chapter-dot" data-section="spirit"><span class="tooltip">治学风骨</span></div>
+  <div class="chapter-dot" data-section="research"><span class="tooltip">科研丰碑</span></div>
+  <div class="chapter-dot" data-section="event-cloud"><span class="tooltip">事件云图</span></div>
+  <div class="chapter-dot" data-section="ai-qa"><span class="tooltip">AI问答</span></div>
+  <div class="chapter-dot" data-section="achievements"><span class="tooltip">成就勋章</span></div>
+</div>
+
+<!-- ==================== SECTION 0: PROLOGUE ==================== -->
+<section id="prologue" class="section">
+  <canvas id="particle-canvas"></canvas>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="prologue-content">
+    <div class="prologue-portrait"></div>
+    <h1 class="prologue-name">吴健雄</h1>
+    <p class="prologue-title">CHIEN-SHIUNG WU · 1912—1997</p>
+    <p class="prologue-desc">
+      她是核物理学的先驱，是"东方居里夫人"，<br>
+      是用实验证明宇称不守恒的科学巨匠。<br>
+      她以精确的实验和不懈的追求，<br>
+      改变了人类对基本物理定律的认知。
+    </p>
+    <a href="#biography" class="prologue-enter">
+      开始参观 <span class="arrow">↓</span>
+    </a>
+  </div>
+</section>
+
+<!-- ==================== SECTION 1: BIOGRAPHY ==================== -->
+<section id="biography" class="section">
+  <div class="bg-glow bg-glow-1" style="top:20%;left:-150px;"></div>
+  <div class="section-inner">
+    <h2 class="section-title reveal">生平履历</h2>
+    <p class="section-subtitle reveal">A LIFE OF PURSUIT</p>
+    <div class="section-divider reveal"></div>
+
+    <div class="timeline">
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1912</div>
+        <div class="timeline-title">出生于江苏太仓浏河</div>
+        <div class="timeline-desc">出生于江苏太仓浏河镇的一个书香门第，父亲吴仲裔创办了明德学校，倡导男女平等受教育。</div>
+        <div class="timeline-card">
+          <span class="tag">启蒙</span>
+          <span class="tag">家学渊源</span>
+          <p style="font-size:0.78rem;color:var(--text-secondary);margin-top:8px;">"父亲常说，要做学问，先要做人。" —— 吴健雄</p>
+        </div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1930</div>
+        <div class="timeline-title">考入南京中央大学物理系</div>
+        <div class="timeline-desc">在中央大学期间，师从施士元教授，初接触原子物理与放射性研究，展现出非凡的实验天赋。</div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1936</div>
+        <div class="timeline-title">远赴美国加州大学伯克利分校</div>
+        <div class="timeline-desc">在恩师劳伦斯（Ernest Lawrence）的回旋加速器实验室工作，与奥本海默、塞格雷等物理学巨匠共事。</div>
+        <div class="timeline-card">
+          <span class="tag">伯克利</span>
+          <span class="tag">回旋加速器</span>
+          <span class="tag">核物理</span>
+        </div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1942</div>
+        <div class="timeline-title">与袁家骝结婚</div>
+        <div class="timeline-desc">与著名物理学家袁家骝结为伉俪，两位科学家相知相伴，成为物理学界的佳话。</div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1944</div>
+        <div class="timeline-title">参与曼哈顿计划</div>
+        <div class="timeline-desc">在哥伦比亚大学参与曼哈顿计划，负责解决B-10中子截面测量等关键问题，为原子弹研制做出重要贡献。</div>
+        <div class="timeline-card">
+          <span class="tag">曼哈顿计划</span>
+          <span class="tag">哥伦比亚大学</span>
+          <span class="tag">气体扩散法</span>
+        </div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1956</div>
+        <div class="timeline-title">验证"宇称不守恒"——科学史上的里程碑</div>
+        <div class="timeline-desc">设计并完成钴-60 β衰变实验，以精确的实验结果证实了杨振宁、李政道提出的"弱相互作用中宇称不守恒"理论，直接推动了两人获得诺贝尔物理学奖。</div>
+        <div class="timeline-card" style="border-color:rgba(201,169,110,0.3);">
+          <span class="tag" style="background:rgba(201,169,110,0.15);">里程碑</span>
+          <span class="tag">宇称不守恒</span>
+          <span class="tag">β衰变实验</span>
+          <p style="font-size:0.78rem;color:var(--gold);margin-top:8px;">"这是战后最令人激动的发现之一。" —— 物理学界评价</p>
+        </div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1958</div>
+        <div class="timeline-title">当选美国科学院院士</div>
+        <div class="timeline-desc">成为美国科学院院士，也是普林斯顿大学首位女性荣誉博士，打破了学术界的性别壁垒。</div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1973</div>
+        <div class="timeline-title">首次回国探亲</div>
+        <div class="timeline-desc">阔别37年后首次回到中国，受到周恩来总理的亲切接见。此后多次回国讲学，推动中美科学交流。</div>
+      </div>
+
+      <div class="timeline-item reveal">
+        <div class="timeline-dot"></div>
+        <div class="timeline-year">1997</div>
+        <div class="timeline-title">在纽约逝世，享年85岁</div>
+        <div class="timeline-desc">2月16日在纽约逝世。她的骨灰被安放在故乡江苏太仓，墓碑上刻着她一生钟爱的诗句。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 2: SCHOLAR SPIRIT ==================== -->
+<section id="spirit" class="section">
+  <div class="bg-glow bg-glow-2" style="top:30%;right:-100px;"></div>
+  <div class="section-inner">
+    <h2 class="section-title reveal">治学风骨</h2>
+    <p class="section-subtitle reveal">THE SPIRIT OF SCHOLARSHIP</p>
+    <div class="section-divider reveal"></div>
+
+    <div class="spirit-grid">
+      <div class="spirit-card reveal">
+        <span class="spirit-icon">🔬</span>
+        <h3>精益求精</h3>
+        <p>她对实验精度有着近乎苛刻的追求，每一个数据都要反复验证，绝不容许半点马虎。</p>
+      </div>
+      <div class="spirit-card reveal reveal-delay-1">
+        <span class="spirit-icon">📖</span>
+        <h3>勤勉笃学</h3>
+        <p>从太仓到南京，从伯克利到纽约，她始终保持着每天十数小时的工作习惯。</p>
+      </div>
+      <div class="spirit-card reveal reveal-delay-2">
+        <span class="spirit-icon">⚖️</span>
+        <h3>求真务实</h3>
+        <p>"实验是检验真理的唯一标准"，她用一生践行了这一信念，从不盲从权威。</p>
+      </div>
+      <div class="spirit-card reveal reveal-delay-3">
+        <span class="spirit-icon">🌏</span>
+        <h3>家国情怀</h3>
+        <p>虽身在大洋彼岸，她始终心系祖国科学事业，倾力支持中国物理学的建设与发展。</p>
+      </div>
+      <div class="spirit-card reveal reveal-delay-4">
+        <span class="spirit-icon">🤝</span>
+        <h3>提携后学</h3>
+        <p>她慷慨资助中国学者赴美深造，设立多种奖学金，为培养下一代科学家倾注心血。</p>
+      </div>
+      <div class="spirit-card reveal reveal-delay-4">
+        <span class="spirit-icon">✨</span>
+        <h3>淡泊名利</h3>
+        <p>她多次将重要发现的首位署名让予合作者，将奖金捐给教育事业，从不计较个人得失。</p>
+      </div>
+    </div>
+
+    <!-- Quote -->
+    <div class="quote-container reveal">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">
+        我是一个实验物理学家，<br>
+        我相信实验的结果，<br>
+        而不是理论家的预言。
+      </p>
+      <p class="quote-author">—— 吴健雄</p>
+    </div>
+
+    <!-- Manuscript -->
+    <div class="manuscript-bg reveal">
+      <p>
+        在科学研究的道路上，没有捷径可走。每一个精确的实验结果背后，都是无数次的失败与重来。我始终相信，只有通过严谨的实验，才能真正揭示自然的奥秘。
+      </p>
+      <p style="margin-top:16px;text-align:right;color:var(--gold);font-size:0.8rem;">
+        —— 摘自吴健雄手稿
+      </p>
+    </div>
+
+    <!-- Keywords -->
+    <div class="keywords-cloud reveal">
+      <span class="keyword-tag">宇称不守恒</span>
+      <span class="keyword-tag">β衰变</span>
+      <span class="keyword-tag">实验物理</span>
+      <span class="keyword-tag">曼哈顿计划</span>
+      <span class="keyword-tag">核物理</span>
+      <span class="keyword-tag">科学精神</span>
+      <span class="keyword-tag">精确测量</span>
+      <span class="keyword-tag">弱相互作用</span>
+      <span class="keyword-tag">回旋加速器</span>
+      <span class="keyword-tag">物理学先驱</span>
+      <span class="keyword-tag">中美交流</span>
+      <span class="keyword-tag">女性科学家</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 3: RESEARCH ==================== -->
+<section id="research" class="section">
+  <div class="bg-glow bg-glow-1" style="bottom:10%;right:-120px;"></div>
+  <div class="section-inner">
+    <h2 class="section-title reveal">科研丰碑</h2>
+    <p class="section-subtitle reveal">MONUMENTS OF SCIENCE</p>
+    <div class="section-divider reveal"></div>
+
+    <div class="research-timeline">
+      <div class="research-node reveal">
+        <div class="research-year-badge">1939</div>
+        <div class="research-content">
+          <h3>放射性同位素研究</h3>
+          <p>在伯克利期间，研究了氙的放射性同位素，发现了若干新的核反应过程，为核物理研究奠定了重要基础。</p>
+          <div class="research-media">
+            <div class="media-thumb">📄 论文</div>
+            <div class="media-thumb">📊 数据</div>
+            <div class="media-thumb">🔬 实验</div>
+          </div>
+          <div class="research-significance">
+            <span>⭐</span>
+            <span>为后来的核裂变研究提供了关键数据支撑</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="research-node reveal">
+        <div class="research-year-badge">1944</div>
+        <div class="research-content">
+          <h3>曼哈顿计划 · 气体扩散法</h3>
+          <p>参与开发用于铀浓缩的气体扩散技术，解决了铀-235分离过程中的关键仪表问题，直接影响了原子弹的研制进程。</p>
+          <div class="research-media">
+            <div class="media-thumb">🏗️ 设施</div>
+            <div class="media-thumb">📐 工艺</div>
+            <div class="media-thumb">📝 报告</div>
+          </div>
+          <div class="research-significance">
+            <span>⭐</span>
+            <span>为二战结束和核能和平利用做出关键贡献</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="research-node reveal">
+        <div class="research-year-badge">1956</div>
+        <div class="research-content" style="border-color:rgba(201,169,110,0.3);">
+          <h3>🏆 宇称不守恒实验 —— 改变物理学史的发现</h3>
+          <p>杨振宁和李政道提出在弱相互作用中宇称可能不守恒的假说后，吴健雄领导团队设计了精妙的钴-60 β衰变实验。在极低温（接近绝对零度）条件下，她观察到电子发射方向的不对称性，有力地证实了宇称不守恒。</p>
+          <div class="research-media">
+            <div class="media-thumb">⚛️ 钴-60</div>
+            <div class="media-thumb">❄️ 极低温</div>
+            <div class="media-thumb">📊 不对称</div>
+          </div>
+          <div class="research-significance" style="background:rgba(201,169,110,0.1);">
+            <span>🏆</span>
+            <span>被誉为"战后最激动人心的物理学发现"，直接推动杨李二人获诺贝尔奖</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="research-node reveal">
+        <div class="research-year-badge">1963</div>
+        <div class="research-content">
+          <h3>矢量流守恒实验</h3>
+          <p>完成了证明矢量流守恒（CVC）的精密实验，进一步验证了费米-维拉理论，深化了人类对弱相互作用的理解。</p>
+          <div class="research-media">
+            <div class="media-thumb">📐 理论</div>
+            <div class="media-thumb">🔬 验证</div>
+            <div class="media-thumb">📈 数据</div>
+          </div>
+          <div class="research-significance">
+            <span>⭐</span>
+            <span>为弱电统一理论的确立提供了实验基础</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="research-node reveal">
+        <div class="research-year-badge">1975</div>
+        <div class="research-content">
+          <h3>双β衰变研究</h3>
+          <p>在晚年转向双β衰变实验研究，探索中微子质量这一基本物理问题，为粒子物理学的前沿课题做出了开拓性贡献。</p>
+          <div class="research-media">
+            <div class="media-thumb">⚛️ 衰变</div>
+            <div class="media-thumb">🔭 探测</div>
+            <div class="media-thumb">📝 论文</div>
+          </div>
+          <div class="research-significance">
+            <span>⭐</span>
+            <span>为中微子物理研究开辟了新的实验方向</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 4: EVENT CLOUD ==================== -->
+<section id="event-cloud" class="section">
+  <div class="section-inner">
+    <h2 class="section-title reveal">事件云图总览</h2>
+    <p class="section-subtitle reveal">EVENT CLOUD OVERVIEW</p>
+    <div class="section-divider reveal"></div>
+    <p style="text-align:center;font-size:0.82rem;color:var(--text-secondary);margin-bottom:30px;" class="reveal">
+      点击节点可跳转至对应章节 · 拖拽可旋转视角
+    </p>
+    <div class="cloud-container reveal">
+      <canvas id="cloud-canvas"></canvas>
+    </div>
+    <div class="cloud-legend reveal">
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#C9A96E;"></div>
+        <span>求学经历</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#D4564E;"></div>
+        <span>科研成就</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#6BA3D6;"></div>
+        <span>人生大事</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background:#7BC67E;"></div>
+        <span>社会贡献</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 5: AI Q&A ==================== -->
+<section id="ai-qa" class="section">
+  <div class="bg-glow bg-glow-2" style="top:20%;left:-100px;"></div>
+  <div class="section-inner">
+    <h2 class="section-title reveal">跨时空对话</h2>
+    <p class="section-subtitle reveal">AI-GUIDED EXPLORATION</p>
+    <div class="section-divider reveal"></div>
+
+    <div class="ai-container reveal">
+      <div class="ai-avatar">🤖</div>
+      <div class="ai-welcome">
+        <p>你好！我是健雄数字展馆的AI导览助手。<br>你可以向我提问关于吴健雄教授的任何问题。</p>
+      </div>
+
+      <div class="chat-box">
+        <div class="chat-messages" id="chat-messages">
+          <div class="chat-msg ai">
+            <div class="chat-avatar-sm">AI</div>
+            <div class="chat-bubble">
+              欢迎来到追光健雄云端数字展馆！我是你的AI导览助手。你可以问我关于吴健雄教授的生平、科研成就、科学精神等任何问题。试试下面的问题吧！
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="输入你的问题..." />
+          <button class="chat-send-btn" id="chat-send">发送</button>
+        </div>
+      </div>
+
+      <div class="quick-questions">
+        <button class="quick-q" data-q="吴健雄最著名的实验是什么？">🔬 最著名的实验</button>
+        <button class="quick-q" data-q="吴健雄为什么被称为"东方居里夫人"？">📖 东方居里夫人</button>
+        <button class="quick-q" data-q="宇称不守恒是什么意思？">⚛️ 宇称不守恒</button>
+        <button class="quick-q" data-q="吴健雄对中国的贡献有哪些？">🌏 对中国的贡献</button>
+        <button class="quick-q" data-q="吴健雄获得了哪些荣誉？">🏆 获得荣誉</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== SECTION 6: ACHIEVEMENTS ==================== -->
+<section id="achievements" class="section">
+  <div class="bg-glow bg-glow-1" style="top:10%;left:50%;transform:translateX(-50%);"></div>
+  <div class="section-inner">
+    <h2 class="section-title reveal">成就勋章</h2>
+    <p class="section-subtitle reveal">ACHIEVEMENT BADGES</p>
+    <div class="section-divider reveal"></div>
+
+    <div class="achievements-header reveal">
+      <div class="achievement-level">
+        <span class="level-num">LV.5</span>
+        <span class="level-text">追光旅者</span>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div class="progress-label">
+          <span>已解锁 5/8</span>
+          <span>距离下一级还需 3 枚</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="badges-grid">
+      <div class="badge-item reveal" data-badge="1">
+        <div class="badge-icon">🌟</div>
+        <div class="badge-name">初识健雄</div>
+        <div class="badge-desc">完成序章导览</div>
+      </div>
+      <div class="badge-item reveal reveal-delay-1" data-badge="2">
+        <div class="badge-icon">📚</div>
+        <div class="badge-name">时光旅人</div>
+        <div class="badge-desc">浏览全部生平节点</div>
+      </div>
+      <div class="badge-item reveal reveal-delay-2" data-badge="3">
+        <div class="badge-icon">🧪</div>
+        <div class="badge-name">科学之眼</div>
+        <div class="badge-desc">了解宇称不守恒</div>
+      </div>
+      <div class="badge-item reveal reveal-delay-3" data-badge="4">
+        <div class="badge-icon">💬</div>
+        <div class="badge-name">跨时空对话</div>
+        <div class="badge-desc">向AI提问一个问题</div>
+      </div>
+      <div class="badge-item reveal reveal-delay-4" data-badge="5">
+        <div class="badge-icon">🗺️</div>
+        <div class="badge-name">云图探索者</div>
+        <div class="badge-desc">浏览事件云图</div>
+      </div>
+      <div class="badge-item locked reveal" data-badge="6">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-name">治学传承</div>
+        <div class="badge-desc">收集全部精神关键词</div>
+      </div>
+      <div class="badge-item locked reveal reveal-delay-1" data-badge="7">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-name">科研大师</div>
+        <div class="badge-desc">浏览全部科研节点</div>
+      </div>
+      <div class="badge-item locked reveal reveal-delay-2" data-badge="8">
+        <div class="badge-icon">🔒</div>
+        <div class="badge-name">追光者</div>
+        <div class="badge-desc">解锁全部勋章</div>
+      </div>
+    </div>
+
+    <div class="share-section reveal">
+      <button class="share-btn" id="share-btn">📤 分享我的成就</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>追光健雄｜云端数字展馆 · 同学共读《吴健雄传》成果展示</p>
+  <p style="margin-top:8px;">弘扬科学家精神 · 构建沉浸式学习体验</p>
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
