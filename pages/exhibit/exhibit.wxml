@@ -1,6 +1,195 @@
-<web-view wx:if="{{webviewUrl}}" src="{{webviewUrl}}"></web-view>
-<view wx:else class="placeholder">
-  <text class="placeholder-title">尚未配置网页地址</text>
-  <text class="placeholder-desc">请编辑 utils/config.js，将 WEBVIEW_URL 设为你部署后的 https 地址（需与小程序后台「业务域名」一致）。</text>
-  <text class="placeholder-hint">静态站源码在本项目 pages/exhibit/web/（含 css、js），整份上传静态托管即可，不需要后端。</text>
+<view class="exhibit-container">
+  <!-- 顶部返回按钮 -->
+  <view class="top-bar">
+    <view class="btn-back" bindtap="goBack">
+      <text>← 返回</text>
+    </view>
+  </view>
+
+  <!-- 六部分卷轴区域 -->
+  <scroll-view class="sections-scroll" scroll-y="{{true}}" 
+               bindscroll="onScroll"
+               scroll-into-view="{{currentSection}}"
+               scroll-with-animation="{{true}}"
+               style="height: {{screenHeight}}px">
+    
+    <!-- 第一部分：首页 -->
+    <view class="section section-1" id="section-0">
+      <view class="section-bg section-bg-1"></view>
+      <view class="particles-section">
+        <view class="particle-dot" wx:for="{{20}}" wx:key="index"></view>
+      </view>
+      <view class="section-content">
+        <text class="section-title">首页</text>
+        <view class="scroll-hint">向下滑动探索</view>
+      </view>
+    </view>
+
+    <!-- 第二部分：序章 · 西学求索 -->
+    <view class="section section-2" id="section-1">
+      <!-- 背景图片 -->
+      <image src="/pages/image/序章.jpg" class="section-bg-image"></image>
+      
+      <!-- 卷轴叠加层 - 位置在图片下方中央，卷轴在左手 -->
+      <view class="scroll-overlay scroll-overlay-1" bindtap="enterStory" data-section="1">
+        <view class="scroll-glow-aura"></view>
+        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label-sub">以继续</text>
+      </view>
+      
+      <!-- 内容（可选，放在顶部） -->
+      <view class="section-content">
+        <view class="scene-title scene-title-1">序章</view>
+      </view>
+    </view>
+
+    <!-- 第三部分：生平履历 · 孤行远方 -->
+    <view class="section section-3" id="section-2">
+      <!-- 背景图片 -->
+      <image src="/pages/image/生平履历.jpg" class="section-bg-image"></image>
+      
+      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <view class="scroll-overlay scroll-overlay-2" bindtap="enterStory" data-section="2">
+        <view class="scroll-glow-aura"></view>
+        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label-sub">以继续</text>
+      </view>
+      
+      <!-- 内容（可选，放在顶部） -->
+      <view class="section-content">
+        <view class="scene-title scene-title-2">生平履历</view>
+      </view>
+    </view>
+
+    <!-- 第四部分：治学风骨 · 严谨之光 -->
+    <view class="section section-4" id="section-3">
+      <!-- 背景图片 -->
+      <image src="/pages/image/治学风骨.jpg" class="section-bg-image"></image>
+      
+      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <view class="scroll-overlay scroll-overlay-3" bindtap="enterStory" data-section="3">
+        <view class="scroll-glow-aura"></view>
+        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label-sub">以继续</text>
+      </view>
+      
+      <!-- 内容（可选，放在顶部） -->
+      <view class="section-content">
+        <view class="scene-title scene-title-3">治学风骨</view>
+      </view>
+    </view>
+
+    <!-- 第五部分：科研丰碑 · 宇称不守恒 -->
+    <view class="section section-5" id="section-4">
+      <!-- 背景图片 -->
+      <image src="/pages/image/科研丰碑.jpg" class="section-bg-image"></image>
+      
+      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <view class="scroll-overlay scroll-overlay-4" bindtap="enterStory" data-section="4">
+        <view class="scroll-glow-aura"></view>
+        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label-sub">以继续</text>
+      </view>
+      
+      <!-- 内容（可选，放在顶部） -->
+      <view class="section-content">
+        <view class="scene-title scene-title-4">科研丰碑</view>
+      </view>
+    </view>
+
+    <!-- 第六部分：尾声 · 荣耀归来 -->
+    <view class="section section-6" id="section-5">
+      <!-- 背景图片 -->
+      <image src="/pages/image/尾声.jpg" class="section-bg-image"></image>
+      
+      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <view class="scroll-overlay scroll-overlay-5" bindtap="enterStory" data-section="5">
+        <view class="scroll-glow-aura"></view>
+        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label-sub">以继续</text>
+      </view>
+      
+      <!-- 内容（可选，放在顶部） -->
+      <view class="section-content">
+        <view class="scene-title scene-title-5">尾声</view>
+      </view>
+    </view>
+
+  </scroll-view>
+
+  <!-- 常驻按钮栏（右侧浮窗） -->
+  <view class="floating-buttons">
+    <view class="float-btn btn-clouds" bindtap="toggleClouds" title="事件云图">
+      <text>☁</text>
+    </view>
+    <view class="float-btn btn-badge" bindtap="toggleBadge" title="徽章成就">
+      <text>★</text>
+      <view wx:if="{{newBadges}}" class="badge-dot"></view>
+    </view>
+    <view class="float-btn btn-ai" bindtap="toggleAI" title="数字人">
+      <text>🤖</text>
+    </view>
+    <view class="float-btn btn-more" bindtap="toggleMore" title="更多">
+      <text>⋯</text>
+    </view>
+  </view>
+
+  <!-- 事件云图面板 -->
+  <view wx:if="{{showCloudPanel}}" class="panel clouds-panel">
+    <view class="panel-header">
+      <text class="panel-title">事件云图</text>
+      <view class="close-btn" bindtap="toggleClouds">✕</view>
+    </view>
+    <!-- 云图网络图谱 -->
+    <view class="cloud-map-container">
+      <canvas id="cloudMapCanvas" class="cloud-canvas" bindtap="onCanvasTap"></canvas>
+      <view wx:if="{{selectedCloud}}" class="cloud-info-box">
+        <view class="cloud-info-header">
+          <text class="cloud-info-title">{{selectedCloud.name}}</text>
+          <view class="cloud-info-status">
+            <view class="status-dot" style="background: {{selectedCloud.unlocked ? selectedCloud.color : '#666'}}"></view>
+            <text>{{selectedCloud.unlocked ? '已解锁' : '未解锁'}}</text>
+          </view>
+        </view>
+        <text class="cloud-info-desc">点击解锁更多故事</text>
+      </view>
+      <view class="cloud-legend">
+        <view class="legend-item">
+          <view class="legend-dot" style="background: #64c8ff;"></view>
+          <text>已解锁</text>
+        </view>
+        <view class="legend-item">
+          <view class="legend-dot" style="background: #444;"></view>
+          <text>未解锁</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 徽章成就面板 -->
+  <view wx:if="{{showBadgePanel}}" class="panel badge-panel">
+    <view class="panel-header">
+      <text class="panel-title">徽章成就</text>
+      <view class="close-btn" bindtap="toggleBadge">✕</view>
+    </view>
+    <view class="badges-container">
+      <view class="badge-item" wx:for="{{badges}}" wx:key="id"
+            style="opacity: {{item.unlocked ? 1 : 0.3}}">
+        <text class="badge-icon">{{item.icon}}</text>
+        <text class="badge-name">{{item.name}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 数字人面板 -->
+  <view wx:if="{{showAIPanel}}" class="panel ai-panel">
+    <view class="panel-header">
+      <text class="panel-title">数字人</text>
+      <view class="close-btn" bindtap="toggleAI">✕</view>
+    </view>
+    <view class="ai-content">
+      <text class="ai-notice">数字人功能即将上线</text>
+    </view>
+  </view>
+
 </view>

@@ -3,6 +3,8 @@ const { webviewUrl } = require('../../utils/config.js');
 Page({
   data: {
     hasWebview: false,
+    skyStars: [],
+    reflectionStars: [],
   },
 
   onLoad() {

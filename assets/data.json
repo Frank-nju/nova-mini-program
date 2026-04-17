@@ -1,0 +1,139 @@
+{
+  "sections": [
+    {
+      "id": 0,
+      "name": "首页",
+      "title": "首页",
+      "desc": "向下滑动探索吴健雄的故事"
+    },
+    {
+      "id": 1,
+      "name": "序章",
+      "title": "序章",
+      "desc": "生命的序幕",
+      "icon": "🌅"
+    },
+    {
+      "id": 2,
+      "name": "生平履历",
+      "title": "生平履历",
+      "desc": "科学人生的轨迹",
+      "icon": "📖"
+    },
+    {
+      "id": 3,
+      "name": "治学风骨",
+      "title": "治学风骨",
+      "desc": "学者的精神风范",
+      "icon": "✍️"
+    },
+    {
+      "id": 4,
+      "name": "科研丰碑",
+      "title": "科研丰碑",
+      "desc": "实验验证宇称不守恒",
+      "icon": "🔬"
+    },
+    {
+      "id": 5,
+      "name": "尾声",
+      "title": "尾声",
+      "desc": "科学精神的永恒传承",
+      "icon": "👑"
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "name": "序章开启",
+      "color": "#64c8ff",
+      "section": 1
+    },
+    {
+      "id": 2,
+      "name": "童年往事",
+      "color": "#c9a96e",
+      "section": 1
+    },
+    {
+      "id": 3,
+      "name": "求学之路",
+      "color": "#ff69b4",
+      "section": 2
+    },
+    {
+      "id": 4,
+      "name": "浙大岁月",
+      "color": "#ffd700",
+      "section": 2
+    },
+    {
+      "id": 5,
+      "name": "赴美留学",
+      "color": "#00ff00",
+      "section": 2
+    },
+    {
+      "id": 6,
+      "name": "宇称不守恒",
+      "color": "#ff6347",
+      "section": 4
+    },
+    {
+      "id": 7,
+      "name": "诺宝尔之光",
+      "color": "#9370db",
+      "section": 4
+    },
+    {
+      "id": 8,
+      "name": "伟大遗产",
+      "color": "#20b2aa",
+      "section": 5
+    }
+  ],
+  "badges": [
+    {
+      "id": 1,
+      "icon": "🌟",
+      "name": "序章探索",
+      "desc": "完成序章故事",
+      "section": 1
+    },
+    {
+      "id": 2,
+      "icon": "📖",
+      "name": "生平完成",
+      "desc": "阅读完整生平履历",
+      "section": 2
+    },
+    {
+      "id": 3,
+      "icon": "✍️",
+      "name": "治学达人",
+      "desc": "学习治学风骨",
+      "section": 3
+    },
+    {
+      "id": 4,
+      "icon": "🔬",
+      "name": "科研专家",
+      "desc": "掌握科研丰碑",
+      "section": 4
+    },
+    {
+      "id": 5,
+      "icon": "👑",
+      "name": "知识王者",
+      "desc": "观看全部故事",
+      "condition": "all"
+    },
+    {
+      "id": 6,
+      "icon": "🎖️",
+      "name": "尾声见证",
+      "desc": "完成全部内容",
+      "section": 5
+    }
+  ]
+}

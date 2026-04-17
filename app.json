@@ -1,7 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/exhibit/exhibit"
+    "pages/exhibit/exhibit",
+    "pages/story/story"
   ],
   "window": {
     "navigationBarTitleText": "追光健雄",

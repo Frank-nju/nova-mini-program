@@ -1,30 +1,31 @@
 <view class="page">
-  <view class="glow glow-1"></view>
-  <view class="glow glow-2"></view>
-
-  <view class="hero">
-    <text class="kicker">云端数字展馆</text>
-    <text class="title">追光健雄</text>
-    <text class="name">吴健雄 · CHIEN-SHIUNG WU</text>
-    <text class="years">1912 — 1997</text>
+  <!-- 背景粒子效果 -->
+  <view class="background-particles">
+    <view class="particle" wx:for="{{60}}" wx:key="index"></view>
   </view>
 
-  <view class="quote">
-    <text class="quote-line">「科学没有国界，但科学家有祖国。」</text>
+  <!-- 深空背景 -->
+  <view class="deep-space"></view>
+
+  <!-- 中心内容区 -->
+  <view class="center-content">
+    <view class="title-section">
+      <text class="main-title">追光</text>
+      <text class="sub-title">吴健雄传</text>
+    </view>
+
+    <view class="description">
+      <text>一位伟大的核物理学家</text>
+      <text>她用严谨改写科学历史</text>
+    </view>
+
+    <button class="btn-start" bindtap="goExhibit">
+      <text>进入展馆</text>
+    </button>
   </view>
 
-  <view class="desc">
-    <text class="desc-text">核物理学先驱，实验验证宇称不守恒。在此以卷轴与互动展陈，走近她的生平、风骨与科研丰碑。</text>
-  </view>
-
-  <button class="btn-primary" bindtap="goExhibit">进入云端展馆</button>
-
-  <view wx:if="{{!hasWebview}}" class="tip">
-    <text class="tip-title">提示</text>
-    <text class="tip-text">完整互动页需部署静态站并填写 utils/config.js 中的 WEBVIEW_URL；未配置时进入展馆会看到配置说明。</text>
-  </view>
-
-  <view class="footer">
-    <text>弘扬科学家精神 · 沉浸式学习体验</text>
+  <!-- 底部署名 -->
+  <view class="footer-text">
+    <text>云端数字展馆</text>
   </view>
 </view>
