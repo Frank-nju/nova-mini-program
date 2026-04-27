@@ -1,0 +1,518 @@
+.story-container {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, rgba(10, 10, 15, 1) 0%, rgba(15, 20, 35, 0.9) 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: story-entrance 0.6s ease-out;
+}
+
+@keyframes story-entrance {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+/* 粒子背景 */
+.particles-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes particle-float {
+  0% {
+    transform: translateY(100vh) translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(100px) scale(0.5);
+    opacity: 0;
+  }
+}
+
+.particle {
+  position: absolute;
+  width: 3rpx;
+  height: 3rpx;
+  background: rgba(100, 200, 255, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 6rpx rgba(100, 200, 255, 0.4);
+  animation: particle-float 10s linear infinite;
+  left: calc(10% + 50rpx * var(--i));
+}
+
+.particle:nth-child(odd) {
+  background: rgba(201, 169, 110, 0.4);
+  box-shadow: 0 0 8rpx rgba(201, 169, 110, 0.3);
+}
+
+/* 顶部导航 */
+.story-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 88rpx;
+  background: rgba(10, 10, 15, 0.95);
+  border-bottom: 1rpx solid rgba(100, 200, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32rpx;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 30rpx rgba(100, 200, 255, 0.1);
+}
+
+.btn-back {
+  color: #64c8ff;
+  font-size: 28rpx;
+  font-weight: 600;
+  min-width: 80rpx;
+  transition: all 0.3s ease;
+}
+
+.btn-back:active {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
+.story-name {
+  flex: 1;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #f0ede6;
+  text-shadow: 0 0 20rpx rgba(100, 200, 255, 0.2);
+}
+
+.story-progress {
+  font-size: 24rpx;
+  color: #c9a96e;
+  min-width: 80rpx;
+  text-align: right;
+}
+
+/* 故事内容 */
+.story-content {
+  flex: 1;
+  padding: 128rpx 32rpx 180rpx;
+  position: relative;
+  z-index: 10;
+}
+
+.story-card {
+  background: rgba(30, 30, 50, 0.8);
+  border: 1rpx solid rgba(100, 200, 255, 0.3);
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx;
+  box-shadow: 0 0 40rpx rgba(100, 200, 255, 0.1), inset 0 0 40rpx rgba(100, 200, 255, 0.02);
+  backdrop-filter: blur(20px);
+  animation: card-fade-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes card-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.story-card-title {
+  margin-bottom: 32rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 2rpx solid rgba(100, 200, 255, 0.3);
+}
+
+.story-card-title text {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #f0ede6;
+  text-shadow: 0 0 20rpx rgba(100, 200, 255, 0.2);
+}
+
+.story-text {
+  margin-bottom: 32rpx;
+  line-height: 1.85;
+}
+
+.story-text text {
+  font-size: 28rpx;
+  color: #d8d8e8;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.story-image {
+  margin: 32rpx 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  border: 1rpx solid rgba(100, 200, 255, 0.3);
+}
+
+.story-image image {
+  width: 100%;
+  height: auto;
+}
+
+.story-timeline {
+  margin-top: 32rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid rgba(100, 200, 255, 0.2);
+  display: flex;
+  gap: 24rpx;
+  align-items: center;
+}
+
+.timeline-year {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #c9a96e;
+  min-width: 80rpx;
+}
+
+.timeline-event {
+  font-size: 26rpx;
+  color: #64c8ff;
+}
+
+/* 底部操作按钮 */
+.story-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120rpx;
+  background: rgba(10, 10, 15, 0.95);
+  border-top: 1rpx solid rgba(100, 200, 255, 0.2);
+  display: flex;
+  gap: 16rpx;
+  padding: 16rpx 32rpx;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+}
+
+.btn-story {
+  flex: 1;
+  height: 80rpx;
+  background: linear-gradient(135deg, #64c8ff 0%, #4a88c8 100%);
+  border: 1rpx solid rgba(100, 200, 255, 0.6);
+  border-radius: 16rpx;
+  color: #0a0a0f;
+  font-size: 24rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20rpx rgba(100, 200, 255, 0.2);
+}
+
+.btn-story::after {
+  border: none;
+}
+
+.btn-story:active {
+  transform: scale(0.95);
+  box-shadow: 0 0 40rpx rgba(100, 200, 255, 0.4);
+}
+
+.btn-story[disabled] {
+  opacity: 0.3;
+}
+
+.btn-prev {
+  background: linear-gradient(135deg, #8b7db8 0%, #5a4a88 100%);
+  color: #e8d5a8;
+}
+
+.btn-complete {
+  background: linear-gradient(135deg, #20b2aa 0%, #138d88 100%);
+}
+
+.btn-next {
+  background: linear-gradient(135deg, #64c8ff 0%, #4a88c8 100%);
+}
+
+/* 完成动画 */
+.complete-animation {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 400;
+  animation: complete-pop 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes complete-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(1);
+  }
+}
+
+.complete-text {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #64c8ff;
+  text-shadow: 0 0 30rpx rgba(100, 200, 255, 0.6);
+  white-space: nowrap;
+}
+
+/* ========== 赛博古风场景背景 ========== */
+
+/* 序章 - 西学求索（蓝调书房） */
+.story-container[data-section="1"] {
+  background: linear-gradient(135deg, rgba(10, 20, 40, 0.95) 0%, rgba(15, 25, 45, 0.9) 100%);
+}
+
+.story-container[data-section="1"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 20% 30%, rgba(100, 150, 180, 0.08), transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(100, 200, 255, 0.06), transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 生平履历 - 孤行远方（实验室风） */
+.story-container[data-section="2"] {
+  background: linear-gradient(135deg, rgba(10, 20, 30, 0.95) 0%, rgba(15, 25, 35, 0.9) 100%);
+}
+
+.story-container[data-section="2"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    repeating-linear-gradient(0deg, rgba(100, 200, 255, 0.02), rgba(100, 200, 255, 0.02) 50rpx, transparent 50rpx, transparent 100rpx),
+    radial-gradient(ellipse at 70% 40%, rgba(100, 200, 255, 0.08), transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 治学风骨 - 严谨之光（灯光书房） */
+.story-container[data-section="3"] {
+  background: linear-gradient(135deg, rgba(20, 15, 10, 0.95) 0%, rgba(15, 12, 8, 0.9) 100%);
+}
+
+.story-container[data-section="3"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 30% 40%, rgba(240, 200, 100, 0.08), transparent 50%),
+    radial-gradient(ellipse at 70% 70%, rgba(100, 150, 180, 0.05), transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 科研丰碑 - 宇称不守恒（冷漠实验室） */
+.story-container[data-section="4"] {
+  background: linear-gradient(135deg, rgba(10, 25, 35, 0.95) 0%, rgba(15, 20, 35, 0.9) 100%);
+}
+
+.story-container[data-section="4"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 50% 50%, rgba(100, 200, 255, 0.1), transparent 70%),
+    repeating-linear-gradient(90deg, transparent, transparent 80rpx, rgba(100, 200, 255, 0.03) 80rpx, rgba(100, 200, 255, 0.03) 160rpx);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 尾声 - 荣耀归来（日落窗景） */
+.story-container[data-section="5"] {
+  background: linear-gradient(135deg, rgba(25, 15, 10, 0.95) 0%, rgba(20, 10, 5, 0.9) 100%);
+}
+
+.story-container[data-section="5"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(ellipse at 80% 20%, rgba(255, 180, 80, 0.1), transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(100, 150, 180, 0.06), transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 强化文本发光效果 */
+.story-card-title text {
+  animation: title-glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes title-glow-pulse {
+  0%, 100% {
+    text-shadow: 0 0 20rpx rgba(100, 200, 255, 0.2);
+  }
+  50% {
+    text-shadow: 0 0 40rpx rgba(100, 200, 255, 0.4);
+  }
+}
+
+/* 增强故事卡片效果 */
+.story-card {
+  animation: card-glow-breathe infinite 3s ease-in-out;
+}
+
+@keyframes card-glow-breathe {
+  0%, 100% {
+    box-shadow: 0 0 40rpx rgba(100, 200, 255, 0.1), inset 0 0 40rpx rgba(100, 200, 255, 0.02);
+  }
+  50% {
+    box-shadow: 0 0 60rpx rgba(100, 200, 255, 0.2), inset 0 0 50rpx rgba(100, 200, 255, 0.04);
+  }
+}
+
+/* 神秘粒子效果装饰 */
+.story-mystical-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.particle-mystical {
+  position: absolute;
+  width: 2rpx;
+  height: 2rpx;
+  background: rgba(100, 200, 255, 0.6);
+  border-radius: 50%;
+  box-shadow: 0 0 4rpx rgba(100, 200, 255, 0.4);
+  animation: mystical-drift 6s ease-in-out infinite;
+}
+
+@keyframes mystical-drift {
+  0% {
+    transform: translate(0, 100vh);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(50rpx, -100vh);
+    opacity: 0;
+  }
+}
+
+/* 不同section的粒子颜色 */
+.story-container[data-section="3"] .particle-mystical {
+  background: rgba(240, 200, 100, 0.5);
+  box-shadow: 0 0 4rpx rgba(240, 200, 100, 0.3);
+}
+
+.story-container[data-section="5"] .particle-mystical {
+  background: rgba(255, 180, 80, 0.5);
+  box-shadow: 0 0 4rpx rgba(255, 180, 80, 0.3);
+}
+
+/* 增强文本可读性 */
+.story-text text {
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.3);
+}
+
+/* 时间线增强 */
+.story-timeline {
+  animation: timeline-glow 2s ease-in-out infinite;
+}
+
+@keyframes timeline-glow {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 按钮增强发光 */
+.btn-story {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-story:active {
+  transform: scale(0.94);
+  box-shadow: 0 0 60rpx rgba(100, 200, 255, 0.5);
+}
+
+.btn-story[disabled]:active {
+  transform: scale(1);
+}
+
+/* 完成动画增强 */
+@keyframes complete-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.3) rotate(10deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(1) rotate(0deg);
+  }
+}
+
+/* 覆盖原来的动画 */
+.complete-animation {
+  animation: complete-burst 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+

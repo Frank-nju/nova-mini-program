@@ -1,0 +1,57 @@
+<view class="story-container" data-section="{{section}}">
+  <!-- 背景粒子 -->
+  <view class="particles-bg">
+    <view class="particle" wx:for="{{30}}" wx:key="index"></view>
+  </view>
+
+  <!-- 顶部导航 -->
+  <view class="story-header">
+    <view class="btn-back" bindtap="goBack">← 返回</view>
+    <text class="story-name">{{storyTitle}}</text>
+    <view class="story-progress">{{currentStoryIndex + 1}} / {{totalStories}}</view>
+  </view>
+
+  <!-- 故事内容区域 -->
+  <scroll-view class="story-content" scroll-y="true">
+    <view class="story-card">
+      <!-- 故事标题 -->
+      <view class="story-card-title">
+        <text>{{currentStory.title}}</text>
+      </view>
+
+      <!-- 故事正文 -->
+      <view class="story-text">
+        <text>{{currentStory.content}}</text>
+      </view>
+
+      <!-- 故事图片（如果有） -->
+      <view wx:if="{{currentStory.image}}" class="story-image">
+        <image src="{{currentStory.image}}" mode="aspectFit"></image>
+      </view>
+
+      <!-- 故事时间线 -->
+      <view class="story-timeline">
+        <text class="timeline-year">{{currentStory.year}}</text>
+        <text class="timeline-event">{{currentStory.event}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部操作按钮 -->
+  <view class="story-footer">
+    <button class="btn-story btn-prev" bindtap="prevStory" disabled="{{currentStoryIndex === 0}}">
+      <text>← 上一个</text>
+    </button>
+    <button class="btn-story btn-complete" bindtap="markStoryComplete">
+      <text>✓ 已读</text>
+    </button>
+    <button class="btn-story btn-next" bindtap="nextStory" disabled="{{currentStoryIndex === totalStories - 1}}">
+      <text>下一个 →</text>
+    </button>
+  </view>
+
+  <!-- 故事完成动画 -->
+  <view wx:if="{{showCompleteAnimation}}" class="complete-animation">
+    <view class="complete-text">✨ 故事已读！云图已点亮 ✨</view>
+  </view>
+</view>

@@ -1,0 +1,82 @@
+<view class="page">
+  <!-- 顶部标题栏 -->
+  <view class="header">
+    <view class="btn-back" bindtap="goBack">
+      <text>← 返回</text>
+    </view>
+    <text class="header-title">对话吴健雄</text>
+    <view class="header-placeholder"></view>
+  </view>
+
+  <!-- 聊天消息列表 -->
+  <scroll-view class="chat-container" scroll-y scroll-into-view="{{scrollToView}}" scroll-with-animation>
+    <!-- 欢迎消息 -->
+    <view class="msg msg-ai">
+      <view class="msg-avatar">🧪</view>
+      <view class="msg-content">
+        <view class="msg-label">吴健雄</view>
+        <text class="msg-text">欢迎来到追光健雄云端数字展馆。我是吴健雄，很高兴能与你对话。你可以问我关于我的求学经历、科研探索、人生感悟等任何话题。</text>
+      </view>
+    </view>
+
+    <!-- 聊天消息列表 -->
+    <view wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
+      <!-- 用户消息 -->
+      <view wx:if="{{item.type === 'user'}}" class="msg msg-user">
+        <view class="msg-content">
+          <text class="msg-text">{{item.text}}</text>
+        </view>
+      </view>
+
+      <!-- AI 消息 -->
+      <view wx:if="{{item.type === 'ai'}}" class="msg msg-ai">
+        <view class="msg-avatar">🧪</view>
+        <view class="msg-content">
+          <view class="msg-label">吴健雄</view>
+          <text class="msg-text">{{item.text}}</text>
+          <!-- 加载中状态 -->
+          <view wx:if="{{item.loading}}" class="typing-indicator">
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+            <view class="typing-dot"></view>
+          </view>
+          <!-- 检索信息 -->
+          <view wx:if="{{item.retrieval && item.retrieval.length > 0}}" class="retrieval-info">
+            <text>检索 {{item.retrieval.length}} 条相关段落</text>
+          </view>
+          <!-- 语音播放按钮 -->
+          <view wx:if="{{item.status === 'done' && !item.audioPlaying}}" class="audio-btn" bindtap="playAudio" data-taskid="{{item.taskId}}">
+            <text>🎤 播放语音</text>
+          </view>
+          <view wx:if="{{item.audioPlaying}}" class="audio-btn playing" bindtap="stopAudio">
+            <text>⏸ 停止播放</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 滚动锚点 -->
+    <view id="scroll-bottom" class="scroll-anchor"></view>
+  </scroll-view>
+
+  <!-- 预设问题 -->
+  <view wx:if="{{presetQuestions.length > 0}}" class="presets-container">
+    <scroll-view scroll-x class="presets-scroll">
+      <view class="presets-list">
+        <view wx:for="{{presetQuestions}}" wx:key="id" class="preset-btn" bindtap="sendPreset" data-question="{{item.question}}">
+          <text>{{item.question}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 输入区域 -->
+  <view class="input-area">
+    <view class="input-row">
+      <input class="input-field" value="{{inputValue}}" bindinput="onInput" bindconfirm="sendMessage" placeholder="输入您想问的问题..." confirm-type="send" disabled="{{sending}}" />
+      <view class="send-btn {{sending ? 'disabled' : ''}}" bindtap="sendMessage">
+        <text>发送</text>
+      </view>
+    </view>
+  </view>
+</view>
