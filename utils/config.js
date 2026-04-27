@@ -8,6 +8,10 @@
  */
 const WEBVIEW_URL = 'https://cloud1-0g0wg0plf9fb9ed2-1421412578.tcloudbaseapp.com/index.html';
 
+// 数字人网关地址（本地开发用 localhost，生产环境需要替换为实际域名）
+const DIGITAL_HUMAN_GATEWAY = 'http://localhost:8000';
+
 module.exports = {
   webviewUrl: WEBVIEW_URL,
+  digitalHumanGateway: DIGITAL_HUMAN_GATEWAY,
 };

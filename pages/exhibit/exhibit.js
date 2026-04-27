@@ -353,12 +353,17 @@ Page({
     });
   },
 
-  // 切换数字人面板
+  // 切换数字人面板 - 导航到数字人页面
   toggleAI() {
-    this.setData({
-      showAIPanel: !this.data.showAIPanel,
-      showCloudPanel: false,
-      showBadgePanel: false,
+    wx.navigateTo({
+      url: '/pages/digital-human/digital-human',
+      fail: () => {
+        wx.showToast({
+          title: '页面加载失败',
+          icon: 'error',
+          duration: 2000,
+        });
+      }
     });
   },
 
