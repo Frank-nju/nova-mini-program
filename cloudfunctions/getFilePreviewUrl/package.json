@@ -1,0 +1,9 @@
+{
+  "name": "getFilePreviewUrl",
+  "version": "1.0.0",
+  "description": "根据 fileID 获取临时预览链接（有效期 2 小时）",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
