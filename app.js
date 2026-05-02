@@ -1,3 +1,10 @@
 App({
-  onLaunch() {},
-});
+  onLaunch: function () {
+    // 初始化云开发
+    wx.cloud.init({
+      env: 'cloud1-0g0wg0plf9fb9ed2', 
+      traceUser: true
+    })
+    console.log('小程序启动，云开发已初始化')
+  }
+})
