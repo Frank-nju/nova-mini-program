@@ -1,5 +1,5 @@
 {
-  "name": "getUser",
+  "name": "updateProgress",
   "version": "1.0.0",
   "description": "获取徽章和云图进度",
   "main": "index.js",
