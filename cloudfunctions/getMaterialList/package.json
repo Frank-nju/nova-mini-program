@@ -1,0 +1,9 @@
+{
+  "name": "getMaterialList",
+  "version": "1.0.0",
+  "description": "分页查询 materials 集合，返回文件列表",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
