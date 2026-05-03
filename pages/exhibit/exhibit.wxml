@@ -15,7 +15,7 @@
     
     <!-- 第一部分：首页 -->
     <view class="section section-1" id="section-0">
-      <view class="section-bg section-bg-1"></view>
+      <view class="section-bg section-bg-1" style="{{activeStates[0] ? 'opacity: 1' : 'opacity: 0'}}"></view>
       <view class="particles-section">
         <view class="particle-dot" wx:for="{{20}}" wx:key="index"></view>
       </view>
@@ -28,7 +28,7 @@
     <!-- 第二部分：序章 · 西学求索 -->
     <view class="section section-2" id="section-1">
       <!-- 背景图片 -->
-      <image src="/pages/image/序章.jpg" class="section-bg-image"></image>
+      <image src="/pages/image/序章.jpg" class="section-bg-image {{activeStates[1] ? 'active' : ''}}"></image>
       
       <!-- 卷轴叠加层 - 位置在图片下方中央，卷轴在左手 -->
       <view class="scroll-overlay scroll-overlay-1" bindtap="enterStory" data-section="1">
@@ -46,7 +46,7 @@
     <!-- 第三部分：生平履历 · 孤行远方 -->
     <view class="section section-3" id="section-2">
       <!-- 背景图片 -->
-      <image src="/pages/image/生平履历.jpg" class="section-bg-image"></image>
+      <image src="/pages/image/生平履历.jpg" class="section-bg-image {{activeStates[2] ? 'active' : ''}}"></image>
       
       <!-- 卷轴叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-2" bindtap="enterStory" data-section="2">
@@ -64,7 +64,7 @@
     <!-- 第四部分：治学风骨 · 严谨之光 -->
     <view class="section section-4" id="section-3">
       <!-- 背景图片 -->
-      <image src="/pages/image/治学风骨.jpg" class="section-bg-image"></image>
+      <image src="/pages/image/治学风骨.jpg" class="section-bg-image {{activeStates[3] ? 'active' : ''}}"></image>
       
       <!-- 卷轴叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-3" bindtap="enterStory" data-section="3">
@@ -82,7 +82,7 @@
     <!-- 第五部分：科研丰碑 · 宇称不守恒 -->
     <view class="section section-5" id="section-4">
       <!-- 背景图片 -->
-      <image src="/pages/image/科研丰碑.jpg" class="section-bg-image"></image>
+      <image src="/pages/image/科研丰碑.jpg" class="section-bg-image {{activeStates[4] ? 'active' : ''}}"></image>
       
       <!-- 卷轴叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-4" bindtap="enterStory" data-section="4">
@@ -100,7 +100,7 @@
     <!-- 第六部分：尾声 · 荣耀归来 -->
     <view class="section section-6" id="section-5">
       <!-- 背景图片 -->
-      <image src="/pages/image/尾声.jpg" class="section-bg-image"></image>
+      <image src="/pages/image/尾声.jpg" class="section-bg-image {{activeStates[5] ? 'active' : ''}}"></image>
       
       <!-- 卷轴叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-5" bindtap="enterStory" data-section="5">
@@ -134,34 +134,13 @@
     </view>
   </view>
 
-  <!-- 事件云图面板 -->
-  <view wx:if="{{showCloudPanel}}" class="panel clouds-panel">
-    <view class="panel-header">
-      <text class="panel-title">事件云图</text>
-      <view class="close-btn" bindtap="toggleClouds">✕</view>
-    </view>
-    <!-- 云图网络图谱 -->
-    <view class="cloud-map-container">
-      <canvas id="cloudMapCanvas" class="cloud-canvas" bindtap="onCanvasTap"></canvas>
-      <view wx:if="{{selectedCloud}}" class="cloud-info-box">
-        <view class="cloud-info-header">
-          <text class="cloud-info-title">{{selectedCloud.name}}</text>
-          <view class="cloud-info-status">
-            <view class="status-dot" style="background: {{selectedCloud.unlocked ? selectedCloud.color : '#666'}}"></view>
-            <text>{{selectedCloud.unlocked ? '已解锁' : '未解锁'}}</text>
-          </view>
-        </view>
-        <text class="cloud-info-desc">点击解锁更多故事</text>
-      </view>
-      <view class="cloud-legend">
-        <view class="legend-item">
-          <view class="legend-dot" style="background: #64c8ff;"></view>
-          <text>已解锁</text>
-        </view>
-        <view class="legend-item">
-          <view class="legend-dot" style="background: #444;"></view>
-          <text>未解锁</text>
-        </view>
+  <!-- 徽章弹出通知 -->
+  <view wx:if="{{badgeNotification}}" class="badge-notification" style="animation: badge-popup 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards">
+    <view class="notification-content">
+      <view class="notification-icon">🏆</view>
+      <view class="notification-text">
+        <view class="notification-title">成就解锁</view>
+        <view class="notification-name">{{badgeNotification.name}}</view>
       </view>
     </view>
   </view>

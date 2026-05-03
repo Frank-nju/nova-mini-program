@@ -2,7 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/exhibit/exhibit",
-    "pages/story/story"
+    "pages/story/story",
+    "pages/cloud/cloud"
   ],
   "window": {
     "navigationBarTitleText": "追光健雄",

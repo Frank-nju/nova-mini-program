@@ -1,0 +1,43 @@
+<view class="cloudmap-container">
+  <!-- 顶部导航栏 -->
+  <view class="cloudmap-header">
+    <view class="header-left" bindtap="goBack">← 返回</view>
+    <view class="header-title">事件云图</view>
+    <view class="header-right"></view>
+  </view>
+
+  <!-- Canvas绘制的星空云图 -->
+  <canvas 
+    id="cloudCanvas" 
+    type="2d"
+    class="cloud-canvas"
+    bindtap="onCanvasTap"
+    style="width: 100%; height: {{canvasHeight}}px;">
+  </canvas>
+
+  <!-- 图例 -->
+  <view class="cloud-legend">
+    <view class="legend-item">
+      <view class="legend-dot unlocked"></view>
+      <text>已阅读</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot locked"></view>
+      <text>未阅读</text>
+    </view>
+  </view>
+
+  <!-- 事件详情浮窗 -->
+  <view wx:if="{{selectedEvent}}" class="event-detail-popup" animation="{{detailAnimation}}">
+    <view class="popup-content">
+      <view class="popup-title">{{selectedEvent.name}}</view>
+      <view class="popup-section">第 {{selectedEvent.section}} 章</view>
+      <view class="popup-status">
+        <view class="status-badge" style="background: {{selectedEvent.color}}">
+          {{selectedEvent.unlocked ? '✓ 已读' : '○ 未读'}}
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+

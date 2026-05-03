@@ -53,6 +53,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 /* === 背景图片 === */
@@ -66,6 +67,48 @@
   height: 100%;
   object-fit: cover;
   z-index: 0;
+  opacity: 0;
+  transform: scale(1.1);
+  transition: all 1.8s ease-out;
+}
+
+/* 激活状态：图片淡入并缩放回正常大小 */
+.section-bg-image.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Reveal Animation - 参考HTML参考设计 */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.15s; }
+.reveal-delay-2 { transition-delay: 0.3s; }
+.reveal-delay-3 { transition-delay: 0.45s; }
+.reveal-delay-4 { transition-delay: 0.6s; }
+
+/* 徽章弹出动画 */
+@keyframes badge-popup {
+  0% {
+    opacity: 0;
+    transform: scale(0) translateY(-100px) rotateZ(-45deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) translateY(0) rotateZ(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotateZ(0deg);
+  }
 }
 
 /* === 卷轴叠加层 === */
@@ -1160,6 +1203,53 @@
   }
 }
 
+/* === 徽章弹出通知样式 === */
+.badge-notification {
+  position: fixed;
+  top: 150rpx;
+  left: 50%;
+  z-index: 1000;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 32rpx 40rpx;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.95) 0%, rgba(218, 165, 32, 0.9) 100%);
+  border-radius: 20rpx;
+  border: 2rpx solid rgba(255, 215, 0, 1);
+  box-shadow: 0 0 40rpx rgba(255, 215, 0, 0.6), 0 20rpx 60rpx rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(20px);
+}
+
+.notification-icon {
+  font-size: 48rpx;
+  line-height: 48rpx;
+}
+
+.notification-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.notification-title {
+  font-size: 20rpx;
+  color: rgba(10, 10, 15, 0.8);
+  font-weight: 500;
+  letter-spacing: 0.5rpx;
+}
+
+.notification-name {
+  font-size: 28rpx;
+  color: #0a0a0f;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
 /* === 面板样式 === */
 .panel {
   position: fixed;
@@ -1224,6 +1314,10 @@
 /* === 云图面板 === */
 .clouds-panel {
   bottom: 0;
+}
+
+.clouds-panel[hidden] {
+  display: none !important;
 }
 
 .cloud-map-container {

@@ -1,0 +1,68 @@
+<view class="cloud-map-page">
+  <!-- 自定义顶部导航栏 -->
+  <view class="nav-bar">
+    <view class="nav-left" bindtap="goBack">
+      <text>← 返回</text>
+    </view>
+    <view class="nav-title">星空知识图谱</view>
+    <view class="nav-right"></view>
+  </view>
+
+  <!-- Canvas 绘图容器 -->
+  <view class="canvas-container">
+    <canvas 
+      id="starMap" 
+      type="2d" 
+      class="star-canvas"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd">
+    </canvas>
+
+    <!-- 节点信息面板 -->
+    <view 
+      class="node-info-panel" 
+      wx:if="{{selectedNode}}" 
+      style="left: {{selectedNode.screenX}}px; top: {{selectedNode.screenY}}px;">
+      <view class="info-content">
+        <view class="info-title">{{selectedNode.name}}</view>
+        <view class="info-status">
+          <view 
+            class="status-indicator {{selectedNode.unlocked ? 'unlocked' : 'locked'}}"
+            style="background-color: {{selectedNode.color}};"></view>
+          <text>{{selectedNode.unlocked ? '已解锁' : '未解锁'}}</text>
+        </view>
+        <view wx:if="{{selectedNode.unlocked}}" class="info-action">
+          <button class="btn-enter" bindtap="enterStory" data-id="{{selectedNode.id}}">
+            进入故事
+          </button>
+        </view>
+        <view wx:else class="info-locked">
+          <text>通过阅读该篇章解锁此故事</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部图例 -->
+  <view class="legend-bar">
+    <view class="legend-item">
+      <view class="legend-dot unlocked"></view>
+      <text>已解锁</text>
+    </view>
+    <view class="legend-item">
+      <view class="legend-dot locked"></view>
+      <text>未解锁</text>
+    </view>
+    <view class="legend-item">
+      <text class="zoom-tip">双指缩放 • 拖拽移动</text>
+    </view>
+  </view>
+
+  <!-- 右侧浮窗（返回按钮、放大/缩小） -->
+  <view class="floating-controls">
+    <view class="float-btn zoom-in" bindtap="zoomIn">+</view>
+    <view class="float-btn zoom-out" bindtap="zoomOut">−</view>
+    <view class="float-btn reset" bindtap="resetView">⊙</view>
+  </view>
+</view>
