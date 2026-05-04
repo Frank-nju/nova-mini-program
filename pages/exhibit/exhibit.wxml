@@ -225,6 +225,9 @@
       <text>★</text>
       <view wx:if="{{newBadges}}" class="badge-dot"></view>
     </view>
+    <view class="float-btn btn-materials" bindtap="toggleMaterials" title="素材展示">
+      <text>📁</text>
+    </view>
     <view class="float-btn btn-ai" bindtap="toggleAI" title="数字人">
       <text>🤖</text>
     </view>
@@ -315,6 +318,78 @@
         </view>
       </view>
     </view>
+  </view>
+
+  <!-- 素材展示面板 -->
+  <view wx:if="{{showMaterialsPanel}}" class="panel materials-panel">
+    <view class="panel-header">
+      <text class="panel-title">素材资源</text>
+      <view class="close-btn" bindtap="toggleMaterials">✕</view>
+    </view>
+
+    <!-- 分类标签栏 -->
+    <view class="material-tabs">
+      <view class="material-tab {{materialTab === 'all' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="all">
+        <text>全部</text>
+      </view>
+      <view class="material-tab {{materialTab === 'image' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="image">
+        <text>图片</text>
+      </view>
+      <view class="material-tab {{materialTab === 'video' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="video">
+        <text>视频</text>
+      </view>
+      <view class="material-tab {{materialTab === 'doc' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="doc">
+        <text>文档</text>
+      </view>
+      <view class="material-tab {{materialTab === 'other' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="other">
+        <text>其他</text>
+      </view>
+    </view>
+
+    <!-- 素材列表 -->
+    <scroll-view class="material-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreMaterials">
+      <view wx:if="{{materialsLoading}}" class="material-loading">
+        <text>加载中...</text>
+      </view>
+
+      <view wx:if="{{materialsList.length === 0 && !materialsLoading}}" class="material-empty">
+        <text class="material-empty-icon">📂</text>
+        <text class="material-empty-text">暂无素材资源</text>
+      </view>
+
+      <view class="material-grid">
+        <view wx:for="{{materialsList}}" wx:key="_id" class="material-card" bindtap="previewMaterial" data-item="{{item}}">
+          <!-- 图片 -->
+          <view wx:if="{{item.category === 'image'}}" class="material-thumb material-thumb-image">
+            <image wx:if="{{item.tempFileURL || item.fileID}}" class="material-thumb-img" src="{{item.tempFileURL || item.fileID}}" mode="aspectFill" />
+            <view wx:else class="material-thumb material-thumb-doc">
+              <text class="material-doc-icon">IMG</text>
+            </view>
+          </view>
+          <!-- 视频 -->
+          <view wx:elif="{{item.category === 'video'}}" class="material-thumb material-thumb-video">
+            <text class="material-video-icon">▶</text>
+          </view>
+          <!-- 文档 -->
+          <view wx:elif="{{item.category === 'doc'}}" class="material-thumb material-thumb-doc">
+            <text class="material-doc-icon">{{item.fileExt || 'DOC'}}</text>
+          </view>
+          <!-- 其他 -->
+          <view wx:else class="material-thumb material-thumb-other">
+            <text class="material-other-icon">📄</text>
+          </view>
+
+          <view class="material-info">
+            <text class="material-name">{{item.fileName}}</text>
+            <text class="material-meta">{{item.category}} · {{item.createdAtStr || ''}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{materialsHasMore && materialsList.length > 0}}" class="material-load-more">
+        <text>上滑加载更多</text>
+      </view>
+    </scroll-view>
   </view>
 
   <!-- 知识问答面板 -->

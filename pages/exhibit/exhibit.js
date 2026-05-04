@@ -8,12 +8,19 @@ Page({
     activeStates: [true, false, false, false, false, false, false, false],
     showBadgePanel: false,
     showAIPanel: false,
+    showMaterialsPanel: false,
+    materialsList: [],
+    materialsLoading: false,
+    materialsHasMore: true,
+    materialsPage: 1,
+    materialTab: 'all',
     presetQuestions: cloudUtil.getPresetQuestions(),
     aiMessages: [],
     aiInputValue: '',
     aiChatting: false,
     aiScrollId: '',
     aiMsgCounter: 0,
+    _badge07Granted: false,
     newBadges: false,
     badgeNotification: null,
     eventClouds: [],
@@ -267,6 +274,14 @@ Page({
 
     if (hasChanged) {
       this.setData({ activeStates: newStates });
+      // 首次滚动到第7部分（致敬墙·传承），自动发放 badge_07
+      if (newStates[6] && !this.data._badge07Granted) {
+        this.setData({ _badge07Granted: true });
+        const badge = this.data.badges.find(b => b.id === 'badge_07');
+        if (badge && !badge.unlocked) {
+          this.unlockBadgeByBadge(badge);
+        }
+      }
     }
     this.data.scrollY = scrollTop;
   },
@@ -438,6 +453,37 @@ Page({
     });
   },
 
+  unlockBadgeByBadge(badge) {
+    const badges = this.data.badges.map(item => {
+      if (item.id === badge.id && !item.unlocked) {
+        return { ...item, unlocked: true };
+      }
+      return item;
+    });
+    this.setData({
+      badges,
+      newBadges: true,
+      badgeNotification: badge,
+    });
+
+    this.saveProgressCache(this.data.eventClouds, badges);
+
+    if (this._badgeNotificationTimer) {
+      clearTimeout(this._badgeNotificationTimer);
+    }
+    this._badgeNotificationTimer = setTimeout(() => {
+      this.setData({ badgeNotification: null });
+    }, 3000);
+
+    cloudUtil.grantBadge({ badgeId: badge.id }).then(res => {
+      if (res.code === 0) {
+        console.log('徽章发放成功:', res.data);
+      }
+    }).catch(err => {
+      console.error('徽章发放失败:', err);
+    });
+  },
+
   toggleClouds() {
     wx.navigateTo({
       url: '/subpkg/pages/cloud/cloud',
@@ -560,6 +606,152 @@ Page({
           aiScrollId: `ai-msg-${loadingId}`,
         });
       });
+  },
+
+  toggleMaterials() {
+    const willShow = !this.data.showMaterialsPanel;
+    this.setData({
+      showMaterialsPanel: willShow,
+      showAIPanel: false,
+      showBadgePanel: false,
+      showQuizPanel: false,
+    });
+    if (willShow && this.data.materialsList.length === 0) {
+      this.loadMaterials();
+    }
+  },
+
+  loadMaterials(isRefresh) {
+    if (this.data.materialsLoading || (!this.data.materialsHasMore && !isRefresh)) return;
+
+    const page = isRefresh ? 1 : this.data.materialsPage;
+    const category = this.data.materialTab === 'all' ? '' : this.data.materialTab;
+
+    this.setData({ materialsLoading: true });
+
+    cloudUtil.call('getMaterialList', { category, page, pageSize: 20 }).then(res => {
+      if (!res || res.code !== 0) {
+        this.setData({ materialsLoading: false });
+        return;
+      }
+
+      const list = (res.data.list || []).map(item => {
+        const ext = (item.fileName || '').split('.').pop().toUpperCase();
+        const date = item.createdAt ? new Date(item.createdAt) : null;
+        return {
+          ...item,
+          fileExt: ext,
+          createdAtStr: date ? `${date.getMonth() + 1}/${date.getDate()}` : '',
+        };
+      });
+
+      // 为每个文件获取临时链接
+      const needUrlItems = list.filter(item => item.category === 'image' && !item.tempFileURL);
+      this.setData({
+        materialsList: isRefresh ? list : [...this.data.materialsList, ...list],
+        materialsPage: page + 1,
+        materialsHasMore: list.length >= 20,
+        materialsLoading: false,
+      });
+
+      // 异步获取图片临时链接
+      if (needUrlItems.length > 0) {
+        this.fetchTempUrls(needUrlItems);
+      }
+    }).catch(() => {
+      this.setData({ materialsLoading: false });
+    });
+  },
+
+  fetchTempUrls(items) {
+    // 批量获取临时链接，每次5个
+    const batchSize = 5;
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      const promises = batch.map(item =>
+        cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+          .then(res => ({ index: this.data.materialsList.findIndex(m => m._id === item._id), url: res.data?.tempFileURL }))
+          .catch(() => ({ index: -1, url: null }))
+      );
+      Promise.all(promises).then(results => {
+        const newList = [...this.data.materialsList];
+        for (const r of results) {
+          if (r.index >= 0 && r.url) {
+            newList[r.index] = { ...newList[r.index], tempFileURL: r.url };
+          }
+        }
+        this.setData({ materialsList: newList });
+      });
+    }
+  },
+
+  switchMaterialTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ materialTab: tab, materialsList: [], materialsPage: 1, materialsHasMore: true });
+    this.loadMaterials(true);
+  },
+
+  loadMoreMaterials() {
+    if (!this.data.materialsLoading && this.data.materialsHasMore) {
+      this.loadMaterials();
+    }
+  },
+
+  previewMaterial(e) {
+    const item = e.currentTarget.dataset.item;
+    if (!item || !item.fileID) return;
+
+    if (item.category === 'image') {
+      // 如果有临时链接则预览，没有则先获取
+      if (item.tempFileURL) {
+        wx.previewImage({ urls: [item.tempFileURL] });
+      } else {
+        wx.showLoading({ title: '加载中' });
+        cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+          .then(res => {
+            wx.hideLoading();
+            if (res.data?.tempFileURL) {
+              wx.previewImage({ urls: [res.data.tempFileURL] });
+            }
+          })
+          .catch(() => {
+            wx.hideLoading();
+            wx.showToast({ title: '图片加载失败', icon: 'error' });
+          });
+      }
+    } else if (item.category === 'video') {
+      cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+        .then(res => {
+          if (res.data?.tempFileURL) {
+            wx.navigateToMiniProgram({
+              appId: '',
+              path: `pages/player/index?url=${encodeURIComponent(res.data.tempFileURL)}`,
+            });
+          }
+        });
+    } else if (item.category === 'doc') {
+      wx.showLoading({ title: '加载中' });
+      cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+        .then(res => {
+          wx.hideLoading();
+          if (res.data?.tempFileURL) {
+            wx.downloadFile({
+              url: res.data.tempFileURL,
+              success: (dlRes) => {
+                wx.openDocument({
+                  filePath: dlRes.tempFilePath,
+                  showMenu: true,
+                  fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
+                });
+              },
+            });
+          }
+        })
+        .catch(() => {
+          wx.hideLoading();
+          wx.showToast({ title: '文件加载失败', icon: 'error' });
+        });
+    }
   },
 
   toggleMore() {
