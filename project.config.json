@@ -6,6 +6,14 @@
       {
         "value": "pages/exhibit/web/**",
         "type": "glob"
+      },
+      {
+        "value": "modules/**",
+        "type": "glob"
+      },
+      {
+        "value": "compress-images.js",
+        "type": "glob"
       }
     ],
     "include": []
@@ -41,8 +49,4 @@
   "editorSetting": {},
   "libVersion": "3.15.2",
   "cloudfunctionTemplateRoot": "cloudfunctionTemplate/"
-<<<<<<< Updated upstream
 }
-=======
-}
->>>>>>> Stashed changes

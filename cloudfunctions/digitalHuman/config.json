@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "openapi": []
+  },
+  "envVariables": {
+    "LLM_API_KEY": ""
+  }
+}

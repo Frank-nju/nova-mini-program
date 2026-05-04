@@ -1,3 +1,5 @@
+const cloudUtil = require('../../cloudUtil.js');
+
 Page({
   data: {
     cloudEvents: [],
@@ -45,10 +47,45 @@ Page({
     }
   },
 
-  // 加载云图数据
+  // 加载云图数据（从云端获取）
   loadCloudData() {
+    cloudUtil.getCloudMap().then(res => {
+      if (res.code !== 0 || !res.data) {
+        console.warn('[cloud-map] 云端数据异常，使用兜底数据');
+        this.loadFallbackData();
+        return;
+      }
+      const { nodes, connections } = res.data;
+
+      // 将云端 nodes 转换为页面所需格式
+      const events = nodes.map((node, index) => {
+        const section = Math.floor(index / 6) + 1;
+        return {
+          id: node.nodeId || ('cn_' + index),
+          name: node.name || ('节点' + (index + 1)),
+          section: section,
+          storyIndex: index % 6,
+          x: (node.position && node.position[0]) / 1000 || 0.5,
+          y: (node.position && node.position[1]) / 1000 || 0.5,
+          color: this.getSectionColor(section),
+          unlocked: false,
+          relatedWorks: node.relatedWorks || [],
+          description: node.description || '',
+        };
+      });
+
+      this.setData({ cloudEvents: events }, () => {
+        this.loadUnlockedData();
+      });
+    }).catch(err => {
+      console.error('[cloud-map] 获取云图数据失败:', err);
+      this.loadFallbackData();
+    });
+  },
+
+  // 兜底数据（云端失败时使用）
+  loadFallbackData() {
     try {
-      // 从本地资源加载数据
       const cloudDataJson = require('./cloud-data.json');
       this.setData({
         cloudEvents: cloudDataJson.events || [],
@@ -56,12 +93,15 @@ Page({
         this.loadUnlockedData();
       });
     } catch (e) {
-      console.error('加载云图数据失败:', e);
-      wx.showToast({
-        title: '数据加载失败',
-        icon: 'error',
-      });
+      console.error('[cloud-map] 兜底数据加载失败:', e);
+      this.initCanvas();
     }
+  },
+
+  // 根据章节获取颜色
+  getSectionColor(section) {
+    const colors = ['#64c8ff', '#c9a96e', '#ff69b4', '#ffd700', '#00ff00'];
+    return colors[(section - 1) % colors.length];
   },
 
   // 加载解锁状态
@@ -376,7 +416,7 @@ Page({
     }
 
     wx.navigateTo({
-      url: `/pages/story/story?section=${event.section}&story=${event.storyIndex}`,
+      url: `/subpkg/pages/story/story?section=${event.section}&story=${event.storyIndex}`,
     });
   },
 

@@ -1,3 +1,5 @@
+const cloudUtil = require('../../cloudUtil.js');
+
 Page({
   data: {
     eventClouds: [],
@@ -10,13 +12,13 @@ Page({
 
   onLoad() {
     console.log('cloudmap页面开始加载');
-    
+
     // 获取系统信息
     wx.getSystemInfo({
       success: (res) => {
         this.setData({
           canvasWidth: res.windowWidth,
-          canvasHeight: res.windowHeight - 100, // 减去header高度
+          canvasHeight: res.windowHeight - 100,
         }, () => {
           this.initCanvas();
         });
@@ -26,34 +28,50 @@ Page({
       }
     });
 
-    // 获取exhibit页面的云图数据
-    const pages = getCurrentPages();
-    console.log('当前页面数量:', pages.length);
-    
-    // 查找exhibit页面（向前查找倒数第二个页面）
-    let exhibitPage = null;
-    for (let i = pages.length - 2; i >= 0; i--) {
-      const p = pages[i];
-      console.log('检查页面', i, ':', p.route);
-      if (p.route && (p.route === 'pages/exhibit/exhibit' || p.route.includes('exhibit'))) {
-        exhibitPage = p;
-        break;
-      }
-    }
-    
-    if (exhibitPage && exhibitPage.data && exhibitPage.data.eventClouds && exhibitPage.data.eventClouds.length > 0) {
-      console.log('从exhibit获取到事件数据:', exhibitPage.data.eventClouds.length, '个');
-      this.setData({
-        eventClouds: exhibitPage.data.eventClouds,
-      });
-    } else {
-      console.log('未获取到事件数据，使用示例数据');
-      // 如果没有获取到数据，生成示例数据
-      this.generateSampleEvents();
-    }
+    // 优先从云端获取云图数据
+    this.loadCloudMapData();
 
     // 生成背景星星
     this.generateBackgroundStars();
+  },
+
+  // 从云端加载云图数据
+  loadCloudMapData() {
+    cloudUtil.getCloudMap().then(res => {
+      if (res.code !== 0 || !res.data || !res.data.nodes) {
+        console.warn('[cloudmap] 云端数据异常，使用兜底数据');
+        this.generateSampleEvents();
+        return;
+      }
+      const { nodes } = res.data;
+      const colors = ['#64c8ff', '#c9a96e', '#ff69b4', '#ffd700', '#00ff00'];
+
+      const events = nodes.map((node, index) => {
+        const section = Math.floor(index / 6) + 1;
+        const pos = node.position || [500, 500];
+        return {
+          id: index + 1,
+          nodeId: node.nodeId,
+          name: node.name || ('节点' + (index + 1)),
+          section: section,
+          storyIndex: index % 6,
+          unlocked: false,
+          color: colors[(section - 1) % colors.length],
+          x: pos[0] / 1000,
+          y: pos[1] / 1000,
+          vx: (Math.random() - 0.5) * 0.001,
+          vy: (Math.random() - 0.5) * 0.001,
+          relatedWorks: node.relatedWorks || [],
+          description: node.description || '',
+        };
+      });
+
+      this.setData({ eventClouds: events });
+      console.log('[cloudmap] 云端数据加载成功, 节点数:', events.length);
+    }).catch(err => {
+      console.error('[cloudmap] 获取云图数据失败:', err);
+      this.generateSampleEvents();
+    });
   },
 
   // 初始化canvas
@@ -73,7 +91,7 @@ Page({
             this.canvas.width = res[0].width * dpr;
             this.canvas.height = res[0].height * dpr;
             this.ctx.scale(dpr, dpr);
-            
+
             console.log('canvas初始化成功，开始动画');
             this.startAnimation();
           } catch (e) {
@@ -93,11 +111,11 @@ Page({
       });
   },
 
-  // 生成示例事件数据
+  // 生成示例事件数据（兜底）
   generateSampleEvents() {
     const events = [];
     const colors = ['#64c8ff', '#c9a96e', '#ff69b4', '#ffd700', '#00ff00'];
-    
+
     for (let i = 1; i <= 30; i++) {
       const angle = (i / 30) * Math.PI * 2;
       const radius = 100 + Math.random() * 100;
@@ -114,7 +132,7 @@ Page({
         vy: (Math.random() - 0.5) * 0.001,
       });
     }
-    
+
     this.setData({ eventClouds: events });
   },
 
@@ -161,7 +179,7 @@ Page({
       const dx = centerX - event.x;
       const dy = centerY - event.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      
+
       if (dist > 0.3) {
         event.vx += dx * 0.00002;
         event.vy += dy * 0.00002;
@@ -169,7 +187,7 @@ Page({
 
       // 阻尼
       event.vx *= 0.998;
-      event.vy *= 0.998;
+      event.vy *= 0.098;
     });
   },
 
@@ -203,12 +221,12 @@ Page({
       for (let j = i + 1; j < eventClouds.length; j++) {
         const event1 = eventClouds[i];
         const event2 = eventClouds[j];
-        
+
         const x1 = event1.x * canvasWidth;
         const y1 = event1.y * canvasHeight;
         const x2 = event2.x * canvasWidth;
         const y2 = event2.y * canvasHeight;
-        
+
         const dx = x2 - x1;
         const dy = y2 - y1;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -262,7 +280,7 @@ Page({
 
       if (distance < 15) {
         this.setData({ selectedEvent: event });
-        
+
         // 3秒后隐藏
         if (this._detailTimer) {
           clearTimeout(this._detailTimer);

@@ -1,0 +1,300 @@
+<view class="story-container {{chapterType === 'epilogue' ? 'epilogue-dynamic-bg' : ''}}" data-section="{{section}}" style="{{chapterType === 'epilogue' ? 'background: ' + epilogueThemes[epilogueBgStage].bg : ''}}">
+  <!-- 背景粒子 -->
+  <view class="particles-bg">
+    <view class="particle" wx:for="{{30}}" wx:key="index"></view>
+  </view>
+
+  <!-- 顶部导航 -->
+  <view class="story-header">
+    <view class="btn-back" bindtap="goBack">← 返回</view>
+    <text class="story-name">{{storyTitle}}</text>
+    <view class="story-progress">{{currentStoryIndex + 1}} / {{totalStories}}</view>
+  </view>
+
+  <!-- 序章暗到亮过渡覆盖层 -->
+  <view wx:if="{{chapterType === 'biography'}}" class="chapter-overlay" style="opacity: {{chapterOverlayOpacity}}"></view>
+
+  <!-- ========== 序章：传记开场风格 ========== -->
+  <block wx:if="{{chapterType === 'biography'}}">
+    <scroll-view class="story-content biography-content" scroll-y="true">
+      <!-- 进度指示点 -->
+      <view class="progress-dots">
+        <view class="dot {{item ? 'dot-complete' : (index === currentStoryIndex ? 'dot-active' : 'dot-dim')}}" wx:for="{{completedStories[section]}}" wx:key="index"></view>
+      </view>
+
+      <!-- 章节标题区 -->
+      <view class="bio-chapter-header">
+        <text class="bio-chapter-num">01</text>
+        <view class="bio-chapter-line"></view>
+        <text class="bio-chapter-title">序章</text>
+        <text class="bio-chapter-sub">{{chapterSubtitles[section - 1]}}</text>
+      </view>
+
+      <!-- 故事时间线 -->
+      <view class="bio-story-nav">
+        <view class="bsn-label">{{section > 1 ? '0' + (section - 1) : '01'}} / 06</view>
+        <view class="bsn-bar">
+          <view class="bsn-dot {{index < currentStoryIndex ? 'bsn-done' : (index === currentStoryIndex ? 'bsn-current' : 'bsn-upcoming')}}"
+                wx:for="{{6}}" wx:key="index"
+                bindtap="onTimelineNodeTap" data-index="{{index}}">
+          </view>
+          <view class="bsn-bar-fill" style="width: {{(currentStoryIndex / 5) * 100}}%"></view>
+        </view>
+      </view>
+
+      <!-- 故事主卡片 -->
+      <view class="story-card bio-card bio-opening-card {{showCardAnimation ? 'card-enter' : 'card-hidden'}}">
+        <view class="bio-stamp">
+          <text class="stamp-char">{{currentStory.stamp}}</text>
+          <text class="stamp-label">{{currentStory.stampLabel}}</text>
+        </view>
+        <view class="bio-year">{{currentStory.year}}</view>
+        <view class="bio-title">{{currentStory.title}}</view>
+        <view class="bio-event-tag">{{currentStory.event}}</view>
+        <view class="bio-text">
+          <text>{{currentStory.content}}</text>
+        </view>
+        <!-- 已读标记 -->
+        <view class="bio-complete-badge" wx:if="{{completedStories[section][currentStoryIndex]}}">
+          <text>✓</text>
+        </view>
+      </view>
+
+      <!-- 时代背景卡 -->
+      <view class="bio-era-card {{showCardAnimation ? 'card-enter' : 'card-hidden'}}">
+        <view class="bio-era-icon">{{eraContext[currentStoryIndex].icon}}</view>
+        <view class="bio-era-title">时代背景</view>
+        <view class="bio-era-text"><text>{{eraContext[currentStoryIndex].text}}</text></view>
+      </view>
+
+      <!-- 故事名言 -->
+      <view class="bio-quote {{showCardAnimation ? 'card-enter' : 'card-hidden'}}">
+        <text class="bq-mark">"</text>
+        <text class="bq-text">{{currentStory.quote}}</text>
+      </view>
+
+      <!-- 人生坐标 -->
+      <view class="bio-life-marker">
+        <text class="bio-life-label">{{currentStory.year}} · 吴健雄 {{bioAgeText[currentStoryIndex]}}</text>
+        <view class="bio-life-bar">
+          <view class="bio-life-fill" style="width: {{bioAgePercent[currentStoryIndex]}}%"></view>
+        </view>
+        <view class="bio-life-ticks">
+          <text class="bio-life-tick bio-life-tick-start">1912</text>
+          <text class="bio-life-tick bio-life-tick-end">1997</text>
+        </view>
+      </view>
+
+      <!-- 底部装饰分隔 -->
+      <view class="bio-footer-decor">
+        <view class="bio-decor-line"></view>
+        <text class="bio-decor-text">{{chapterSubtitles[section - 1]}}</text>
+        <view class="bio-decor-line"></view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <!-- ========== 生平：竖轴时间线风格 ========== -->
+  <block wx:if="{{chapterType === 'timeline'}}">
+    <scroll-view class="story-content story-content-timeline" scroll-y="true" scroll-into-view="{{scrollIntoView}}" scroll-with-animation="{{true}}">
+      <view class="chapter-intro timeline-intro" id="tl-intro">
+        <text class="chapter-num">{{section > 1 ? '0' + (section - 1) : '01'}}</text>
+        <text class="chapter-sub">{{chapterSubtitles[section - 1]}}</text>
+      </view>
+
+      <view class="timeline-axis">
+        <view class="timeline-line"></view>
+        <!-- 浮动年份导航 -->
+        <view class="timeline-float-nav" wx:if="{{chapterType === 'timeline'}}">
+          <view class="tf-nav-item {{index === currentStoryIndex ? 'tf-nav-active' : (completedStories[section][index] ? 'tf-nav-complete' : '')}}"
+                bindtap="onTimelineNodeTap" data-index="{{index}}"
+                wx:for="{{storiesData[section - 1].stories}}" wx:key="index" wx:for-item="s">
+            <text class="tf-nav-year">{{s.year}}</text>
+          </view>
+        </view>
+        <!-- 所有故事节点 - 渐进状态 -->
+        <view class="timeline-card-wrapper {{showCardAnimation ? 'card-enter' : 'card-hidden'}}"
+              wx:for="{{storiesData[section - 1].stories}}" wx:key="index" wx:for-item="s"
+              id="tl-node-{{index}}"
+              bindtap="onTimelineNodeTap" data-index="{{index}}">
+          <view class="timeline-dot {{index < currentStoryIndex ? 'dot-complete' : (index === currentStoryIndex ? 'dot-active' : 'dot-dim')}}"></view>
+          <view class="timeline-content {{index === currentStoryIndex ? 'active' : (index < currentStoryIndex ? 'complete' : 'dim')}}">
+            <view class="tl-year">
+              <text class="tl-icon" wx:if="{{s.eventIcon}}">{{s.eventIcon}}</text>
+              {{s.year}}
+            </view>
+            <view class="tl-title">{{s.title}}</view>
+            <view class="tl-event-tag" wx:if="{{index === currentStoryIndex}}" style="border-color: {{s.eventColor}}; color: {{s.eventColor}}; background: {{s.eventColor}}20; box-shadow: 0 0 12rpx {{s.eventColor}}40;">{{s.event}}</view>
+            <view class="tl-text" wx:if="{{index === currentStoryIndex}}">
+              <text>{{s.content}}</text>
+            </view>
+            <view class="tl-complete-mark" wx:if="{{index < currentStoryIndex}}">
+              <text>✓ 已读</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部占位，确保最后一个节点不会被底部按钮遮挡 -->
+      <view class="timeline-spacer"></view>
+    </scroll-view>
+  </block>
+
+  <!-- ========== 治学：精神关键词 + 手稿风格 ========== -->
+  <block wx:if="{{chapterType === 'spirit'}}">
+    <scroll-view class="story-content story-content-spirit" scroll-y="true">
+      <!-- 进度指示点 -->
+      <view class="progress-dots">
+        <view class="dot {{item ? 'dot-complete' : (index === currentStoryIndex ? 'dot-active' : 'dot-dim')}}" wx:for="{{completedStories[section]}}" wx:key="index"></view>
+      </view>
+
+      <view class="chapter-intro spirit-intro">
+        <text class="chapter-num">{{section > 1 ? '0' + (section - 1) : '01'}}</text>
+        <text class="chapter-sub">{{chapterSubtitles[section - 1]}}</text>
+      </view>
+
+      <!-- 名言卡片 -->
+      <view class="spirit-quote-card">
+        <text class="sq-icon">❝</text>
+        <text class="sq-text">{{currentStory.quote}}</text>
+      </view>
+
+      <!-- 当前故事（手稿风格） -->
+      <view class="spirit-story manuscript-card {{showCardAnimation ? 'card-enter' : 'card-hidden'}}">
+        <view class="ms-header">
+          <text class="ms-year">{{currentStory.year}}</text>
+          <text class="ms-event">{{currentStory.event}}</text>
+        </view>
+        <view class="ms-title">{{currentStory.title}}</view>
+        <view class="ms-text">
+          <text>{{currentStory.content}}</text>
+        </view>
+        <view class="ms-note">—— {{chapterSubtitles[section - 1]}}</view>
+      </view>
+
+      <!-- 精神关键词网格 - 渐进点亮 -->
+      <view class="spirit-keywords-grid">
+        <view class="sk-card {{completedStories[section][index] ? 'sk-lit' : (index === currentStoryIndex ? 'sk-current' : 'sk-dim')}}" wx:for="{{spiritKeywords}}" wx:key="name">
+          <text class="sk-icon">{{item.icon}}</text>
+          <text class="sk-name">{{item.name}}</text>
+          <text class="sk-desc">{{item.desc}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <!-- ========== 科研：实验数据展示风格 ========== -->
+  <block wx:if="{{chapterType === 'research'}}">
+    <scroll-view class="story-content story-content-research" scroll-y="true">
+      <!-- 进度指示点 -->
+      <view class="progress-dots">
+        <view class="dot {{item ? 'dot-complete' : (index === currentStoryIndex ? 'dot-active' : 'dot-dim')}}" wx:for="{{completedStories[section]}}" wx:key="index"></view>
+      </view>
+
+      <view class="chapter-intro research-intro">
+        <text class="chapter-num">{{section > 1 ? '0' + (section - 1) : '01'}}</text>
+        <text class="chapter-sub">{{chapterSubtitles[section - 1]}}</text>
+      </view>
+
+      <!-- 研究纪念碑卡片 -->
+      <view class="research-monument {{showCardAnimation ? 'card-enter' : 'card-hidden'}}">
+        <view class="rm-year">{{currentStory.year}}</view>
+        <view class="rm-title">{{currentStory.title}}</view>
+        <view class="rm-event-badge">{{currentStory.event}}</view>
+        <view class="rm-text">
+          <text>{{currentStory.content}}</text>
+        </view>
+        <view class="rm-significance">
+          <text>⭐</text>
+          <text>{{currentStory.quote}}</text>
+        </view>
+      </view>
+
+      <!-- 其他研究节点预览 - 渐进点亮 -->
+      <view class="research-other">
+        <view class="ro-card {{index < currentStoryIndex ? 'ro-complete' : (index === currentStoryIndex ? 'ro-current' : 'ro-dim')}}" wx:for="{{storiesData[section - 1].stories}}" wx:key="index" wx:for-item="s">
+          <view class="ro-year">{{s.year}}</view>
+          <view class="ro-title">{{s.title}}</view>
+          <view class="ro-mark" wx:if="{{index < currentStoryIndex}}">✓</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 固定 Canvas 实验可视化（不随滚动） -->
+    <view class="research-fixed-visual">
+      <view class="experiment-visual-fixed" style="opacity: {{canvasOpacity}}">
+        <canvas type="2d" id="experimentCanvas" class="experiment-canvas"></canvas>
+        <text class="exp-canvas-label">{{canvasTitle}}</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- ========== 尾声：庄重收尾风格 ========== -->
+  <block wx:if="{{chapterType === 'epilogue'}}">
+    <!-- 阶段装饰层 -->
+    <view class="epi-scene-decor epi-scene-{{epilogueBgStage}}"></view>
+
+    <scroll-view class="story-content story-content-epilogue" scroll-y="true">
+      <!-- 进度指示点 -->
+      <view class="progress-dots">
+        <view class="dot {{item ? 'dot-complete' : (index === currentStoryIndex ? 'dot-active' : 'dot-dim')}}" wx:for="{{completedStories[section]}}" wx:key="index"></view>
+      </view>
+
+      <!-- ===== 上部：永恒的科学精神 ===== -->
+      <view class="epi-top-section">
+        <text class="epi-top-title">永恒的科学精神</text>
+        <view class="epi-top-decor">
+          <view class="epi-decor-diamond"></view>
+        </view>
+        <text class="epi-top-year">{{currentStory.year}}</text>
+      </view>
+
+      <!-- ===== 中部：故事卡片 ===== -->
+      <view class="story-card epi-card {{showCardAnimation ? 'card-enter' : 'card-hidden'}}">
+        <view class="epi-title">{{currentStory.title}}</view>
+        <view class="epi-event">{{currentStory.event}}</view>
+        <view class="epi-text">
+          <text>{{currentStory.content}}</text>
+        </view>
+        <!-- 故事名言 -->
+        <view class="epi-story-quote">
+          <text class="epi-sq-mark">"</text>
+          <text class="epi-sq-text">{{currentStory.quote}}</text>
+        </view>
+      </view>
+
+      <!-- ===== 下部：结尾寄语 ===== -->
+      <view class="epilogue-closing {{currentStoryIndex === totalStories - 1 ? 'closing-final' : ''}}">
+        <text class="ec-text">追光不息，精神永存</text>
+        <view class="ec-line"></view>
+        <text class="ec-desc">{{epilogueClosingTexts[currentStoryIndex]}}</text>
+      </view>
+    </scroll-view>
+
+    <!-- 星空粒子层（最后一个故事触发） -->
+    <view wx:if="{{currentStoryIndex === totalStories - 1}}" class="starfield-overlay">
+      <!-- 流星 -->
+      <view class="shooting-star"></view>
+      <view class="shooting-star shooting-star-2"></view>
+      <!-- 星空 -->
+      <view class="star" wx:for="{{starfieldStars}}" wx:key="index"
+            style="left: {{item.x}}; top: {{item.y}}; animation-delay: {{item.delay}}; animation-duration: {{item.dur}}; width: {{item.size * 2}}rpx; height: {{item.size * 2}}rpx;">
+      </view>
+    </view>
+  </block>
+
+  <!-- 底部操作按钮 -->
+  <view class="story-footer">
+    <button class="btn-story btn-prev" bindtap="prevStory" disabled="{{currentStoryIndex === 0}}">
+      <text>← 上一个</text>
+    </button>
+    <button class="btn-story btn-complete" bindtap="markStoryComplete">
+      <text>✓ 已读</text>
+    </button>
+    <button class="btn-story btn-next" bindtap="nextStory" disabled="{{currentStoryIndex === totalStories - 1}}">
+      <text>下一个 →</text>
+    </button>
+  </view>
+
+  <!-- 故事完成动画 -->
+</view>

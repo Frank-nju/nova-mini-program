@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(node -c D:/nova-mini-program/subpkg/pages/story/story.js)",
+      "Bash(node -c D:/nova-mini-program/pages/exhibit/exhibit.js)"
+    ]
+  }
+}

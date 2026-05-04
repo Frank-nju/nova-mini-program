@@ -55,14 +55,13 @@
 
 .star-node {
   position: absolute;
-  animation: starFloat 4s infinite ease-in-out;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 2;
   cursor: pointer;
   transform: translate(-50%, -50%);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
 }
 
 .star-node:active {
