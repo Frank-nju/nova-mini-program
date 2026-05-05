@@ -1,5 +1,5 @@
 const { webviewUrl } = require('../../utils/config.js');
-
+//index.js
 Page({
   data: {
     hasWebview: false,
