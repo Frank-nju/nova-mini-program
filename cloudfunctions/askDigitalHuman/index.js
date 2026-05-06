@@ -385,6 +385,8 @@ exports.main = async (event) => {
       console.log('[Chat] 总耗时:', Date.now() - startTime, 'ms');
 
       // 5. 返回完整结果
+      // 清理audioUrl可能存在的反引号（修复引号替换的副作用）
+      const cleanAudioUrl = audioUrl ? audioUrl.replace(/^`+|`+$/g, '') : null;
       return {
         code: 0,
         message: 'ok',
@@ -396,7 +398,7 @@ exports.main = async (event) => {
             theme: r.theme,
             textPreview: r.text.substring(0, 80),
           })),
-          audioUrl: audioUrl || null,
+          audioUrl: cleanAudioUrl,
           hasRAG: retrieval.length > 0,
         },
       };
