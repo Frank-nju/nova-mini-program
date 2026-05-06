@@ -1,0 +1,351 @@
+{
+  "metadata": {
+    "projectName": "追光健雄｜云端数字展馆",
+    "version": "v1.0",
+    "createdDate": "2026-04-11",
+    "description": "数字人脚本内容 - Level 1/2/3 全部脚本"
+  },
+  "statistics": {
+    "totalScripts": 23,
+    "totalChars": 3227,
+    "totalDurationSeconds": 993,
+    "totalDurationMinutes": 16.6,
+    "byLevel": {
+      "Level 1 (必写脚本)": {
+        "count": 10,
+        "chars": 933,
+        "duration": 173
+      },
+      "Level 2 (节点讲解)": {
+        "count": 12,
+        "chars": 2219,
+        "duration": 810
+      },
+      "Level 3 (推荐模板)": {
+        "count": 1,
+        "chars": 75,
+        "duration": 10
+      }
+    },
+    "byScene": {
+      "welcome": 1,
+      "feedback": 8,
+      "summary": 1,
+      "explain": 12,
+      "recommend": 1
+    },
+    "nodeCoverage": {
+      "explained_nodes": [
+        "node_1912_birth",
+        "node_1924_school",
+        "node_1936_usa",
+        "node_1956_parity",
+        "node_1956_return",
+        "node_1997_pass",
+        "node_beta_decay",
+        "node_other_exp",
+        "node_spirit_method",
+        "node_spirit_principle",
+        "node_spirit_quote"
+      ],
+      "total_explained": 11
+    }
+  },
+  "qualityChecks": {
+    "第一人称口吻": true,
+    "无AI术语": true,
+    "无作为AI表述": true,
+    "已标注场景": true,
+    "已标注视觉模式": true,
+    "已标注语调": true,
+    "Level 1 完整(10条)": true,
+    "Level 2 覆盖主要节点": true
+  },
+  "scripts": [
+    {
+      "id": "welcome_001",
+      "level": 1,
+      "scene": "welcome",
+      "badgeName": "",
+      "nodeBinding": "",
+      "text": "欢迎来到追光健雄云端数字展馆。我是吴健雄，很高兴能带你走进我的人生旅程。在这里，你将看到我的求学经历、科研探索和人生感悟。请跟随卷轴缓缓前行，每到一个节点，都可以点击听我讲解。愿你能在这段旅程中，感受到科学之美。",
+      "duration": 20,
+      "audioPath": "audio/welcome_001.mp3",
+      "visualMode": "welcome",
+      "tone": "温和、亲切、欢迎"
+    },
+    {
+      "id": "badge_001_welcome",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "启程之光",
+      "nodeBinding": "node_1912_birth",
+      "text": "恭喜你获得启程之光勋章。当我还是浏河小镇上的一个小女孩时，就在天妃宫前暗暗立志，要闯荡世界、干一番事业。那颗好奇的种子，最终引导我走上了科学之路。愿这束光，也能照亮你探索世界的道路。",
+      "duration": 15,
+      "audioPath": "audio/badge_001.mp3",
+      "visualMode": "feedback",
+      "tone": "温暖、鼓励"
+    },
+    {
+      "id": "badge_002_learning",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "求学求真",
+      "nodeBinding": "node_1924_school",
+      "text": "恭喜你获得求学求真勋章。从苏州女师到中央大学，从上海公学到伯克利加州大学，每一步我都走得踏实而坚定。记住胡适先生送我的那句话：会当凌绝顶，一览众山小。愿你在求知的道路上，也能步履不停。",
+      "duration": 15,
+      "audioPath": "audio/badge_002.mp3",
+      "visualMode": "feedback",
+      "tone": "坚定、激励"
+    },
+    {
+      "id": "badge_003_backbone",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "风骨共鸣",
+      "nodeBinding": "node_spirit_principle",
+      "text": "恭喜你获得风骨共鸣勋章。做实验也好，做人也好，必须诚实。我一生从不随波逐流，也不爱宣扬自己。真正的科学家，要经得起寂寞和枯燥的考验。愿你在纷繁的世界中，始终保持独立思考的力量。",
+      "duration": 15,
+      "audioPath": "audio/badge_003.mp3",
+      "visualMode": "feedback",
+      "tone": "庄重、有力"
+    },
+    {
+      "id": "badge_004_witness",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "实验见证者",
+      "nodeBinding": "node_1956_parity",
+      "text": "恭喜你获得实验见证者勋章。一九五七年一月九日深夜，当实验证实宇称不守恒的那一刻，我再也忍不住激动的热泪。几百年来被认为天经地义的规律被推翻了。这就是实验的力量——用事实说话，用数据证明真理。",
+      "duration": 15,
+      "audioPath": "audio/badge_004.mp3",
+      "visualMode": "feedback",
+      "tone": "严谨、自豪"
+    },
+    {
+      "id": "badge_005_companion",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "阅卷同行者",
+      "nodeBinding": "",
+      "text": "恭喜你获得阅卷同行者勋章。我常说，非学无以广才，浅尝辄止难以成学。你认真阅读了这些内容，就像当年我在图书馆里埋头苦读一样。知识是相通的，多读、多想、多问，你的视野会越来越开阔。",
+      "duration": 15,
+      "audioPath": "audio/badge_005.mp3",
+      "visualMode": "feedback",
+      "tone": "亲切、赞赏"
+    },
+    {
+      "id": "badge_006_explorer",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "多维鉴赏家",
+      "nodeBinding": "",
+      "text": "恭喜你获得多维鉴赏家勋章。我常说，科学与艺术之间是互相沟通的。爱因斯坦的广义相对论就是在钢琴室里受到音乐启发而诞生的。我希望你在探索科学的同时，也能欣赏艺术之美，让两者交相辉映。",
+      "duration": 15,
+      "audioPath": "audio/badge_006.mp3",
+      "visualMode": "feedback",
+      "tone": "欣赏、鼓励"
+    },
+    {
+      "id": "badge_007_messenger",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "对话传灯人",
+      "nodeBinding": "",
+      "text": "恭喜你获得对话传灯人勋章。科学无国界，我们应该互相取长补短，相互尊重、相互学习。你与我的这段对话，就是一次跨越时空的交流。愿你能把这份对知识的热爱，传递给更多的人。",
+      "duration": 15,
+      "audioPath": "audio/badge_007.mp3",
+      "visualMode": "feedback",
+      "tone": "欣慰、传承"
+    },
+    {
+      "id": "badge_008_spirit",
+      "level": 1,
+      "scene": "feedback",
+      "badgeName": "健雄精神",
+      "nodeBinding": "",
+      "text": "恭喜你获得健雄精神勋章。把忠心交给国家，把孝心奉给父母，把爱心献给事业，把真诚送给朋友，把信心留给自己。这是我一生的信条，今天也送给你。愿你在人生的每个阶段，都能坚定而从容。",
+      "duration": 18,
+      "audioPath": "audio/badge_008.mp3",
+      "visualMode": "feedback",
+      "tone": "庄重、感动"
+    },
+    {
+      "id": "summary_001",
+      "level": 1,
+      "scene": "summary",
+      "badgeName": "",
+      "nodeBinding": "",
+      "text": "你已走完了这段旅程，从浏河小镇到伯克利实验室，从天妃宫前的立志到推翻宇称守恒的壮举。我希望你记住：世界上没有廉价的光荣和胜利，我所走的路没有捷径，全凭勤奋、恒心和机遇。愿你在自己的领域里，也能脚踏实地，做出一番真正有价值的贡献。谢谢你的到来。",
+      "duration": 30,
+      "audioPath": "audio/summary_001.mp3",
+      "visualMode": "summary",
+      "tone": "庄重、感动、传承"
+    },
+    {
+      "id": "explain_1912_birth",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_1912_birth",
+      "text": "我于一九一二年出生在江苏太仓浏河镇。父亲吴仲裔是一位革命者，也是一位有远见的教育家。他创办了明德女子学校，让家乡的女孩们也能读书识字。母亲樊复华温柔贤惠，从小教我认字、讲故事。我的叔叔吴琢之资助了我全部的学费和出国费用，这份恩情我一生铭记。在离我家不远的天妃宫前，我看着郑和下西洋的功德碑，暗暗对自己说：将来，我也要去闯荡世界，干一番事业。",
+      "duration": 60,
+      "audioPath": "audio/explain_1912_birth.mp3",
+      "visualMode": "explain",
+      "tone": "温和、回忆"
+    },
+    {
+      "id": "explain_1924_school",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_1924_school",
+      "text": "十一岁那年，我离开浏河到苏州女子师范学校读书，校训是“诚朴”二字。离家的前一晚，父亲翻开《古文观止》，指着司马迁的《报任少卿书》对我说：大底圣贤发愤之所为作也。这句话我记了一辈子。后来在上海中国公学，胡适先生看了我的考卷，连声说天才，要给我两百分。再后来进入中央大学物理系，吴有训、施士元等名师为我打下了扎实的基础。没有中央大学四年的功底，就不可能有我后来的发展。",
+      "duration": 60,
+      "audioPath": "audio/explain_1924_school.mp3",
+      "visualMode": "explain",
+      "tone": "怀念、感恩"
+    },
+    {
+      "id": "explain_1936_usa",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_1936_usa",
+      "text": "一九三六年八月，我登上胡佛总统号轮船离开上海。站在船头，我对着自己说：我一定要做个大科学家，我要超过居里夫人。到了美国，我本要去密西根大学，却看到新闻报道说那所大学的俱乐部禁止女性从正门出入。我拍案而起，当即改投伯克利加州大学。在那里，我见到了劳伦斯教授发明的迴旋加速器，那一刻我知道，这就是我该待的地方。后来费米亲自来实验室看我，对我说：相信你的论文会成功的，也许会成为物理史上的千古绝唱。",
+      "duration": 60,
+      "audioPath": "audio/explain_1936_usa.mp3",
+      "visualMode": "explain",
+      "tone": "坚定、自豪"
+    },
+    {
+      "id": "explain_1956_return",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_1956_return",
+      "text": "从一九三六年离家到一九七三年首次回国，整整三十七年。我在美国生活了六十多年，但从来没有忘记自己的中国根。一九七三年十月，周恩来总理接见了我和家骝。总理风趣地说，他选安徽厅是因为怕我批评他偏心。总理对我说：我们中国人不比别人笨，西方人能做到的我们也能做到，二十年以后中国的发展将会大变样。那次近六小时的谈话，使我对祖国的所有疑虑都烟消云散了。此后我几乎每隔一两年就回国一次。",
+      "duration": 60,
+      "audioPath": "audio/explain_1956_return.mp3",
+      "visualMode": "explain",
+      "tone": "深情、感动"
+    },
+    {
+      "id": "explain_1997_pass",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_1997_pass",
+      "text": "一九九七年二月十六日，我离开了这个世界。按照我的遗愿，家骝将我的骨灰带回了浏河。墓园由贝聿铭先生审定设计，墓志铭上写着：她是卓越的世界公民和一个永远的中国人。家骝把我的奖章、手稿、书信等三百四十多件纪念物全部捐赠给了东南大学。我们夫妇用一生积蓄的大部分在中国设立了奖学金基金会。我这一生，对得起科学，对得起祖国，唯一遗憾的是对父母亏欠太多。",
+      "duration": 60,
+      "audioPath": "audio/explain_1997_pass.mp3",
+      "visualMode": "explain",
+      "tone": "平静、释然"
+    },
+    {
+      "id": "explain_spirit_method",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_spirit_method",
+      "text": "常常有年轻人问我，攀登科学高峰有没有捷径？我的回答是：没有。搞科学是件很苦很苦的事，需要巨大的毅力和锲而不舍的精神。做实验就好像打仗一样，能否成功，往往是最后一分钟。我的青春年华几乎都是在枯燥的实验室里度过的，你们看到的是鲜花和赞歌，但那背后是汗水和泪水。世界上哪有廉价的光荣和胜利？不过，只要真正热爱，再苦也是甜的。",
+      "duration": 60,
+      "audioPath": "audio/explain_spirit_method.mp3",
+      "visualMode": "explain",
+      "tone": "恳切、真挚"
+    },
+    {
+      "id": "explain_spirit_principle",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_spirit_principle",
+      "text": "我做实验有一个原则：要么不做，要做就做到精确完整。我常常为了一个实验数据夜里起来好几次。美国物理学家只要听说是我做的实验，就放心使用，因为他们知道那一定是对的。我从不宣传自己，几十家记者要采访我，我一个不见。有人请我题词，我一个字不写。我既不是长官，也不是书法家，凭什么给人题词？科学家要经得起寂寞，要经常犯愁的是自己有没有实绩，而不是别人不了解自己。",
+      "duration": 60,
+      "audioPath": "audio/explain_spirit_principle.mp3",
+      "visualMode": "explain",
+      "tone": "坦率、淡然"
+    },
+    {
+      "id": "explain_spirit_quote",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_spirit_quote",
+      "text": "我一生信奉五句话：把忠心交给国家，把孝心奉给父母，把爱心献给事业，把真诚送给朋友，把信心留给自己。我对物理学做到了专心致志，工作与生活已熔融为一体，这大概就是所谓的秘诀。但更重要的是，做学问不仅要底子厚、知识面宽，关键的关键还是要人品好。你们学科技的同学一定要敢想，要有好奇心，好奇心是一切科学发明的源泉。不要怕弄脏了手，动起手来绝不比他人差。",
+      "duration": 60,
+      "audioPath": "audio/explain_spirit_quote.mp3",
+      "visualMode": "explain",
+      "tone": "真挚、鼓励"
+    },
+    {
+      "id": "explain_beta_decay",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_beta_decay",
+      "text": "我对beta衰变的研究倾注了毕生心血。博士期间，我检验费米的铀辐射理论，和塞格瑞一起发现了核裂变产物中的惰性气体氙。后来我用极薄且均匀的放射源，精确测量了beta谱，澄清了当时物理学界的严重分歧。一九六三年，我又首次确证了弱矢量流守恒，为弱作用和电磁作用的统一铺设了第一块里程碑。人们对beta衰变的三项贡献——beta谱研究、宇称不守恒、弱矢量流守恒——已被公认为物理学上的里程碑实验。",
+      "duration": 75,
+      "audioPath": "audio/explain_beta_decay.mp3",
+      "visualMode": "explain",
+      "tone": "专业、自豪"
+    },
+    {
+      "id": "explain_parity_discovery",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_1956_parity",
+      "text": "一九五六年，杨振宁和李政道提出在弱作用中宇称可能不守恒。李政道来找我讨论，我请他让我仔细考虑一下。我深知这个实验的艰难：要把电子探测器放在接近绝对零度的容器中，还要让放射源在足够长的时间内保持极化。但我认为，对一个物理学家来说，这是极为珍贵的机会。于是我一头扎进了实验。最大的困难是生长大晶体，经费不够、时间紧迫。天意的是，我的学生玛丽荷竟然在家用烧杯长出了一块一英寸的透明晶体！一九五七年一月九日深夜两点，实验成功了。",
+      "duration": 90,
+      "audioPath": "audio/explain_parity_discovery.mp3",
+      "visualMode": "explain",
+      "tone": "紧张、激动"
+    },
+    {
+      "id": "explain_parity_impact",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_1956_parity",
+      "text": "消息公布后，《纽约时报》在头版报道：物理学上的一个基本观念被实验推翻。剑桥大学教授说，宇称不守恒如同新的福音传遍全球。那一年诺贝尔奖颁给了杨振宁和李政道，却没有我。我的同事史坦伯格、阮姆西等人都公开表示了失望。后来我才得知，是国家标准局某些人在背后做了手脚。不过，一九七八年首届沃尔夫奖授予了我，这个奖专门挑选那些应该得诺贝尔奖却未得到的科学家。十万美元的奖金，是对我终身工作的肯定。",
+      "duration": 75,
+      "audioPath": "audio/explain_parity_impact.mp3",
+      "visualMode": "explain",
+      "tone": "平静、坦然"
+    },
+    {
+      "id": "explain_other_exp",
+      "level": 2,
+      "scene": "explain",
+      "badgeName": "",
+      "nodeBinding": "node_other_exp",
+      "text": "除了宇称不守恒和beta衰变，我还参与了许多重要的科学工作。二战期间，我加入了曼哈顿计划。当汉福特反应器出现链式反应异常时，费米一筹莫展。正是凭借我早年对中子吸收截面的研究数据，他们才找出是氙135在作怪，使工程得以继续。后来人们称我为原子弹之母。一九七五年，我当选为美国物理学会会长——一个不是白人、不是男性、没有诺贝尔奖的人，被会员们选了出来。我在任内为物理学会做了很多实事，后来想竞选的人都说：像她这么干，我没法做到。",
+      "duration": 90,
+      "audioPath": "audio/explain_other_exp.mp3",
+      "visualMode": "explain",
+      "tone": "从容、自信"
+    },
+    {
+      "id": "recommend_template",
+      "level": 3,
+      "scene": "recommend",
+      "badgeName": "",
+      "nodeBinding": "",
+      "text": "这件{作品类型}来自{作者}，{作品简介}，与我{节点名}的经历遥相呼应，展现了{精神关键词}的精神。很高兴看到年轻人用自己的方式理解和传承科学精神。",
+      "duration": 10,
+      "audioPath": "",
+      "visualMode": "recommend",
+      "tone": "亲切、赞赏",
+      "isTemplate": true,
+      "templateSlots": {
+        "作品类型": "海报/文章/视频/设计等",
+        "作者": "创作者姓名",
+        "作品简介": "作品内容简述",
+        "节点名": "关联的展馆节点名称",
+        "精神关键词": "对应勋章的精神关键词"
+      },
+      "templateExample": "这件海报来自张三同学，用视觉语言表达了我求学时期的心路历程，与我赴美深造的经历遥相呼应，展现了求知求真的精神。很高兴看到年轻人用自己的方式理解和传承科学精神。"
+    }
+  ]
+}

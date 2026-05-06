@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/exhibit/exhibit",
+    "pages/story/story",
+    "pages/digital-human/digital-human"
+  ],
+  "window": {
+    "navigationBarTitleText": "追光健雄",
+    "navigationBarBackgroundColor": "#0A0A0F",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#0A0A0F"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

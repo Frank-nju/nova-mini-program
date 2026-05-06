@@ -1,0 +1,14 @@
+{
+  "name": "getUser",
+  "version": "1.0.0",
+  "description": "给用户发放一枚指定的徽章，并更新用户档案",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
