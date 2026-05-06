@@ -40,7 +40,7 @@ EMBED_API_KEY = os.environ.get("EMBED_API_KEY", "")
 
 TTS_MODEL = "cosyvoice-v3.5-plus"
 TTS_VOICE = os.environ.get("TTS_VOICE_ID", "cosyvoice-v3.5-plus-vd-wjxszslow-41e6b9543b174ccfbe0ebae9eb4721c0")
-TTS_AUDIO_DIR = "/data/user/work/tts_cache"
+TTS_AUDIO_DIR = os.environ.get("TTS_AUDIO_DIR", "/data/user/work/tts_cache")
 os.makedirs(TTS_AUDIO_DIR, exist_ok=True)
 
 # ============================================================
