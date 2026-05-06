@@ -66,13 +66,13 @@
   width: 64rpx;
 }
 
-/* 聊天消息区域（上半部分，避开面部） */
+/* 聊天消息区域（底部，不遮挡面部） */
 .chat-container {
   position: fixed;
-  top: 120rpx;
+  bottom: 200rpx;
   left: 0;
   right: 0;
-  height: 45vh;
+  height: 35vh;
   z-index: 10;
   padding: 0 24rpx;
 }
