@@ -1,0 +1,27 @@
+<view class="star-page">
+  <view class="back-btn" bindtap="goBack">✕</view>
+
+  <view class="zoom-container" 
+        bindtouchstart="handleTouchStart" 
+        bindtouchmove="handleTouchMove"
+        bindtouchend="handleTouchEnd"
+        style="transform: scale({{mapScale}}) translate({{offsetX}}px, {{offsetY}}px)">
+    
+    <canvas type="2d" id="lineCanvas" class="line-canvas"></canvas>
+
+    <view wx:for="{{nodes}}" wx:key="id" 
+          class="star-node {{item.unlocked ? 'is-lit' : 'is-dark'}}"
+          style="left: {{item.x}}rpx; top: {{item.y}}rpx;"
+          bindtap="onStarTap" data-id="{{item.id}}">
+      <view class="star-core"></view>
+      <text class="star-text">{{item.title}}</text>
+    </view>
+  </view>
+
+  <!-- 缩放控制按钮 -->
+  <view class="zoom-controls">
+    <view class="zoom-btn" bindtap="zoomIn">+</view>
+    <view class="zoom-btn" bindtap="zoomOut">−</view>
+  </view>
+</view>
+

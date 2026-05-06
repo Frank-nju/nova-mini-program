@@ -1,0 +1,1727 @@
+/* ========== 基础容器（不变） ========== */
+.story-container {
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, rgba(10, 10, 15, 1) 0%, rgba(15, 20, 35, 0.9) 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: story-entrance 0.6s ease-out;
+}
+
+@keyframes story-entrance {
+  from { opacity: 0; transform: scale(0.95); filter: blur(10px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
+}
+
+/* 粒子背景 */
+.particles-bg {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes particle-float {
+  0% { transform: translateY(100vh) translateX(0) scale(1); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-100vh) translateX(100px) scale(0.5); opacity: 0; }
+}
+
+.particle {
+  position: absolute;
+  width: 3rpx; height: 3rpx;
+  background: rgba(100, 200, 255, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 6rpx rgba(100, 200, 255, 0.4);
+  animation: particle-float 10s linear infinite;
+  left: calc(10% + 50rpx * var(--i));
+}
+
+.particle:nth-child(odd) {
+  background: rgba(201, 169, 110, 0.4);
+  box-shadow: 0 0 8rpx rgba(201, 169, 110, 0.3);
+}
+
+/* ========== 顶部导航（统一） ========== */
+.story-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 88rpx;
+  background: rgba(10, 10, 15, 0.95);
+  border-bottom: 1rpx solid rgba(100, 200, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32rpx;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+}
+
+.btn-back {
+  color: #64c8ff;
+  font-size: 28rpx;
+  font-weight: 600;
+  min-width: 80rpx;
+  transition: all 0.3s ease;
+}
+
+.btn-back:active { opacity: 0.7; transform: scale(0.95); }
+
+.story-name {
+  flex: 1;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #f0ede6;
+  text-shadow: 0 0 20rpx rgba(100, 200, 255, 0.2);
+}
+
+.story-progress {
+  font-size: 24rpx;
+  color: #c9a96e;
+  min-width: 80rpx;
+  text-align: right;
+}
+
+/* ========== 进度指示点（通用） ========== */
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12rpx;
+  margin-bottom: 32rpx;
+}
+
+.dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  transition: all 0.4s ease;
+}
+
+.dot-dim {
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: none;
+}
+
+.dot-active {
+  background: #64c8ff;
+  box-shadow: 0 0 12rpx rgba(100, 200, 255, 0.6);
+  transform: scale(1.3);
+}
+
+.dot-complete {
+  background: #c9a96e;
+  box-shadow: 0 0 8rpx rgba(201, 169, 110, 0.4);
+}
+
+/* ========== 卡片入场/退出动画（通用） ========== */
+.card-hidden {
+  opacity: 0;
+  transform: translateY(30rpx) scale(0.95);
+}
+
+.card-enter {
+  animation: card-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes card-slide-in {
+  from { opacity: 0; transform: translateY(40rpx) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ========== 通用滚动内容区 ========== */
+.story-content {
+  flex: 1;
+  padding: 128rpx 32rpx 200rpx;
+  position: relative;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+/* 序章内容区确保在覆盖层之上 */
+.biography .story-content {
+  z-index: 20;
+}
+
+/* ========== 通用底部按钮（不变） ========== */
+.story-footer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 120rpx;
+  background: rgba(10, 10, 15, 0.95);
+  border-top: 1rpx solid rgba(100, 200, 255, 0.15);
+  display: flex;
+  gap: 16rpx;
+  padding: 16rpx 32rpx;
+  z-index: 100;
+  backdrop-filter: blur(20px);
+}
+
+.btn-story {
+  flex: 1;
+  height: 80rpx;
+  background: linear-gradient(135deg, #64c8ff 0%, #4a88c8 100%);
+  border: 1rpx solid rgba(100, 200, 255, 0.6);
+  border-radius: 16rpx;
+  color: #0a0a0f;
+  font-size: 24rpx;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20rpx rgba(100, 200, 255, 0.2);
+}
+
+.btn-story::after { border: none; }
+.btn-story:active { transform: scale(0.95); }
+.btn-story[disabled] { opacity: 0.3; }
+
+.btn-prev {
+  background: linear-gradient(135deg, #8b7db8 0%, #5a4a88 100%);
+  color: #e8d5a8;
+}
+
+.btn-complete {
+  background: linear-gradient(135deg, #20b2aa 0%, #138d88 100%);
+}
+
+.btn-next {
+  background: linear-gradient(135deg, #64c8ff 0%, #4a88c8 100%);
+}
+
+/* 完成动画 */
+.complete-animation {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 400;
+  animation: complete-pop 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes complete-pop {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  100% { opacity: 0; transform: translate(-50%, -60%) scale(1); }
+}
+
+.complete-text {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #64c8ff;
+  text-shadow: 0 0 30rpx rgba(100, 200, 255, 0.6);
+  white-space: nowrap;
+}
+
+/* ============================================
+   一、序章：传记开场风格（biography）
+   ============================================ */
+
+/* 序章内容区 - 增加底部间距 */
+.biography-content {
+  padding: 128rpx 32rpx 200rpx;
+}
+
+/* 章节标题区 */
+.bio-chapter-header {
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.bio-chapter-num {
+  display: block;
+  font-size: 60rpx;
+  font-weight: 800;
+  color: rgba(201, 169, 110, 0.12);
+  letter-spacing: 16rpx;
+}
+
+.bio-chapter-line {
+  width: 80rpx;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.4), transparent);
+  margin: 12rpx auto;
+}
+
+.bio-chapter-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: rgba(240, 237, 230, 0.8);
+  letter-spacing: 8rpx;
+}
+
+.bio-chapter-sub {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.5);
+  letter-spacing: 4rpx;
+  margin-top: 8rpx;
+}
+
+/* 故事时间线导航 */
+.bio-story-nav {
+  margin-bottom: 32rpx;
+  padding: 24rpx 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.bsn-label {
+  font-size: 20rpx;
+  color: rgba(201, 169, 110, 0.4);
+  white-space: nowrap;
+  min-width: 60rpx;
+}
+
+.bsn-bar {
+  flex: 1;
+  height: 6rpx;
+  background: rgba(201, 169, 110, 0.1);
+  border-radius: 3rpx;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bsn-bar-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #c9a96e, rgba(201, 169, 110, 0.5));
+  border-radius: 3rpx;
+  transition: width 0.5s ease;
+}
+
+.bsn-dot {
+  width: 20rpx;
+  height: 20rpx;
+  border-radius: 50%;
+  border: 2rpx solid rgba(201, 169, 110, 0.3);
+  background: transparent;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.bsn-dot.bsn-done {
+  background: #c9a96e;
+  border-color: #c9a96e;
+}
+
+.bsn-dot.bsn-current {
+  width: 24rpx;
+  height: 24rpx;
+  border-color: #64c8ff;
+  background: #64c8ff;
+  box-shadow: 0 0 12rpx rgba(100, 200, 255, 0.5);
+}
+
+.bsn-dot.bsn-upcoming {
+  border-color: rgba(201, 169, 110, 0.15);
+}
+
+/* 故事主卡片 */
+.bio-card {
+  background: rgba(26, 26, 40, 0.9);
+  border: 1rpx solid rgba(100, 200, 255, 0.2);
+  border-radius: 20rpx;
+  padding: 48rpx 40rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: visible;
+}
+
+.bio-complete-badge {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 40rpx;
+  height: 40rpx;
+  background: linear-gradient(135deg, #c9a96e, #a08040);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: badge-appear 0.4s ease-out;
+  box-shadow: 0 0 16rpx rgba(201, 169, 110, 0.5);
+}
+
+.bio-complete-badge text {
+  color: #0a0a0f;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+@keyframes badge-appear {
+  from { opacity: 0; transform: scale(0) rotate(-180deg); }
+  to { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+.bio-year {
+  font-size: 72rpx;
+  font-weight: 700;
+  color: rgba(201, 169, 110, 0.15);
+  text-align: right;
+  line-height: 1;
+  margin-bottom: 8rpx;
+}
+
+.bio-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #f0ede6;
+  margin-bottom: 16rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid rgba(100, 200, 255, 0.15);
+}
+
+.bio-event-tag {
+  display: inline-block;
+  padding: 6rpx 20rpx;
+  background: rgba(100, 200, 255, 0.1);
+  border: 1rpx solid rgba(100, 200, 255, 0.2);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: #64c8ff;
+  margin-bottom: 28rpx;
+}
+
+.bio-text {
+  font-size: 28rpx;
+  color: #d8d8e8;
+  line-height: 1.9;
+}
+
+.bio-text text {
+  display: block;
+}
+
+/* 序章故事名言 */
+.bio-quote {
+  max-width: 560rpx;
+  margin: 32rpx auto 0;
+  text-align: center;
+  padding: 24rpx 28rpx;
+  background: rgba(201, 169, 110, 0.06);
+  border-left: 3rpx solid rgba(201, 169, 110, 0.3);
+  border-radius: 0 12rpx 12rpx 0;
+}
+
+.bio-quote .bq-mark {
+  display: block;
+  font-size: 36rpx;
+  color: rgba(201, 169, 110, 0.2);
+  line-height: 1;
+  margin-bottom: 4rpx;
+}
+
+.bio-quote .bq-text {
+  display: block;
+  font-size: 24rpx;
+  color: rgba(201, 169, 110, 0.7);
+  font-style: italic;
+  line-height: 1.8;
+}
+
+/* 序章底部装饰分隔 */
+.bio-footer-decor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  margin: 32rpx auto 0;
+}
+
+.bio-decor-line {
+  width: 80rpx;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.3), transparent);
+}
+
+.bio-decor-text {
+  font-size: 20rpx;
+  color: rgba(201, 169, 110, 0.3);
+  letter-spacing: 4rpx;
+}
+
+/* 时代背景卡 */
+.bio-era-card {
+  background: rgba(26, 26, 40, 0.6);
+  border: 1rpx solid rgba(201, 169, 110, 0.1);
+  border-radius: 16rpx;
+  padding: 28rpx 24rpx;
+  margin: 32rpx 0 0;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.2);
+}
+
+.bio-era-icon {
+  font-size: 32rpx;
+  text-align: center;
+  margin-bottom: 8rpx;
+}
+
+.bio-era-title {
+  font-size: 22rpx;
+  font-weight: 600;
+  color: rgba(201, 169, 110, 0.6);
+  text-align: center;
+  margin-bottom: 16rpx;
+  letter-spacing: 4rpx;
+}
+
+.bio-era-text {
+  font-size: 24rpx;
+  color: rgba(192, 192, 208, 0.8);
+  line-height: 1.8;
+}
+
+.bio-era-text text {
+  display: block;
+}
+
+/* 人生坐标 */
+.bio-life-marker {
+  margin: 32rpx 0 0;
+  text-align: center;
+}
+
+.bio-life-label {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(100, 200, 255, 0.5);
+  margin-bottom: 12rpx;
+}
+
+.bio-life-bar {
+  width: 80%;
+  height: 6rpx;
+  background: rgba(201, 169, 110, 0.1);
+  border-radius: 3rpx;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.bio-life-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #64c8ff, rgba(100, 200, 255, 0.3));
+  border-radius: 3rpx;
+  transition: width 0.5s ease;
+}
+
+.bio-life-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8rpx;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.bio-life-tick {
+  font-size: 18rpx;
+  color: rgba(201, 169, 110, 0.2);
+}
+
+.bio-life-tick-start {
+  text-align: left;
+}
+
+.bio-life-tick-end {
+  text-align: right;
+}
+
+/* ============================================
+   二、生平：竖轴时间线风格（timeline）
+   ============================================ */
+.story-content-timeline {
+  padding: 128rpx 32rpx 32rpx;
+}
+
+.timeline-intro {
+  margin-bottom: 40rpx;
+}
+
+.timeline-intro .chapter-num {
+  font-size: 32rpx;
+  color: #c9a96e;
+  margin-bottom: 16rpx;
+}
+
+.timeline-intro .chapter-sub {
+  font-size: 24rpx;
+  color: rgba(201, 169, 110, 0.6);
+  letter-spacing: 4rpx;
+}
+
+.timeline-axis {
+  position: relative;
+  padding-left: 48rpx;
+  padding-right: 90rpx;
+}
+
+.timeline-line {
+  position: absolute;
+  left: 18rpx;
+  top: 0;
+  bottom: 0;
+  width: 3rpx;
+  background: linear-gradient(to bottom, transparent, #c9a96e, rgba(201, 169, 110, 0.6), transparent);
+}
+
+/* 时间线节点包装器 */
+.timeline-card-wrapper {
+  position: relative;
+  margin-bottom: 32rpx;
+}
+
+/* 时间线节点圆点 - 三种状态 */
+.timeline-dot {
+  position: absolute;
+  left: -40rpx;
+  top: 20rpx;
+  border-radius: 50%;
+  z-index: 2;
+  transition: all 0.5s ease;
+}
+
+.timeline-dot.dot-dim {
+  width: 14rpx;
+  height: 14rpx;
+  border: 2rpx solid rgba(201, 169, 110, 0.3);
+  background: transparent;
+}
+
+.timeline-dot.dot-active {
+  width: 24rpx;
+  height: 24rpx;
+  border: 3rpx solid #c9a96e;
+  background: #c9a96e;
+  box-shadow: 0 0 20rpx rgba(201, 169, 110, 0.5);
+  animation: tl-dot-pulse 2s infinite ease-in-out;
+}
+
+@keyframes tl-dot-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 20rpx rgba(201, 169, 110, 0.5); }
+  50% { transform: scale(1.15); box-shadow: 0 0 28rpx rgba(201, 169, 110, 0.7); }
+}
+
+.timeline-dot.dot-complete {
+  width: 18rpx;
+  height: 18rpx;
+  border: 2rpx solid #c9a96e;
+  background: #c9a96e;
+  box-shadow: 0 0 12rpx rgba(201, 169, 110, 0.3);
+}
+
+/* 时间线内容卡片 - 三种状态 */
+.timeline-content {
+  border-radius: 16rpx;
+  padding: 28rpx;
+  transition: all 0.5s ease;
+  position: relative;
+}
+
+/* 当前活跃卡片 */
+.timeline-content.active {
+  background: rgba(26, 26, 40, 0.9);
+  border: 1rpx solid rgba(201, 169, 110, 0.3);
+  box-shadow: 0 0 30rpx rgba(201, 169, 110, 0.08);
+}
+
+.timeline-content.active .tl-year {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: #c9a96e;
+  margin-bottom: 8rpx;
+}
+
+.timeline-content.active .tl-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #f0ede6;
+  margin-bottom: 12rpx;
+}
+
+.timeline-content.active .tl-event-tag {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  background: rgba(100, 200, 255, 0.1);
+  border: 1rpx solid rgba(100, 200, 255, 0.2);
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  color: #64c8ff;
+  margin-bottom: 20rpx;
+}
+
+.timeline-content.active .tl-text {
+  font-size: 26rpx;
+  color: #c0c0d0;
+  line-height: 1.85;
+}
+
+.timeline-content.active .tl-text text {
+  display: block;
+}
+
+/* 已读卡片 */
+.timeline-content.complete {
+  background: rgba(26, 26, 40, 0.4);
+  border: 1rpx solid rgba(201, 169, 110, 0.1);
+  opacity: 0.5;
+}
+
+.timeline-content.complete .tl-year {
+  font-size: 28rpx;
+  color: rgba(201, 169, 110, 0.4);
+  margin-bottom: 4rpx;
+}
+
+.timeline-content.complete .tl-title {
+  font-size: 24rpx;
+  color: rgba(240, 237, 230, 0.4);
+  margin-bottom: 8rpx;
+}
+
+.tl-complete-mark text {
+  font-size: 20rpx;
+  color: rgba(201, 169, 110, 0.4);
+}
+
+/* 未读卡片（暗色预览） */
+.timeline-content.dim {
+  background: transparent;
+  border: 1rpx solid rgba(201, 169, 110, 0.05);
+  opacity: 0.3;
+}
+
+.timeline-content.dim .tl-year {
+  font-size: 24rpx;
+  color: rgba(201, 169, 110, 0.3);
+  margin-bottom: 4rpx;
+}
+
+.timeline-content.dim .tl-title {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.timeline-spacer {
+  height: 140rpx;
+}
+
+/* ============================================
+   三、治学：精神关键词 + 手稿风格（spirit）
+   ============================================ */
+.story-content-spirit {
+  padding: 128rpx 32rpx 180rpx;
+}
+
+.spirit-intro {
+  margin-bottom: 40rpx;
+}
+
+.spirit-quote-card {
+  background: rgba(26, 26, 40, 0.7);
+  border: 1rpx solid rgba(240, 200, 100, 0.15);
+  border-radius: 16rpx;
+  padding: 32rpx;
+  text-align: center;
+  margin-bottom: 40rpx;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.spirit-quote-card:active {
+  transform: scale(0.97);
+  border-color: rgba(201, 169, 110, 0.4);
+}
+
+.spirit-quote-card::after {
+  content: '';
+}
+
+.spirit-quote-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, #c9a96e, transparent);
+}
+
+.sq-icon {
+  display: block;
+  font-size: 48rpx;
+  color: rgba(201, 169, 110, 0.3);
+  margin-bottom: 12rpx;
+}
+
+.sq-text {
+  display: block;
+  font-size: 26rpx;
+  color: rgba(201, 169, 110, 0.8);
+  line-height: 1.8;
+  font-style: italic;
+}
+
+/* 手稿风格卡片 */
+.manuscript-card {
+  background: linear-gradient(135deg, #f5f0e8, #ede6d8);
+  border-radius: 16rpx;
+  padding: 36rpx 32rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.manuscript-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 40rpx,
+    rgba(200, 180, 150, 0.3) 40rpx,
+    rgba(200, 180, 150, 0.3) 41rpx
+  );
+  pointer-events: none;
+}
+
+.ms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+  position: relative;
+  z-index: 1;
+}
+
+.ms-year {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #8b6914;
+}
+
+.ms-event {
+  font-size: 22rpx;
+  color: rgba(139, 105, 20, 0.6);
+  padding: 4rpx 16rpx;
+  border: 1rpx solid rgba(139, 105, 20, 0.2);
+  border-radius: 12rpx;
+}
+
+.ms-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #3c2a1a;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid rgba(139, 105, 20, 0.2);
+  position: relative;
+  z-index: 1;
+}
+
+.ms-text {
+  font-size: 26rpx;
+  color: #4a3828;
+  line-height: 1.9;
+  position: relative;
+  z-index: 1;
+}
+
+.ms-text text {
+  display: block;
+}
+
+.ms-note {
+  margin-top: 20rpx;
+  text-align: right;
+  font-size: 22rpx;
+  color: rgba(139, 105, 20, 0.5);
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+/* 精神关键词网格 - 三种状态 */
+.spirit-keywords-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+  margin-bottom: 32rpx;
+}
+
+.sk-card {
+  border-radius: 14rpx;
+  padding: 28rpx 20rpx;
+  text-align: center;
+  transition: all 0.5s ease;
+}
+
+.sk-card.sk-dim {
+  background: rgba(26, 26, 40, 0.5);
+  border: 1rpx solid rgba(201, 169, 110, 0.08);
+  opacity: 0.35;
+}
+
+.sk-card.sk-dim .sk-icon { filter: grayscale(1) opacity(0.4); }
+.sk-card.sk-dim .sk-name { color: rgba(200, 200, 210, 0.3); }
+.sk-card.sk-dim .sk-desc { color: rgba(200, 200, 210, 0.2); }
+
+.sk-card.sk-current {
+  background: rgba(26, 26, 40, 0.8);
+  border: 1rpx solid rgba(100, 200, 255, 0.2);
+  box-shadow: 0 0 20rpx rgba(100, 200, 255, 0.1);
+}
+
+.sk-card.sk-current .sk-icon { filter: none; }
+
+.sk-card.sk-lit {
+  background: rgba(26, 26, 40, 0.85);
+  border: 1rpx solid rgba(201, 169, 110, 0.25);
+  box-shadow: 0 0 16rpx rgba(201, 169, 110, 0.15);
+}
+
+.sk-icon {
+  display: block;
+  font-size: 44rpx;
+  margin-bottom: 12rpx;
+}
+
+.sk-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  margin-bottom: 8rpx;
+  transition: color 0.5s ease;
+}
+
+.sk-card.sk-lit .sk-name { color: #c9a96e; }
+.sk-card.sk-current .sk-name { color: #64c8ff; }
+.sk-card.sk-dim .sk-name { color: rgba(200, 200, 210, 0.3); }
+
+.sk-desc {
+  display: block;
+  font-size: 20rpx;
+  line-height: 1.5;
+  transition: color 0.5s ease;
+}
+
+.sk-card.sk-lit .sk-desc { color: rgba(201, 169, 110, 0.6); }
+.sk-card.sk-current .sk-desc { color: rgba(100, 200, 255, 0.6); }
+.sk-card.sk-dim .sk-desc { color: rgba(200, 200, 210, 0.2); }
+
+/* ============================================
+   四、科研：实验数据展示风格（research）
+   ============================================ */
+.story-content-research {
+  padding: 380rpx 32rpx 180rpx;
+}
+
+.research-intro {
+  margin-bottom: 40rpx;
+}
+
+.research-intro .chapter-num {
+  color: #c9a96e;
+  font-size: 32rpx;
+}
+
+/* 实验可视化区域 */
+.experiment-visual {
+  position: relative;
+  width: 100%;
+  height: 300rpx;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1rpx solid rgba(100, 200, 255, 0.15);
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin-bottom: 40rpx;
+}
+
+.experiment-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.exp-canvas-label {
+  position: absolute;
+  bottom: 12rpx;
+  right: 20rpx;
+  font-size: 20rpx;
+  color: rgba(201, 169, 110, 0.6);
+  padding: 4rpx 12rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8rpx;
+  transition: color 0.3s ease;
+}
+
+/* 科研纪念碑卡片 */
+.research-monument {
+  background: rgba(26, 26, 40, 0.9);
+  border: 1rpx solid rgba(201, 169, 110, 0.25);
+  border-radius: 20rpx;
+  padding: 40rpx 36rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+
+.research-monument::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3rpx;
+  background: linear-gradient(90deg, transparent, #c9a96e, transparent);
+}
+
+.rm-year {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: rgba(201, 169, 110, 0.2);
+  text-align: right;
+  line-height: 1;
+  margin-bottom: 8rpx;
+}
+
+.rm-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #f0ede6;
+  margin-bottom: 16rpx;
+}
+
+.rm-event-badge {
+  display: inline-block;
+  padding: 6rpx 20rpx;
+  background: rgba(201, 169, 110, 0.1);
+  border: 1rpx solid rgba(201, 169, 110, 0.25);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: #c9a96e;
+  margin-bottom: 28rpx;
+}
+
+.rm-text {
+  font-size: 26rpx;
+  color: #c0c0d0;
+  line-height: 1.9;
+  margin-bottom: 24rpx;
+}
+
+.rm-text text {
+  display: block;
+}
+
+.rm-significance {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  padding: 16rpx 20rpx;
+  background: rgba(201, 169, 110, 0.06);
+  border-left: 3rpx solid #c9a96e;
+  border-radius: 0 10rpx 10rpx 0;
+}
+
+.rm-significance text:first-child {
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+
+.rm-significance text:last-child {
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.7);
+  line-height: 1.6;
+}
+
+/* 其他研究节点预览 - 三种状态 */
+.research-other {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-bottom: 40rpx;
+}
+
+.ro-card {
+  border-radius: 12rpx;
+  padding: 20rpx;
+  transition: all 0.5s ease;
+  position: relative;
+}
+
+.ro-card.ro-dim {
+  background: rgba(26, 26, 40, 0.4);
+  border: 1rpx solid rgba(201, 169, 110, 0.05);
+  opacity: 0.3;
+}
+
+.ro-card.ro-current {
+  background: rgba(26, 26, 40, 0.7);
+  border: 1rpx solid rgba(100, 200, 255, 0.2);
+  box-shadow: 0 0 12rpx rgba(100, 200, 255, 0.1);
+}
+
+.ro-card.ro-complete {
+  background: rgba(26, 26, 40, 0.6);
+  border: 1rpx solid rgba(201, 169, 110, 0.15);
+  opacity: 0.6;
+}
+
+.ro-year {
+  font-size: 22rpx;
+  color: #c9a96e;
+  margin-bottom: 6rpx;
+}
+
+.ro-card.ro-dim .ro-year { color: rgba(201, 169, 110, 0.3); }
+.ro-card.ro-current .ro-year { color: #c9a96e; }
+
+.ro-title {
+  font-size: 24rpx;
+}
+
+.ro-card.ro-dim .ro-title { color: #666; }
+.ro-card.ro-current .ro-title { color: #f0ede6; }
+.ro-card.ro-complete .ro-title { color: rgba(240, 237, 230, 0.6); }
+
+.ro-mark {
+  position: absolute;
+  top: 10rpx;
+  right: 12rpx;
+  font-size: 18rpx;
+  color: rgba(201, 169, 110, 0.4);
+}
+
+/* ============================================
+   五、尾声：庄重收尾风格（epilogue）
+   ============================================ */
+.story-content-epilogue {
+  padding: 128rpx 32rpx 180rpx;
+}
+
+/* 上部：永恒的科学精神 */
+.epi-top-section {
+  text-align: center;
+  margin-bottom: 48rpx;
+}
+
+.epi-top-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: rgba(201, 169, 110, 0.6);
+  letter-spacing: 8rpx;
+}
+
+.epi-top-decor {
+  display: flex;
+  justify-content: center;
+  margin: 24rpx 0;
+}
+
+.epi-decor-diamond {
+  width: 12rpx;
+  height: 12rpx;
+  background: rgba(201, 169, 110, 0.3);
+  transform: rotate(45deg);
+  box-shadow: 0 0 12rpx rgba(201, 169, 110, 0.2);
+  position: relative;
+}
+
+.epi-decor-diamond::before,
+.epi-decor-diamond::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 40rpx;
+  height: 1rpx;
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.3), transparent);
+}
+
+.epi-decor-diamond::before {
+  right: 100%;
+  margin-right: 12rpx;
+}
+
+.epi-decor-diamond::after {
+  left: 100%;
+  margin-left: 12rpx;
+}
+
+.epi-top-year {
+  display: block;
+  font-size: 64rpx;
+  font-weight: 700;
+  color: rgba(201, 169, 110, 0.12);
+  line-height: 1;
+}
+
+/* 尾声故事卡片中的名言 */
+.epi-story-quote {
+  margin-top: 28rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid rgba(201, 169, 110, 0.1);
+  text-align: center;
+}
+
+.epi-story-quote .epi-sq-mark {
+  display: block;
+  font-size: 36rpx;
+  color: rgba(201, 169, 110, 0.2);
+  line-height: 1;
+  margin-bottom: 4rpx;
+}
+
+.epi-story-quote .epi-sq-text {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.6);
+  font-style: italic;
+  line-height: 1.7;
+}
+
+/* 尾声故事卡片 */
+.epi-card {
+  background: rgba(26, 26, 40, 0.85);
+  border: 1rpx solid rgba(201, 169, 110, 0.15);
+  border-radius: 18rpx;
+  padding: 40rpx 36rpx;
+  margin-bottom: 48rpx;
+  box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.3);
+}
+
+.epi-year {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: rgba(201, 169, 110, 0.12);
+  text-align: right;
+  line-height: 1;
+  margin-bottom: 8rpx;
+}
+
+.epi-title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #f0ede6;
+  margin-bottom: 12rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid rgba(201, 169, 110, 0.12);
+}
+
+.epi-event {
+  display: inline-block;
+  padding: 4rpx 16rpx;
+  background: rgba(255, 180, 80, 0.08);
+  border: 1rpx solid rgba(255, 180, 80, 0.15);
+  border-radius: 12rpx;
+  font-size: 22rpx;
+  color: rgba(255, 180, 80, 0.7);
+  margin-bottom: 24rpx;
+}
+
+.epi-text {
+  font-size: 26rpx;
+  color: #c0c0d0;
+  line-height: 1.9;
+}
+
+.epi-text text {
+  display: block;
+}
+
+/* 结尾寄语 */
+.epilogue-closing {
+  text-align: center;
+  padding: 40rpx 0;
+}
+
+.epilogue-closing.closing-final {
+  animation: closing-rise 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes closing-rise {
+  from { opacity: 0; transform: translateY(60rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ec-text {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: rgba(201, 169, 110, 0.6);
+  letter-spacing: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.ec-line {
+  display: block;
+  width: 60rpx;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 110, 0.3), transparent);
+  margin: 0 auto 20rpx;
+}
+
+.ec-desc {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.35);
+  letter-spacing: 4rpx;
+  line-height: 1.8;
+  max-width: 560rpx;
+  margin: 0 auto;
+}
+
+/* ============================================
+   各章节背景差异化
+   ============================================ */
+.story-container[data-section="1"] {
+  background: linear-gradient(135deg, rgba(10, 20, 40, 0.95) 0%, rgba(15, 25, 45, 0.9) 100%);
+}
+
+.story-container[data-section="2"] {
+  background: linear-gradient(135deg, rgba(10, 20, 30, 0.95) 0%, rgba(15, 25, 35, 0.9) 100%);
+}
+
+.story-container[data-section="3"] {
+  background: linear-gradient(135deg, rgba(20, 15, 10, 0.95) 0%, rgba(15, 12, 8, 0.9) 100%);
+}
+
+.story-container[data-section="4"] {
+  background: linear-gradient(135deg, rgba(10, 25, 35, 0.95) 0%, rgba(15, 20, 35, 0.9) 100%);
+}
+
+.story-container[data-section="5"] {
+  background: linear-gradient(135deg, rgba(25, 15, 10, 0.95) 0%, rgba(20, 10, 5, 0.9) 100%);
+}
+
+/* ============================================
+   新增：序章暗到亮过渡覆盖层
+   ============================================ */
+.chapter-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(10, 10, 15, 0.95), rgba(0, 0, 0, 0.99));
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 1.5s ease;
+}
+
+/* ============================================
+   新增：序章古籍风格开场卡片 + 红色印章
+   ============================================ */
+.bio-opening-card {
+  background: linear-gradient(160deg, #2a2520 0%, #1a1815 50%, #2a2520 100%);
+  border: 2rpx solid rgba(201, 169, 110, 0.3);
+  border-radius: 20rpx;
+  padding: 48rpx 40rpx;
+  box-shadow: inset 0 0 60rpx rgba(0, 0, 0, 0.5), 0 0 30rpx rgba(201, 169, 110, 0.1);
+  position: relative;
+  overflow: visible;
+}
+
+.bio-opening-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 80rpx,
+    rgba(201, 169, 110, 0.03) 80rpx,
+    rgba(201, 169, 110, 0.03) 81rpx
+  );
+  pointer-events: none;
+}
+
+.bio-opening-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, #c9a96e 30%, #c9a96e 70%, transparent);
+  pointer-events: none;
+}
+
+.bio-opening-card .bio-year {
+  color: rgba(201, 169, 110, 0.2);
+}
+
+.bio-opening-card .bio-title {
+  color: #f0ede6;
+}
+
+.bio-opening-card .bio-text text {
+  color: #c8c0b0;
+}
+
+/* 红色印章 */
+.bio-stamp {
+  position: absolute;
+  top: 24rpx;
+  left: 28rpx;
+  width: 72rpx;
+  height: 72rpx;
+  border: 3rpx solid rgba(192, 60, 60, 0.6);
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-5deg);
+  background: rgba(192, 60, 60, 0.08);
+}
+
+.stamp-char {
+  font-size: 36rpx;
+  color: rgba(192, 60, 60, 0.7);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stamp-label {
+  font-size: 16rpx;
+  color: rgba(192, 60, 60, 0.5);
+  line-height: 1;
+  margin-top: 4rpx;
+}
+
+/* ============================================
+   新增：时间线多色渐变轴线
+   ============================================ */
+.timeline-line {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    #64c8ff 10%,
+    #8b7db8 30%,
+    #c9a96e 50%,
+    #ff69b4 70%,
+    #20b2aa 90%,
+    transparent
+  ) !important;
+}
+
+/* 时间线图标 */
+.tl-icon {
+  font-size: 28rpx;
+  display: inline-block;
+  margin-right: 8rpx;
+  vertical-align: middle;
+  filter: drop-shadow(0 0 4rpx rgba(255, 255, 255, 0.2));
+}
+
+.tl-year {
+  display: flex;
+  align-items: center;
+}
+
+/* 浮动年份导航条 */
+.timeline-float-nav {
+  position: absolute;
+  right: -8rpx;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  z-index: 5;
+  gap: 8rpx;
+}
+
+.tf-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80rpx;
+  height: 44rpx;
+  border-radius: 22rpx;
+  transition: all 0.3s ease;
+  background: rgba(10, 10, 15, 0.7);
+  border: 1rpx solid rgba(201, 169, 110, 0.1);
+}
+
+.tf-nav-year {
+  font-size: 20rpx;
+  color: rgba(201, 169, 110, 0.5);
+  font-weight: 500;
+}
+
+.tf-nav-item.tf-nav-active {
+  background: rgba(201, 169, 110, 0.25);
+  border-color: rgba(201, 169, 110, 0.5);
+  box-shadow: 0 0 12rpx rgba(201, 169, 110, 0.2);
+}
+
+.tf-nav-item.tf-nav-active .tf-nav-year {
+  color: #c9a96e;
+  font-weight: 700;
+}
+
+.tf-nav-item.tf-nav-complete {
+  background: rgba(201, 169, 110, 0.1);
+  border-color: rgba(201, 169, 110, 0.2);
+}
+
+.tf-nav-item.tf-nav-complete .tf-nav-year {
+  color: rgba(201, 169, 110, 0.7);
+}
+
+.tf-nav-item:active {
+  transform: scale(0.9);
+}
+
+/* ============================================
+   新增：科研固定 Canvas
+   ============================================ */
+.research-fixed-visual {
+  position: fixed;
+  top: 88rpx;
+  left: 0;
+  right: 0;
+  height: 290rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.experiment-visual-fixed {
+  width: 90%;
+  max-width: 680rpx;
+  height: 270rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1rpx solid rgba(100, 200, 255, 0.2);
+  border-radius: 16rpx;
+  box-shadow: 0 0 40rpx rgba(0, 0, 0, 0.5), 0 0 80rpx rgba(100, 200, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.experiment-visual-fixed .experiment-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.experiment-visual-fixed .exp-canvas-label {
+  position: absolute;
+  bottom: 12rpx;
+  right: 20rpx;
+  font-size: 20rpx;
+  color: rgba(201, 169, 110, 0.6);
+  padding: 4rpx 12rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 8rpx;
+  z-index: 10;
+}
+
+/* Canvas 底部渐变遮罩，与内容区自然衔接 */
+.experiment-visual-fixed::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60rpx;
+  background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.4));
+  pointer-events: none;
+}
+
+/* ============================================
+   新增：尾声动态背景过渡
+   ============================================ */
+.epilogue-dynamic-bg {
+  transition: background 1.2s ease;
+}
+
+/* ============================================
+   尾声 6 阶段场景装饰层
+   ============================================ */
+
+/* Stage 0: 黄昏 — 顶部橙色光晕 */
+.epi-scene-decor {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 1.2s ease;
+}
+
+.epi-scene-0 {
+  background: radial-gradient(ellipse at 50% 10%, rgba(255, 140, 66, 0.15) 0%, transparent 60%);
+}
+
+/* Stage 1: 暮色 — 左右紫色光线条 */
+.epi-scene-1 {
+  background: linear-gradient(90deg, rgba(201, 125, 184, 0.08) 0%, transparent 15%, transparent 85%, rgba(201, 125, 184, 0.08) 100%);
+  animation: epi-purple-pulse 4s ease-in-out infinite;
+}
+
+@keyframes epi-purple-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Stage 2: 夜色 — 底部蓝色水波纹 */
+.epi-scene-2::after {
+  content: '';
+  position: absolute;
+  bottom: 120rpx;
+  left: 0;
+  right: 0;
+  height: 80rpx;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(100, 136, 200, 0.06) 25%,
+    rgba(100, 136, 200, 0.1) 50%,
+    rgba(100, 136, 200, 0.06) 75%,
+    transparent 100%
+  );
+  animation: epi-water-wave 6s ease-in-out infinite;
+}
+
+@keyframes epi-water-wave {
+  0%, 100% { transform: translateX(-5%); opacity: 0.5; }
+  50% { transform: translateX(5%); opacity: 0.8; }
+}
+
+/* Stage 3: 深夜 — 中间暖色分隔线（曙光） */
+.epi-scene-3::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10%;
+  right: 10%;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, rgba(255, 200, 120, 0.4), transparent);
+  animation: epi-dawn-glow 3s ease-in-out infinite;
+}
+
+@keyframes epi-dawn-glow {
+  0%, 100% { opacity: 0.4; width: 60%; left: 20%; }
+  50% { opacity: 0.8; width: 80%; left: 10%; }
+}
+
+/* Stage 4: 最后坚守 — 金色呼吸光点（烛光） */
+.epi-scene-4 {
+  background: radial-gradient(circle at 50% 40%, rgba(255, 215, 0, 0.1) 0%, transparent 30%);
+  animation: epi-candle 2.5s ease-in-out infinite;
+}
+
+@keyframes epi-candle {
+  0%, 100% { opacity: 0.5; }
+  25% { opacity: 0.8; }
+  50% { opacity: 0.6; }
+  75% { opacity: 0.9; }
+}
+
+/* Stage 5: 星空永恒 — 深空背景 + 微弱星光 */
+.epi-scene-5 {
+  background: radial-gradient(circle at 30% 20%, rgba(100, 200, 255, 0.05) 0%, transparent 40%),
+              radial-gradient(circle at 70% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 40%);
+}
+
+/* ============================================
+   新增：星空粒子层（尾声最终故事）
+   ============================================ */
+.starfield-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  animation: starfield-fade-in 2s ease forwards;
+}
+
+@keyframes starfield-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.star {
+  position: absolute;
+  width: 2rpx;
+  height: 2rpx;
+  background: #fff;
+  border-radius: 50%;
+  animation: star-twinkle 2s ease-in-out infinite alternate;
+}
+
+.star:nth-child(3n) {
+  width: 4rpx;
+  height: 4rpx;
+  background: #ffd700;
+  box-shadow: 0 0 6rpx rgba(255, 215, 0, 0.5);
+}
+
+.star:nth-child(5n) {
+  width: 3rpx;
+  height: 3rpx;
+  background: #64c8ff;
+  box-shadow: 0 0 8rpx rgba(100, 200, 255, 0.4);
+}
+
+@keyframes star-twinkle {
+  from { opacity: 0.3; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1.2); }
+}
+
+/* 流星 */
+.shooting-star {
+  position: absolute;
+  top: 15%;
+  left: 20%;
+  width: 2rpx;
+  height: 2rpx;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 6rpx 2rpx rgba(255, 255, 255, 0.6);
+  animation: shooting-star 8s linear infinite;
+  animation-delay: 0s;
+}
+
+.shooting-star::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80rpx;
+  height: 1rpx;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.6), transparent);
+  transform: rotate(-35deg);
+  transform-origin: left center;
+}
+
+.shooting-star-2 {
+  top: 35%;
+  left: 60%;
+  animation-delay: 4s;
+}
+
+@keyframes shooting-star {
+  0% { opacity: 0; transform: translate(0, 0); }
+  2% { opacity: 1; }
+  8% { opacity: 0; transform: translate(-120rpx, 80rpx); }
+  100% { opacity: 0; }
+}
+
+/* 尾声最后一个故事：结尾寄语金色渐变 */
+.epilogue-closing.closing-final .ec-text {
+  background: linear-gradient(90deg, #c9a96e, #ffd700, #c9a96e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: #ffd700;
+  font-size: 36rpx;
+  text-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3);
+}
+
+.epilogue-closing.closing-final .ec-line {
+  background: linear-gradient(90deg, transparent, #ffd700, transparent);
+  height: 3rpx;
+}

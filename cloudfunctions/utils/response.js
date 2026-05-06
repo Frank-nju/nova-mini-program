@@ -1,22 +1,14 @@
 /**
  * 云函数统一响应封装
- * 所有云函数使用此格式返回数据
+ * 参考接口文档 v0.1.1 §3.2
  */
 
-function success(data, message = 'ok') {
-  return {
-    code: 0,
-    message,
-    data,
-  };
+function success(data = null, message = 'ok') {
+  return { code: 0, message, data };
 }
 
 function error(code, message) {
-  return {
-    code,
-    message,
-    data: null,
-  };
+  return { code, message, data: null };
 }
 
 module.exports = { success, error };

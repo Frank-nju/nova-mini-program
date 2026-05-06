@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 1200" width="750" height="1200">
+  <defs>
+    <!-- 深空背景渐变 -->
+    <radialGradient id="deepSpace" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#0d0828"/>
+      <stop offset="40%" stop-color="#0a0618"/>
+      <stop offset="100%" stop-color="#050210"/>
+    </radialGradient>
+
+    <!-- 中心光束 -->
+    <radialGradient id="lightBurst" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#64c8ff" stop-opacity="0.35"/>
+      <stop offset="30%" stop-color="#64c8ff" stop-opacity="0.15"/>
+      <stop offset="70%" stop-color="#c9a96e" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0a0618" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 金色光晕 -->
+    <radialGradient id="goldGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#c9a96e" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#c9a96e" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#0a0618" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 光束射线渐变 -->
+    <linearGradient id="rayBlue" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#64c8ff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#64c8ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rayGold" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#c9a96e" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#c9a96e" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- 粒子发光滤镜 -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- 文字渐变 -->
+    <linearGradient id="titleGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f0e6d2"/>
+      <stop offset="100%" stop-color="#c9a96e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 深空背景 -->
+  <rect width="750" height="1200" fill="url(#deepSpace)"/>
+
+  <!-- 远景星尘（微小粒子） -->
+  <g opacity="0.5">
+    <circle cx="120" cy="80" r="1" fill="#fff" opacity="0.6"/>
+    <circle cx="340" cy="150" r="0.8" fill="#fff" opacity="0.4"/>
+    <circle cx="580" cy="95" r="1.2" fill="#64c8ff" opacity="0.5"/>
+    <circle cx="200" cy="220" r="0.7" fill="#fff" opacity="0.3"/>
+    <circle cx="650" cy="280" r="1" fill="#c9a96e" opacity="0.4"/>
+    <circle cx="90" cy="350" r="0.8" fill="#fff" opacity="0.5"/>
+    <circle cx="420" cy="310" r="1.1" fill="#64c8ff" opacity="0.3"/>
+    <circle cx="530" cy="180" r="0.6" fill="#fff" opacity="0.4"/>
+    <circle cx="700" cy="450" r="1" fill="#fff" opacity="0.3"/>
+    <circle cx="160" cy="480" r="0.9" fill="#c9a96e" opacity="0.35"/>
+    <circle cx="310" cy="520" r="0.7" fill="#fff" opacity="0.25"/>
+    <circle cx="480" cy="600" r="1" fill="#64c8ff" opacity="0.3"/>
+    <circle cx="60" cy="650" r="0.8" fill="#fff" opacity="0.4"/>
+    <circle cx="680" cy="700" r="1.1" fill="#fff" opacity="0.3"/>
+    <circle cx="250" cy="780" r="0.6" fill="#c9a96e" opacity="0.25"/>
+    <circle cx="500" cy="850" r="0.9" fill="#fff" opacity="0.35"/>
+    <circle cx="140" cy="900" r="1" fill="#64c8ff" opacity="0.3"/>
+    <circle cx="620" cy="950" r="0.7" fill="#fff" opacity="0.4"/>
+    <circle cx="380" cy="1020" r="1.2" fill="#c9a96e" opacity="0.3"/>
+    <circle cx="710" cy="1100" r="0.8" fill="#fff" opacity="0.35"/>
+    <circle cx="100" cy="1080" r="1" fill="#64c8ff" opacity="0.4"/>
+    <circle cx="450" cy="1150" r="0.7" fill="#fff" opacity="0.3"/>
+    <circle cx="300" cy="50" r="1" fill="#fff" opacity="0.5"/>
+    <circle cx="670" cy="170" r="0.6" fill="#64c8ff" opacity="0.35"/>
+    <circle cx="50" cy="520" r="1.1" fill="#fff" opacity="0.4"/>
+  </g>
+
+  <!-- 中心光束光晕 -->
+  <ellipse cx="375" cy="420" rx="350" ry="380" fill="url(#lightBurst)"/>
+  <ellipse cx="375" cy="480" rx="200" ry="250" fill="url(#goldGlow)"/>
+
+  <!-- 光束射线 -->
+  <g>
+    <polygon points="375,420 340,0 410,0" fill="url(#rayBlue)" opacity="0.6"/>
+    <polygon points="375,420 280,0 320,0" fill="url(#rayBlue)" opacity="0.4"/>
+    <polygon points="375,420 440,0 480,0" fill="url(#rayBlue)" opacity="0.4"/>
+    <polygon points="375,420 200,0 240,0" fill="url(#rayGold)" opacity="0.3"/>
+    <polygon points="375,420 520,0 560,0" fill="url(#rayGold)" opacity="0.3"/>
+    <polygon points="375,420 120,0 170,0" fill="url(#rayBlue)" opacity="0.15"/>
+    <polygon points="375,420 600,0 650,0" fill="url(#rayBlue)" opacity="0.15"/>
+    <!-- 下方射线 -->
+    <polygon points="375,480 340,900 410,900" fill="url(#rayBlue)" opacity="0.2"/>
+    <polygon points="375,480 280,950 320,950" fill="url(#rayGold)" opacity="0.15"/>
+    <polygon points="375,480 440,950 480,950" fill="url(#rayGold)" opacity="0.15"/>
+  </g>
+
+  <!-- 轨道粒子环（原子轨道意象） -->
+  <g opacity="0.7">
+    <!-- 轨道环1 - 蓝色 -->
+    <ellipse cx="375" cy="440" rx="180" ry="50" fill="none" stroke="#64c8ff" stroke-width="0.5" opacity="0.3" transform="rotate(-15 375 440)"/>
+    <ellipse cx="375" cy="440" rx="180" ry="50" fill="none" stroke="#64c8ff" stroke-width="0.5" opacity="0.3" transform="rotate(30 375 440)"/>
+    <ellipse cx="375" cy="440" rx="180" ry="50" fill="none" stroke="#64c8ff" stroke-width="0.5" opacity="0.3" transform="rotate(75 375 440)"/>
+
+    <!-- 轨道环2 - 金色 -->
+    <ellipse cx="375" cy="460" rx="120" ry="35" fill="none" stroke="#c9a96e" stroke-width="0.5" opacity="0.25" transform="rotate(20 375 460)"/>
+    <ellipse cx="375" cy="460" rx="120" ry="35" fill="none" stroke="#c9a96e" stroke-width="0.5" opacity="0.25" transform="rotate(-40 375 460)"/>
+
+    <!-- 轨道上的粒子点 -->
+    <circle cx="555" cy="440" r="3" fill="#64c8ff" filter="url(#glow)" opacity="0.8"/>
+    <circle cx="195" cy="440" r="2.5" fill="#64c8ff" filter="url(#glow)" opacity="0.6"/>
+    <circle cx="375" cy="390" r="2" fill="#c9a96e" filter="url(#glow)" opacity="0.7"/>
+    <circle cx="495" cy="460" r="2.5" fill="#c9a96e" filter="url(#glow)" opacity="0.5"/>
+    <circle cx="255" cy="460" r="3" fill="#64c8ff" filter="url(#glow)" opacity="0.6"/>
+    <circle cx="375" cy="530" r="2" fill="#c9a96e" filter="url(#glow)" opacity="0.5"/>
+  </g>
+
+  <!-- 漂浮光粒子 -->
+  <g filter="url(#glow)">
+    <circle cx="280" cy="320" r="4" fill="#64c8ff" opacity="0.5"/>
+    <circle cx="470" cy="360" r="3" fill="#c9a96e" opacity="0.4"/>
+    <circle cx="320" cy="520" r="3.5" fill="#64c8ff" opacity="0.35"/>
+    <circle cx="430" cy="490" r="2.5" fill="#c9a96e" opacity="0.45"/>
+    <circle cx="250" cy="400" r="2" fill="#fff" opacity="0.4"/>
+    <circle cx="510" cy="420" r="3" fill="#64c8ff" opacity="0.3"/>
+    <circle cx="375" cy="350" r="5" fill="#64c8ff" opacity="0.25"/>
+    <circle cx="340" cy="580" r="2" fill="#c9a96e" opacity="0.3"/>
+    <circle cx="420" cy="340" r="2.5" fill="#64c8ff" opacity="0.35"/>
+    <circle cx="310" cy="450" r="1.5" fill="#fff" opacity="0.5"/>
+  </g>
+
+  <!-- 核心光球 -->
+  <circle cx="375" cy="430" r="8" fill="#64c8ff" opacity="0.4" filter="url(#softGlow)"/>
+  <circle cx="375" cy="430" r="4" fill="#fff" opacity="0.6"/>
+
+  <!-- 装饰性微光弧线 -->
+  <path d="M 100 700 Q 375 600 650 700" fill="none" stroke="#64c8ff" stroke-width="0.5" opacity="0.15"/>
+  <path d="M 150 750 Q 375 650 600 750" fill="none" stroke="#c9a96e" stroke-width="0.5" opacity="0.1"/>
+  <path d="M 200 800 Q 375 720 550 800" fill="none" stroke="#64c8ff" stroke-width="0.3" opacity="0.08"/>
+</svg>
