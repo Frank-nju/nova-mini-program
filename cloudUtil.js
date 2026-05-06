@@ -170,7 +170,7 @@ function chatWithDigitalHuman(params) {
   if (!params || !params.question) {
     return Promise.resolve({ code: 1001, message: '参数 question 缺失', data: null });
   }
-  return call('digitalHuman', params, 30000).then(res => {
+  return call('askDigitalHuman', { action: 'chat', question: params.question }, 60000).then(res => {
     if (!res || res.code !== 0) {
       // 即使业务报错，只要有 text 就显示
       if (res && res.data && res.data.text) {
