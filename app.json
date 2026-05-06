@@ -1,16 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/exhibit/exhibit"
-  ],
-  "subpackages": [
-    {
-      "root": "subpkg",
-      "pages": [
-        "pages/story/story",
-        "pages/cloud/cloud"
-      ]
-    }
+    "pages/exhibit/exhibit",
+    "pages/story/story"
   ],
   "window": {
     "navigationBarTitleText": "追光健雄",

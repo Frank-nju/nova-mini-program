@@ -1,18 +1,9 @@
 {
-  "cloudfunctionRoot": "cloudfunctions/",
   "description": "追光健雄云端展馆（原生首页 + web-view 展馆壳，静态页见 pages/exhibit/web）",
   "packOptions": {
     "ignore": [
       {
         "value": "pages/exhibit/web/**",
-        "type": "glob"
-      },
-      {
-        "value": "modules/**",
-        "type": "glob"
-      },
-      {
-        "value": "compress-images.js",
         "type": "glob"
       }
     ],

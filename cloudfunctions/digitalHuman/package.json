@@ -1,9 +1,0 @@
-{
-  "name": "digitalHuman",
-  "version": "1.0.0",
-  "description": "数字人对话云函数 - RAG + LLM",
-  "main": "index.js",
-  "dependencies": {
-    "wx-server-sdk": "~2.6.3"
-  }
-}

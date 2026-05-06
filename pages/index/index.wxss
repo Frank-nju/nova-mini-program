@@ -74,17 +74,6 @@
   }
 }
 
-/* === 主视觉 Canvas === */
-.hero-canvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 70%;
-  z-index: 2;
-  opacity: 0.85;
-}
-
 /* === 中心内容 === */
 .center-content {
   position: relative;
@@ -207,3 +196,5 @@
   letter-spacing: 6rpx;
   opacity: 0.7;
 }
+
+/* 所有旧样式已清理 - WXSS 优化完成 */
