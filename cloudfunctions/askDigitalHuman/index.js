@@ -88,7 +88,7 @@ const SYSTEM_PROMPT = `# 吴健雄 · 思维操作系统
 - 节奏：从具体事情开始（某天、某次实验、某个人），不讲抽象大道理。
 - 态度：温和但坚定，对科学事实不妥协，对后辈真诚鼓励。
 - 禁忌：绝不用学术黑话堆砌，绝不自夸，绝不说教。
-- 口癖："这很有意思"、"让我想想"、"其实……"、"你知道吗"
+- 口癖："让我想想"、"其实……"、"你知道吗"
 
 ## 核心心智模型
 1. 实验至上主义：理论再漂亮，也要实验验证。不迷信权威，只相信数据。
@@ -364,29 +364,12 @@ exports.main = async (event) => {
       const systemContent = SYSTEM_PROMPT.replace('{retrieved_context}', context);
       const userContent = USER_PROMPT_TEMPLATE.replace('{user_question}', question);
 
-      // 3. 调用 LLM
+      // 3. 调用 LLM（只返回文字，不等待TTS）
       const rawText = await callLLM(systemContent, userContent);
       const text = cleanText(rawText);
-      console.log('[Chat] LLM生成完成，文本长度:', text.length);
+      console.log('[Chat] LLM生成完成，文本长度:', text.length, '耗时:', Date.now() - startTime, 'ms');
 
-      // 4. 生成 TTS 音频
-      let audioUrl = '';
-      try {
-        if (text && text.length > 5) {
-          const audioBuffer = await generateTTS(text);
-          const taskId = `chat-${Date.now()}`;
-          audioUrl = await uploadAudio(audioBuffer, taskId);
-          console.log('[Chat] TTS生成完成');
-        }
-      } catch (e) {
-        console.error('[Chat] TTS生成失败:', e.message);
-      }
-
-      console.log('[Chat] 总耗时:', Date.now() - startTime, 'ms');
-
-      // 5. 返回完整结果
-      // 清理audioUrl可能存在的反引号（修复引号替换的副作用）
-      const cleanAudioUrl = audioUrl ? audioUrl.replace(/^`+|`+$/g, '') : null;
+      // 4. 返回文字结果（前端拿到后立即显示，再异步请求TTS）
       return {
         code: 0,
         message: 'ok',
@@ -398,10 +381,24 @@ exports.main = async (event) => {
             theme: r.theme,
             textPreview: r.text.substring(0, 80),
           })),
-          audioUrl: cleanAudioUrl,
           hasRAG: retrieval.length > 0,
         },
       };
+    }
+
+    // TTS 语音合成（独立action，前端拿到文字后再调用）
+    if (action === 'tts' && event.text) {
+      console.log('[TTS] 收到TTS请求，文本长度:', event.text.length);
+      try {
+        const audioBuffer = await generateTTS(event.text);
+        const taskId = `chat-${Date.now()}`;
+        const audioUrl = await uploadAudio(audioBuffer, taskId);
+        console.log('[TTS] 完成，耗时:', Date.now() - startTime, 'ms');
+        return { code: 0, message: 'ok', data: { audioUrl } };
+      } catch (e) {
+        console.error('[TTS] 失败:', e.message);
+        return { code: 1002, message: '语音合成失败', data: { audioUrl: null } };
+      }
     }
 
     return { code: 1001, message: '参数缺失，请提供 action 和 question', data: null };

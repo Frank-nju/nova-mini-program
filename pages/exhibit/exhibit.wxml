@@ -282,7 +282,7 @@
         <!-- 欢迎语 -->
         <view class="ai-msg ai-msg-welcome">
           <view class="ai-msg-avatar">🧪</view>
-          <view class="ai-msg-bubble">
+          <view class="ai-msg-bubble ai-bubble">
             欢迎来到追光健雄云端数字展馆。我是吴健雄，很高兴能带你走进我的人生旅程。你可以问我关于求学经历、科研探索、人生感悟，或者任何你感兴趣的话题。
           </view>
         </view>

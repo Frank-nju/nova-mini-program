@@ -58,7 +58,7 @@ Page({
     this.addMessage('ai', '', aiMsgId, { loading: true });
 
     try {
-      // 调用云函数（同步返回完整结果：RAG + LLM + TTS）
+      // 调用云函数（先返回文字，不等待TTS）
       const res = await this.callFunction('askDigitalHuman', {
         action: 'chat',
         question,
@@ -70,19 +70,19 @@ Page({
 
       const data = res.data;
 
-      // 更新 AI 消息（文本 + 检索信息 + 音频）
+      // 立即显示文字
       this.updateMessage(aiMsgId, {
         loading: false,
         text: data.text || '',
         status: 'done',
         retrieval: data.retrieval || [],
-        audioUrl: data.audioUrl || null,
+        audioUrl: null,
         audioPlaying: false,
       });
 
-      // 如果有音频，自动播放
-      if (data.audioUrl) {
-        this.playAudioUrl(data.audioUrl, aiMsgId);
+      // 异步请求TTS
+      if (data.text && data.text.length > 5) {
+        this.requestTTS(data.text, aiMsgId);
       }
     } catch (e) {
       this.updateMessage(aiMsgId, {
@@ -100,6 +100,19 @@ Page({
     const question = e.currentTarget.dataset.question;
     this.setData({ inputValue: question });
     this.sendMessage();
+  },
+
+  // 异步请求TTS
+  async requestTTS(text, msgId) {
+    try {
+      const res = await this.callFunction('askDigitalHuman', { action: 'tts', text });
+      if (res.code === 0 && res.data && res.data.audioUrl) {
+        this.updateMessage(msgId, { audioUrl: res.data.audioUrl });
+        this.playAudioUrl(res.data.audioUrl, msgId);
+      }
+    } catch (e) {
+      console.warn('TTS请求失败:', e.message);
+    }
   },
 
   // 播放音频

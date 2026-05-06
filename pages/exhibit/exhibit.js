@@ -563,7 +563,7 @@ Page({
             ...m,
             loading: false,
             text: res.data.text,
-            audioUrl: res.data.audioUrl || null,
+            audioUrl: null,
             audioPlaying: false,
           } : m
         );
@@ -572,13 +572,9 @@ Page({
           aiChatting: false,
           aiScrollId: `ai-msg-${loadingId}`,
         });
-        // 如果有音频，自动播放
-        if (res.data.audioUrl) {
-          const url = res.data.audioUrl;
-          const mid = loadingId;
-          setTimeout(() => {
-            this.playDigitalHumanAudio({ currentTarget: { dataset: { audiourl: url, msgid: mid } } });
-          }, 500);
+        // 文字显示后，异步请求TTS
+        if (res.data.text && res.data.text.length > 5) {
+          this.requestTTS(res.data.text, loadingId);
         }
       })
       .catch(() => {
@@ -968,6 +964,26 @@ Page({
             }, 3000);
           }
         });
+      });
+  },
+
+  // 异步请求TTS
+  requestTTS(text, msgId) {
+    cloudUtil.call('askDigitalHuman', { action: 'tts', text: text }, 60000)
+      .then(res => {
+        if (res.code === 0 && res.data && res.data.audioUrl) {
+          const updated = this.data.aiMessages.map(m =>
+            m.id === msgId ? { ...m, audioUrl: res.data.audioUrl } : m
+          );
+          this.setData({ aiMessages: updated });
+          // 自动播放
+          setTimeout(() => {
+            this.playDigitalHumanAudio({ currentTarget: { dataset: { audiourl: res.data.audioUrl, msgid: msgId } } });
+          }, 300);
+        }
+      })
+      .catch(err => {
+        console.warn('[exhibit] TTS请求失败:', err.message);
       });
   },
 
