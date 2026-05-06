@@ -294,6 +294,13 @@
             <text wx:if="{{item.loading}}" class="ai-typing-dots"><text></text><text></text><text></text></text>
             <text wx:else>{{item.text}}</text>
           </view>
+          <!-- 语音播放按钮 -->
+          <view wx:if="{{item.role === 'ai' && item.audioUrl && !item.audioPlaying}}" class="audio-play-btn" bindtap="playDigitalHumanAudio" data-audiourl="{{item.audioUrl}}" data-msgid="{{item.id}}">
+            <text>🎤 播放语音</text>
+          </view>
+          <view wx:if="{{item.role === 'ai' && item.audioPlaying}}" class="audio-play-btn audio-playing" bindtap="stopDigitalHumanAudio">
+            <text>⏸ 停止</text>
+          </view>
         </view>
       </view>
       <view style="height: 16rpx;"></view>

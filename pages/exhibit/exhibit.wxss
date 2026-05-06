@@ -4689,3 +4689,19 @@
   color: rgba(200, 200, 220, 0.35);
 }
 
+/* 数字人音频播放按钮 */
+.audio-play-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 20rpx;
+  margin-top: 10rpx;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: rgba(200, 200, 220, 0.7);
+}
+.audio-play-btn.audio-playing {
+  background: rgba(100, 180, 255, 0.15);
+  color: #64b4ff;
+}
+

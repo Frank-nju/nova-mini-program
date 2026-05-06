@@ -559,13 +559,27 @@ Page({
     cloudUtil.chatWithDigitalHuman({ question })
       .then(res => {
         const updated = this.data.aiMessages.map(m =>
-          m.id === loadingId ? { ...m, loading: false, text: res.data.text } : m
+          m.id === loadingId ? {
+            ...m,
+            loading: false,
+            text: res.data.text,
+            audioUrl: res.data.audioUrl || null,
+            audioPlaying: false,
+          } : m
         );
         this.setData({
           aiMessages: updated,
           aiChatting: false,
           aiScrollId: `ai-msg-${loadingId}`,
         });
+        // 如果有音频，自动播放
+        if (res.data.audioUrl) {
+          const url = res.data.audioUrl;
+          const mid = loadingId;
+          setTimeout(() => {
+            this.playDigitalHumanAudio({ currentTarget: { dataset: { audiourl: url, msgid: mid } } });
+          }, 500);
+        }
       })
       .catch(() => {
         const updated = this.data.aiMessages.map(m =>
@@ -957,7 +971,49 @@ Page({
       });
   },
 
+  // 数字人音频播放
+  playDigitalHumanAudio(e) {
+    const audioUrl = e.currentTarget.dataset.audiourl || e;
+    const msgId = e.currentTarget.dataset.msgid;
+    if (!audioUrl) return;
+    if (!this.data.innerAudioContext) {
+      this.data.innerAudioContext = wx.createInnerAudioContext();
+    }
+    const ctx = this.data.innerAudioContext;
+    ctx.src = audioUrl;
+    ctx.play();
+    const msgs = this.data.aiMessages.map(m =>
+      m.id === msgId ? { ...m, audioPlaying: true } : { ...m, audioPlaying: false }
+    );
+    this.setData({ aiMessages: msgs });
+    ctx.onEnded(() => {
+      const updated = this.data.aiMessages.map(m =>
+        m.id === msgId ? { ...m, audioPlaying: false } : m
+      );
+      this.setData({ aiMessages: updated });
+    });
+    ctx.onError((err) => {
+      console.error('[exhibit] 音频播放失败:', err);
+      const updated = this.data.aiMessages.map(m =>
+        m.id === msgId ? { ...m, audioPlaying: false } : m
+      );
+      this.setData({ aiMessages: updated });
+    });
+  },
+
+  stopDigitalHumanAudio() {
+    if (this.data.innerAudioContext) {
+      this.data.innerAudioContext.stop();
+    }
+    const msgs = this.data.aiMessages.map(m => ({ ...m, audioPlaying: false }));
+    this.setData({ aiMessages: msgs });
+  },
+
   onUnload() {
+    if (this.data.innerAudioContext) {
+      this.data.innerAudioContext.stop();
+      this.data.innerAudioContext.destroy();
+    }
     if (this.data.animationFrameId) {
       clearTimeout(this.data.animationFrameId);
     }
