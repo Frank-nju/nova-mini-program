@@ -86,8 +86,12 @@ Component({
 
     _stopSpeaking() {
       if (this.audioCtx) {
-        this.audioCtx.stop();
-        this.audioCtx.destroy();
+        try {
+          this.audioCtx.stop();
+          this.audioCtx.destroy();
+        } catch (e) {
+          // ignore
+        }
         this.audioCtx = null;
       }
       this.setData({ isSpeaking: false, mouthSrc: this.data.baseSrc });
