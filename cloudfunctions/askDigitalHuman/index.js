@@ -17,13 +17,11 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || '';
 const LLM_MODEL = process.env.LLM_MODEL || 'qwen-plus';
-const EMBED_MODEL = process.env.EMBED_MODEL || 'text-embedding-v4';
-const EMBED_DIM = parseInt(process.env.EMBED_DIM || '1536');
 const TTS_MODEL = process.env.TTS_MODEL || 'cosyvoice-v3.5-plus';
 const TTS_VOICE = process.env.TTS_VOICE || 'cosyvoice-v3.5-plus-vd-wjxszslow-41e6b9543b174ccfbe0ebae9eb4721c0';
 
 // ============================================================
-// 知识库（内嵌 62 chunks）
+// 知识库（内嵌 42 chunks）
 // ============================================================
 
 const KNOWLEDGE_CHUNKS = [
@@ -52,7 +50,7 @@ const KNOWLEDGE_CHUNKS = [
   { id: "node_1956_parity_05", nodeBinding: "node_1956_parity", theme: "科研丰碑", text: `关于theta-tau之谜：当时物理学家发现两种粒子theta和tau，它们的质量和寿命完全相同，但衰变方式不同。按照宇称守恒，它们应该是同一种粒子；但按照宇称守恒，它们又不能是同一种粒子。这就是著名的theta-tau之谜。杨振宁和李政道提出，如果宇称在弱相互作用中不守恒，这个谜就解开了。` },
   { id: "node_beta_decay_01", nodeBinding: "node_beta_decay", theme: "科研丰碑", text: `吴健雄的博士论文研究的是beta衰变。她精确测量了多种原子核的beta衰变谱，验证了费米的理论预言。费米本人对这个实验结果非常满意，亲自到伯克利查看实验装置，并对吴健雄的工作给予了高度评价。` },
   { id: "node_beta_decay_02", nodeBinding: "node_beta_decay", theme: "科研丰碑", text: `在曼哈顿计划期间，吴健雄参与了气体扩散法分离铀同位素的工作。她解决了一个关键的技术难题，帮助提高了分离效率。这段经历让她与奥本海默、费米等物理学大师有了深入的交流。` },
-  { id: "node_other_exp_01", nodeBinding: "node_other_exp", theme: "科研丰碑", text: `吴健雄还做了许多其他重要实验。她精确测量了光子偏振的相关性，验证了量子力学的贝尔不等式。她还研究了缪子原子核的俘获过程，发现了新的核结构信息。` },
+  { id: "node_other_exp_01", nodeBinding: "node_other_exp", theme: "科研丰碑", text: `吴健雄还做了许多其他实验。她精确测量了光子偏振的相关性，验证了量子力学的贝尔不等式。她还研究了缪子原子核的俘获过程，发现了新的核结构信息。` },
   { id: "node_other_exp_02", nodeBinding: "node_other_exp", theme: "科研丰碑", text: `吴健雄是美国物理学会第一位女性会长。她积极推动女性参与科学研究，曾说过："女性在科学界的地位不应该由性别决定，而应该由能力决定。浪费一半人口的智力资源，是人类社会的巨大损失。"` },
   { id: "node_spirit_quote_01", nodeBinding: "node_spirit_quote", theme: "治学风骨", text: `吴健雄的五项信条："把忠心交给国家，把孝心奉给父母，把爱心献给事业，把真诚送给朋友，把信心留给自己。"` },
   { id: "node_spirit_quote_02", nodeBinding: "node_spirit_quote", theme: "治学风骨", text: `"科学是没有国界的，但科学家是有祖国的。"这是吴健雄常说的话，也是她一生的写照。` },
@@ -115,8 +113,6 @@ const USER_PROMPT_TEMPLATE = `用户问题：{user_question}
 
 请基于以上知识回答问题，以吴健雄先生的第一人称口吻，温和亲切地回答。`;
 
-const FALLBACK_TEXT = '这个问题让我想起了很多往事，但似乎超出了我这次展览的范围。不如我们去看看展馆里的其他内容？你可以问我关于我的求学经历、科研探索、或者我对年轻人的寄语。';
-
 const PRESET_QUESTIONS = [
   { id: "preset_q001", question: "吴先生，您是如何发现宇称不守恒的？" },
   { id: "preset_q002", question: "做科研最重要的是什么？" },
@@ -129,39 +125,37 @@ const PRESET_QUESTIONS = [
 ];
 
 // ============================================================
-// RAG 检索（关键词匹配，无需向量数据库）
+// RAG 检索
 // ============================================================
 
 function retrieveChunks(query, topK = 3) {
-  // 分词：简单按字和常见词切分
   const queryChars = query.replace(/[，。？！、的了吗是和在有了不也都被与而或但从到把被让给向对关于]/g, '').split('');
   const queryTerms = queryChars.filter(c => c.trim());
 
-  // 计算每个 chunk 的匹配分数
   const scored = KNOWLEDGE_CHUNKS.map(chunk => {
     const text = chunk.text;
     let score = 0;
     for (const term of queryTerms) {
-      // 字符匹配
       const matches = (text.match(new RegExp(term, 'g')) || []).length;
       score += matches;
     }
-    // 长度归一化（避免长文本天然得分高）
     const normalizedScore = text.length > 0 ? score / Math.sqrt(text.length) : 0;
     return { ...chunk, score: normalizedScore };
   });
 
-  // 按分数排序，取 topK
   scored.sort((a, b) => b.score - a.score);
   return scored.slice(0, topK).filter(c => c.score > 0);
 }
 
 // ============================================================
-// LLM 调用（直连阿里云 DashScope，兼容 OpenAI 格式）
+// LLM 调用
 // ============================================================
 
 function callLLM(systemContent, userContent) {
   return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    console.log('[LLM] 开始调用，模型:', LLM_MODEL);
+    
     const body = JSON.stringify({
       model: LLM_MODEL,
       messages: [
@@ -191,9 +185,11 @@ function callLLM(systemContent, userContent) {
       res.on('end', () => {
         try {
           const result = JSON.parse(data);
+          console.log('[LLM] 响应耗时:', Date.now() - startTime, 'ms');
           if (result.choices && result.choices[0]) {
             resolve(result.choices[0].message.content.trim());
           } else {
+            console.error('[LLM] 返回异常:', result);
             reject(new Error((result.error && result.error.message) || 'LLM返回格式异常'));
           }
         } catch (e) {
@@ -202,7 +198,10 @@ function callLLM(systemContent, userContent) {
       });
     });
 
-    req.on('error', reject);
+    req.on('error', (err) => {
+      console.error('[LLM] 请求错误:', err.message);
+      reject(err);
+    });
     req.setTimeout(30000, () => {
       req.destroy();
       reject(new Error('LLM请求超时'));
@@ -213,11 +212,14 @@ function callLLM(systemContent, userContent) {
 }
 
 // ============================================================
-// TTS 语音合成（直连阿里云 DashScope WebSocket）
+// TTS 语音合成
 // ============================================================
 
 function generateTTS(text) {
   return new Promise((resolve, reject) => {
+    const startTime = Date.now();
+    console.log('[TTS] 开始生成，文本长度:', text.length);
+    
     if (!DASHSCOPE_API_KEY) {
       reject(new Error('未配置DASHSCOPE_API_KEY'));
       return;
@@ -227,8 +229,10 @@ function generateTTS(text) {
     const audioChunks = [];
     const ws = new WebSocket(wsUrl);
     let isCompleted = false;
+    let hasReceivedAudio = false;
 
     ws.on('open', () => {
+      console.log('[TTS] WebSocket连接成功');
       ws.send(JSON.stringify({
         header: { action: 'run-task', task_id: `tts-${Date.now()}` },
         payload: {
@@ -247,24 +251,38 @@ function generateTTS(text) {
         const msg = JSON.parse(data.toString());
         if (msg.payload && msg.payload.output && msg.payload.output.audio) {
           audioChunks.push(Buffer.from(msg.payload.output.audio, 'base64'));
+          hasReceivedAudio = true;
+          console.log('[TTS] 收到音频chunk，当前总大小:', audioChunks.length);
         }
         if (msg.header && msg.header.event === 'task-finished') {
+          console.log('[TTS] 任务完成');
           isCompleted = true;
           ws.close();
         }
         if (msg.header && msg.header.event === 'error') {
+          console.error('[TTS] 任务错误:', msg.payload);
           reject(new Error((msg.payload && msg.payload.message) || 'TTS生成失败'));
           ws.close();
         }
       } catch (e) {
-        if (Buffer.isBuffer(data)) audioChunks.push(data);
+        if (Buffer.isBuffer(data)) {
+          audioChunks.push(data);
+          hasReceivedAudio = true;
+        }
       }
     });
 
-    ws.on('error', (err) => reject(new Error('WebSocket错误: ' + err.message)));
+    ws.on('error', (err) => {
+      console.error('[TTS] WebSocket错误:', err.message);
+      reject(new Error('WebSocket错误: ' + err.message));
+    });
+    
     ws.on('close', () => {
+      console.log('[TTS] WebSocket关闭，收到音频:', hasReceivedAudio, 'chunks:', audioChunks.length);
       if (isCompleted || audioChunks.length > 0) {
-        resolve(Buffer.concat(audioChunks));
+        const buffer = Buffer.concat(audioChunks);
+        console.log('[TTS] 音频总大小:', buffer.length, 'bytes，耗时:', Date.now() - startTime, 'ms');
+        resolve(buffer);
       } else {
         reject(new Error('TTS未收到音频数据'));
       }
@@ -272,8 +290,13 @@ function generateTTS(text) {
 
     setTimeout(() => {
       if (!isCompleted) {
+        console.log('[TTS] 超时，已收到chunks:', audioChunks.length);
         ws.terminate();
-        audioChunks.length > 0 ? resolve(Buffer.concat(audioChunks)) : reject(new Error('TTS超时'));
+        if (audioChunks.length > 0) {
+          resolve(Buffer.concat(audioChunks));
+        } else {
+          reject(new Error('TTS超时'));
+        }
       }
     }, 30000);
   });
@@ -284,10 +307,13 @@ function generateTTS(text) {
 // ============================================================
 
 async function uploadAudio(audioBuffer, id) {
+  console.log('[Upload] 开始上传，大小:', audioBuffer.length);
   const cloudPath = `tts/${id}.mp3`;
   const uploadRes = await cloud.uploadFile({ cloudPath, fileContent: audioBuffer });
+  console.log('[Upload] 上传成功，fileID:', uploadRes.fileID);
   const tempRes = await cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
   if (tempRes.fileList && tempRes.fileList[0] && tempRes.fileList[0].tempFileURL) {
+    console.log('[Upload] 获取URL成功:', tempRes.fileList[0].tempFileURL.substring(0, 50) + '...');
     return tempRes.fileList[0].tempFileURL;
   }
   throw new Error('获取音频链接失败');
@@ -312,21 +338,24 @@ function cleanText(text) {
 
 exports.main = async (event) => {
   const { action, question } = event;
+  const startTime = Date.now();
 
   try {
-    // 获取预设问题
     if (action === 'presets') {
       return { code: 0, message: 'ok', data: { questions: PRESET_QUESTIONS } };
     }
 
-    // 对话（RAG + LLM + TTS）
     if (action === 'chat' && question) {
+      console.log('[Chat] 开始处理，问题:', question.substring(0, 30));
+      
       if (!DASHSCOPE_API_KEY) {
         return { code: 1001, message: '未配置DASHSCOPE_API_KEY，请在云函数环境变量中设置', data: null };
       }
 
       // 1. RAG 检索
       const retrieval = retrieveChunks(question, 3);
+      console.log('[Chat] RAG检索完成，匹配:', retrieval.length, '条');
+      
       const context = retrieval.length > 0
         ? retrieval.map(r => `【${r.nodeBinding}】${r.text}`).join('\n\n')
         : '未检索到相关知识，请基于角色设定回答。';
@@ -338,6 +367,7 @@ exports.main = async (event) => {
       // 3. 调用 LLM
       const rawText = await callLLM(systemContent, userContent);
       const text = cleanText(rawText);
+      console.log('[Chat] LLM生成完成，文本长度:', text.length);
 
       // 4. 生成 TTS 音频
       let audioUrl = '';
@@ -346,10 +376,13 @@ exports.main = async (event) => {
           const audioBuffer = await generateTTS(text);
           const taskId = `chat-${Date.now()}`;
           audioUrl = await uploadAudio(audioBuffer, taskId);
+          console.log('[Chat] TTS生成完成');
         }
       } catch (e) {
-        console.error('TTS生成失败（不影响对话）:', e.message);
+        console.error('[Chat] TTS生成失败:', e.message);
       }
+
+      console.log('[Chat] 总耗时:', Date.now() - startTime, 'ms');
 
       // 5. 返回完整结果
       return {
@@ -371,7 +404,7 @@ exports.main = async (event) => {
 
     return { code: 1001, message: '参数缺失，请提供 action 和 question', data: null };
   } catch (e) {
-    console.error('askDigitalHuman 错误:', e);
+    console.error('[Chat] 错误:', e);
     return { code: 9999, message: '服务端错误: ' + e.message, data: null };
   }
 };
