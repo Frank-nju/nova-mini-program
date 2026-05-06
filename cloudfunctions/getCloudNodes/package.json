@@ -1,0 +1,9 @@
+{
+  "name": "getCloudNodes",
+  "version": "1.0.0",
+  "description": "查询 cloud_nodes 集合，返回云图节点列表；可选附带连线数据",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
