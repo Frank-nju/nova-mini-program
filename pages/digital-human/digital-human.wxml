@@ -44,8 +44,8 @@
           <view wx:if="{{item.retrieval && item.retrieval.length > 0}}" class="retrieval-info">
             <text>检索 {{item.retrieval.length}} 条相关段落</text>
           </view>
-          <!-- 语音播放按钮 -->
-          <view wx:if="{{item.status === 'done' && !item.audioPlaying}}" class="audio-btn" bindtap="playAudio" data-taskid="{{item.taskId}}">
+          <!-- 语音播放按钮（有音频URL时显示） -->
+          <view wx:if="{{item.audioUrl && !item.audioPlaying}}" class="audio-btn" bindtap="playAudio" data-audiourl="{{item.audioUrl}}" data-msgid="{{item.id}}">
             <text>🎤 播放语音</text>
           </view>
           <view wx:if="{{item.audioPlaying}}" class="audio-btn playing" bindtap="stopAudio">
