@@ -194,7 +194,7 @@ function callLLM(systemContent, userContent) {
           if (result.choices && result.choices[0]) {
             resolve(result.choices[0].message.content.trim());
           } else {
-            reject(new Error(result.error?.message || 'LLM返回格式异常'));
+            reject(new Error((result.error && result.error.message) || 'LLM返回格式异常'));
           }
         } catch (e) {
           reject(new Error('解析LLM响应失败: ' + e.message));
@@ -245,15 +245,15 @@ function generateTTS(text) {
     ws.on('message', (data) => {
       try {
         const msg = JSON.parse(data.toString());
-        if (msg.payload?.output?.audio) {
+        if (msg.payload && msg.payload.output && msg.payload.output.audio) {
           audioChunks.push(Buffer.from(msg.payload.output.audio, 'base64'));
         }
-        if (msg.header?.event === 'task-finished') {
+        if (msg.header && msg.header.event === 'task-finished') {
           isCompleted = true;
           ws.close();
         }
-        if (msg.header?.event === 'error') {
-          reject(new Error(msg.payload?.message || 'TTS生成失败'));
+        if (msg.header && msg.header.event === 'error') {
+          reject(new Error((msg.payload && msg.payload.message) || 'TTS生成失败'));
           ws.close();
         }
       } catch (e) {
@@ -287,7 +287,7 @@ async function uploadAudio(audioBuffer, id) {
   const cloudPath = `tts/${id}.mp3`;
   const uploadRes = await cloud.uploadFile({ cloudPath, fileContent: audioBuffer });
   const tempRes = await cloud.getTempFileURL({ fileList: [uploadRes.fileID] });
-  if (tempRes.fileList?.[0]?.tempFileURL) {
+  if (tempRes.fileList && tempRes.fileList[0] && tempRes.fileList[0].tempFileURL) {
     return tempRes.fileList[0].tempFileURL;
   }
   throw new Error('获取音频链接失败');
