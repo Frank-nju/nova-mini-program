@@ -1,0 +1,274 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "section": 1,
+      "storyIndex": 0,
+      "name": "1912年 出生浙江苏州",
+      "color": "#64c8ff",
+      "x": 0.2,
+      "y": 0.2
+    },
+    {
+      "id": 2,
+      "section": 1,
+      "storyIndex": 1,
+      "name": "1930年 赴美留学",
+      "color": "#64c8ff",
+      "x": 0.35,
+      "y": 0.15
+    },
+    {
+      "id": 3,
+      "section": 1,
+      "storyIndex": 2,
+      "name": "1936年 回国任教",
+      "color": "#64c8ff",
+      "x": 0.25,
+      "y": 0.35
+    },
+    {
+      "id": 4,
+      "section": 1,
+      "storyIndex": 3,
+      "name": "1940年 迁往重庆",
+      "color": "#64c8ff",
+      "x": 0.15,
+      "y": 0.25
+    },
+    {
+      "id": 5,
+      "section": 1,
+      "storyIndex": 4,
+      "name": "1946年 进入中科院",
+      "color": "#64c8ff",
+      "x": 0.3,
+      "y": 0.3
+    },
+    {
+      "id": 6,
+      "section": 1,
+      "storyIndex": 5,
+      "name": "1950年代 持续钻研",
+      "color": "#64c8ff",
+      "x": 0.1,
+      "y": 0.15
+    },
+    {
+      "id": 7,
+      "section": 2,
+      "storyIndex": 0,
+      "name": "1956年 宇称不守恒",
+      "color": "#c9a96e",
+      "x": 0.65,
+      "y": 0.2
+    },
+    {
+      "id": 8,
+      "section": 2,
+      "storyIndex": 1,
+      "name": "1957年 获诺奖提名",
+      "color": "#c9a96e",
+      "x": 0.8,
+      "y": 0.15
+    },
+    {
+      "id": 9,
+      "section": 2,
+      "storyIndex": 2,
+      "name": "1958年 开创新领域",
+      "color": "#c9a96e",
+      "x": 0.7,
+      "y": 0.35
+    },
+    {
+      "id": 10,
+      "section": 2,
+      "storyIndex": 3,
+      "name": "1960年 理论突破",
+      "color": "#c9a96e",
+      "x": 0.6,
+      "y": 0.3
+    },
+    {
+      "id": 11,
+      "section": 2,
+      "storyIndex": 4,
+      "name": "1963年 跨界合作",
+      "color": "#c9a96e",
+      "x": 0.75,
+      "y": 0.28
+    },
+    {
+      "id": 12,
+      "section": 2,
+      "storyIndex": 5,
+      "name": "1965年 国际认可",
+      "color": "#c9a96e",
+      "x": 0.55,
+      "y": 0.15
+    },
+    {
+      "id": 13,
+      "section": 3,
+      "storyIndex": 0,
+      "name": "1970年 重新出发",
+      "color": "#ff69b4",
+      "x": 0.45,
+      "y": 0.65
+    },
+    {
+      "id": 14,
+      "section": 3,
+      "storyIndex": 1,
+      "name": "1975年 国务院聘任",
+      "color": "#ff69b4",
+      "x": 0.6,
+      "y": 0.7
+    },
+    {
+      "id": 15,
+      "section": 3,
+      "storyIndex": 2,
+      "name": "1980年 学科拓展",
+      "color": "#ff69b4",
+      "x": 0.5,
+      "y": 0.85
+    },
+    {
+      "id": 16,
+      "section": 3,
+      "storyIndex": 3,
+      "name": "1985年 获重要褒奖",
+      "color": "#ff69b4",
+      "x": 0.35,
+      "y": 0.75
+    },
+    {
+      "id": 17,
+      "section": 3,
+      "storyIndex": 4,
+      "name": "1990年 培育新人",
+      "color": "#ff69b4",
+      "x": 0.4,
+      "y": 0.6
+    },
+    {
+      "id": 18,
+      "section": 3,
+      "storyIndex": 5,
+      "name": "1995年 学术巅峰",
+      "color": "#ff69b4",
+      "x": 0.55,
+      "y": 0.55
+    },
+    {
+      "id": 19,
+      "section": 4,
+      "storyIndex": 0,
+      "name": "1997年 文献审视",
+      "color": "#ffd700",
+      "x": 0.2,
+      "y": 0.65
+    },
+    {
+      "id": 20,
+      "section": 4,
+      "storyIndex": 1,
+      "name": "2000年 继续贡献",
+      "color": "#ffd700",
+      "x": 0.1,
+      "y": 0.8
+    },
+    {
+      "id": 21,
+      "section": 4,
+      "storyIndex": 2,
+      "name": "2003年 传承使命",
+      "color": "#ffd700",
+      "x": 0.25,
+      "y": 0.9
+    },
+    {
+      "id": 22,
+      "section": 4,
+      "storyIndex": 3,
+      "name": "2006年 学术回顾",
+      "color": "#ffd700",
+      "x": 0.05,
+      "y": 0.65
+    },
+    {
+      "id": 23,
+      "section": 4,
+      "storyIndex": 4,
+      "name": "2009年 坚守阵地",
+      "color": "#ffd700",
+      "x": 0.15,
+      "y": 0.5
+    },
+    {
+      "id": 24,
+      "section": 4,
+      "storyIndex": 5,
+      "name": "2012年 薪火相传",
+      "color": "#ffd700",
+      "x": 0.3,
+      "y": 0.55
+    },
+    {
+      "id": 25,
+      "section": 5,
+      "storyIndex": 0,
+      "name": "2013年 科研硕果",
+      "color": "#00ff00",
+      "x": 0.8,
+      "y": 0.6
+    },
+    {
+      "id": 26,
+      "section": 5,
+      "storyIndex": 1,
+      "name": "2014年 广泛合作",
+      "color": "#00ff00",
+      "x": 0.9,
+      "y": 0.75
+    },
+    {
+      "id": 27,
+      "section": 5,
+      "storyIndex": 2,
+      "name": "2015年 国家表彰",
+      "color": "#00ff00",
+      "x": 0.85,
+      "y": 0.85
+    },
+    {
+      "id": 28,
+      "section": 5,
+      "storyIndex": 3,
+      "name": "2016年 学术著作",
+      "color": "#00ff00",
+      "x": 0.7,
+      "y": 0.9
+    },
+    {
+      "id": 29,
+      "section": 5,
+      "storyIndex": 4,
+      "name": "2017年 国际影响",
+      "color": "#00ff00",
+      "x": 0.75,
+      "y": 0.65
+    },
+    {
+      "id": 30,
+      "section": 5,
+      "storyIndex": 5,
+      "name": "2018年 精神永驻",
+      "color": "#00ff00",
+      "x": 0.8,
+      "y": 0.5
+    }
+  ]
+}

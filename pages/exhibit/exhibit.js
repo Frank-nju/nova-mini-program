@@ -1,57 +1,253 @@
+const cloudUtil = require('../../cloudUtil.js');
+
 Page({
   data: {
     screenHeight: 0,
     currentSection: 'section-0',
     stars: [],
-    
-    // 面板状态
-    showCloudPanel: false,
+    activeStates: [true, false, false, false, false, false, false, false],
     showBadgePanel: false,
     showAIPanel: false,
+    showMaterialsPanel: false,
+    materialsList: [],
+    materialsLoading: false,
+    materialsHasMore: true,
+    materialsPage: 1,
+    materialTab: 'all',
+    presetQuestions: cloudUtil.getPresetQuestions(),
+    aiMessages: [],
+    aiInputValue: '',
+    aiChatting: false,
+    aiScrollId: '',
+    aiMsgCounter: 0,
+    _badge07Granted: false,
     newBadges: false,
-    selectedCloud: null,
-
-    // 事件云图 - 节点数据
-    eventClouds: [
-      { id: 1, name: '序章开启', color: '#64c8ff', x: 0.2, y: 0.3, unlocked: false, particles: [] },
-      { id: 2, name: '童年往事', color: '#c9a96e', x: 0.5, y: 0.2, unlocked: false, particles: [] },
-      { id: 3, name: '求学之路', color: '#ff69b4', x: 0.8, y: 0.35, unlocked: false, particles: [] },
-      { id: 4, name: '浙大岁月', color: '#ffd700', x: 0.35, y: 0.55, unlocked: false, particles: [] },
-      { id: 5, name: '赴美留学', color: '#00ff00', x: 0.65, y: 0.6, unlocked: false, particles: [] },
-      { id: 6, name: '宇称不守恒', color: '#ff6347', x: 0.5, y: 0.8, unlocked: false, particles: [] },
-      { id: 7, name: '诺贝尔之光', color: '#9370db', x: 0.2, y: 0.75, unlocked: false, particles: [] },
-      { id: 8, name: '伟大遗产', color: '#20b2aa', x: 0.8, y: 0.8, unlocked: false, particles: [] },
-    ],
-
-    // 徽章系统
+    badgeNotification: null,
+    eventClouds: [],
     badges: [
-      { id: 1, icon: '🌟', name: '序章探索', unlocked: false },
-      { id: 2, icon: '📖', name: '生平完成', unlocked: false },
-      { id: 3, icon: '✍️', name: '治学达人', unlocked: false },
-      { id: 4, icon: '🔬', name: '科研专家', unlocked: false },
-      { id: 5, icon: '👑', name: '知识王者', unlocked: false },
-      { id: 6, icon: '🎖️', name: '尾声见证', unlocked: false },
+      { id: 'badge_01', icon: '🌟', name: '序章探索', condition: '阅读完序章的全部6个故事', section: 1, unlocked: false },
+      { id: 'badge_02', icon: '📖', name: '生平完成', condition: '阅读完生平履历的全部6个故事', section: 2, unlocked: false },
+      { id: 'badge_03', icon: '✍️', name: '治学达人', condition: '阅读完治学风骨的全部6个故事', section: 3, unlocked: false },
+      { id: 'badge_04', icon: '🔬', name: '科研专家', condition: '阅读完科研丰碑的全部6个故事', section: 4, unlocked: false },
+      { id: 'badge_05', icon: '🕊️', name: '追光行者', condition: '阅读完尾声的全部6个故事', section: 5, unlocked: false },
+      { id: 'badge_06', icon: '👑', name: '知识王者', condition: '答题挑战5题全对', section: null, unlocked: false },
+      { id: 'badge_07', icon: '🌠', name: '追光终章', condition: '阅读完致敬墙与传承纪念', section: null, unlocked: false },
+    ],
+    selectedBadge: null,
+
+    // 答题区题库（50题：30道四选一选择题 + 20道判断题）
+    quizBank: [
+      { type: 'choice', question: '吴健雄出生于哪一年？', options: ['1905年', '1912年', '1918年', '1920年'], answer: 1 },
+      { type: 'choice', question: '吴健雄出生于中国的哪个省份？', options: ['江苏省', '浙江省', '广东省', '山东省'], answer: 0 },
+      { type: 'choice', question: '吴健雄的大学专业是什么？', options: ['化学', '数学', '物理学', '生物学'], answer: 2 },
+      { type: 'choice', question: '吴健雄在哪所大学获得博士学位？', options: ['芝加哥大学', '哥伦比亚大学', '加州大学伯克利分校', '哈佛大学'], answer: 2 },
+      { type: 'choice', question: '吴健雄最著名的实验成果是什么？', options: ['发现中子', '验证宇称不守恒', '合成新元素', '发现核裂变'], answer: 1 },
+      { type: 'choice', question: '谁提出了宇称不守恒的理论假设？', options: ['费米和劳伦斯', '杨振宁和李政道', '爱因斯坦和玻尔', '泡利和狄拉克'], answer: 1 },
+      { type: 'choice', question: '吴健雄使用哪种放射性同位素进行宇称不守恒实验？', options: ['铀-235', '钚-239', '钴-60', '镭-226'], answer: 2 },
+      { type: 'choice', question: '吴健雄在哪个城市进行了她最重要的实验？', options: ['北京', '上海', '纽约', '芝加哥'], answer: 2 },
+      { type: 'choice', question: '吴健雄的丈夫是什么职业？', options: ['医生', '律师', '物理学家', '工程师'], answer: 2 },
+      { type: 'choice', question: '吴健雄在哪所大学任教超过30年？', options: ['哈佛大学', '芝加哥大学', '哥伦比亚大学', '斯坦福大学'], answer: 2 },
+      { type: 'choice', question: '吴健雄获得过以下哪个奖项？', options: ['诺贝尔物理学奖', '沃尔夫物理学奖', '菲尔兹奖', '图灵奖'], answer: 1 },
+      { type: 'choice', question: '吴健雄的博士生导师是谁？', options: ['恩里科·费米', '欧内斯特·劳伦斯', '理查德·费曼', '尼尔斯·玻尔'], answer: 1 },
+      { type: 'choice', question: '宇称不守恒实验在哪种条件下进行？', options: ['超高温度', '超低温接近绝对零度', '超高气压', '真空环境'], answer: 1 },
+      { type: 'choice', question: '吴健雄被称为什么称号？', options: ['东方居里夫人', '核物理女王', '居里夫人第二', '量子之母'], answer: 0 },
+      { type: 'choice', question: '吴健雄在实验中观测的是哪种衰变？', options: ['α衰变', 'β衰变', 'γ衰变', '中子衰变'], answer: 1 },
+      { type: 'choice', question: '吴健雄的父亲从事什么职业？', options: ['农民', '商人和教育家', '军人', '医生'], answer: 1 },
+      { type: 'choice', question: '吴健雄在美国的第一所大学是哪所？', options: ['哥伦比亚大学', '芝加哥大学', '加州大学伯克利分校', '麻省理工学院'], answer: 2 },
+      { type: 'choice', question: '以下哪个不是吴健雄的研究领域？', options: ['β衰变', 'μ子物理', '弦理论', '核物理'], answer: 2 },
+      { type: 'choice', question: '吴健雄去世后骨灰安葬在哪个国家？', options: ['美国', '中国', '英国', '德国'], answer: 1 },
+      { type: 'choice', question: '吴健雄在哪一年去世？', options: ['1990年', '1995年', '1997年', '2000年'], answer: 2 },
+      { type: 'judge', question: '吴健雄获得了诺贝尔物理学奖。', answer: 0 },
+      { type: 'judge', question: '吴健雄的宇称不守恒实验证实了杨振宁和李政道的理论。', answer: 1 },
+      { type: 'judge', question: '吴健雄出生于书香门第，父亲是教育家。', answer: 1 },
+      { type: 'judge', question: '吴健雄是中国第一位女性物理学教授。', answer: 0 },
+      { type: 'judge', question: '吴健雄参与了曼哈顿计划。', answer: 1 },
+      { type: 'judge', question: '吴健雄的实验证明宇称在强相互作用中不守恒。', answer: 0 },
+      { type: 'judge', question: '吴健雄曾在哥伦比亚大学任教。', answer: 1 },
+      { type: 'judge', question: '吴健雄的丈夫名叫袁家骝。', answer: 1 },
+      { type: 'judge', question: '吴健雄出生于1920年。', answer: 0 },
+      { type: 'judge', question: '吴健雄是美国国家科学院院士。', answer: 1 },
+      { type: 'judge', question: '吴健雄的实验使用了钴-60同位素。', answer: 1 },
+      { type: 'judge', question: '吴健雄在浙江大学建立了以自己名字命名的奖学金。', answer: 0 },
+      { type: 'judge', question: '吴健雄是第一位当选美国国家科学院院士的华人女性。', answer: 1 },
+      { type: 'judge', question: '吴健雄在曼哈顿计划中解决了铀浓缩过程的中子吸收问题。', answer: 1 },
+      { type: 'judge', question: '吴健雄的母校是南京大学的前身——中央大学。', answer: 1 },
+      { type: 'judge', question: '吴健雄出生于上海。', answer: 0 },
+      { type: 'judge', question: '吴健雄在实验物理学领域有重要贡献。', answer: 1 },
+      { type: 'judge', question: '吴健雄的父亲不支持她学习物理。', answer: 0 },
+      { type: 'judge', question: '吴健雄于1936年赴美国留学。', answer: 1 },
+      { type: 'judge', question: '吴健雄享年84岁。', answer: 1 },
+      { type: 'judge', question: '吴健雄的博士论文关于铀核的中子吸收断面。', answer: 1 },
+      { type: 'judge', question: '宇称不守恒的发现改变了物理学对对称性的理解。', answer: 1 },
+      { type: 'judge', question: '吴健雄的实验结果证明了电子在β衰变中有方向偏好。', answer: 1 },
+      { type: 'judge', question: '吴健雄在物理学界获得了很高的国际认可。', answer: 1 },
+      { type: 'judge', question: '吴健雄于1997年在纽约去世。', answer: 1 },
+      { type: 'judge', question: '吴健雄的严谨态度使她的实验结果经得起检验。', answer: 1 },
+      { type: 'judge', question: '吴健雄曾为了确保实验准确性将一个数据测量47次。', answer: 1 },
+      { type: 'judge', question: '吴健雄经常工作到深夜，实验室总是最后一盏灯亮着。', answer: 1 },
+      { type: 'judge', question: '吴健雄在90多岁仍坚持科学研究。', answer: 1 },
+      { type: 'judge', question: '吴健雄一生留下了100多篇科学论文。', answer: 1 },
     ],
 
-    // 粒子爆炸效果数据
+    // 致敬墙 - 名人评价
+    tributeQuotes: [
+      { quote: '吴健雄的实验技术无与伦比。她的数据，你永远可以相信。', author: '理查德·费曼', role: '诺贝尔物理学奖得主', icon: '🔬' },
+      { quote: '大部分物理学家都觉得这个实验不值得做，但是吴健雄有更深入的战略性眼光。', author: '杨振宁', role: '诺贝尔物理学奖得主', icon: '⭐' },
+      { quote: '我记得清楚极了，那是圣诞节前夜。我在半夜里接到健雄打来的电话，她说实验结果已经出来了，宇称确实不守恒。', author: '李政道', role: '诺贝尔物理学奖得主', icon: '🌟' },
+      { quote: '当一位伟人走到她生命的尽头，我们不要仅仅回忆她的工作成果，更要发扬她的品格力量——她的坚强意志、她的纯洁、她的严于律己、她的客观公正和毫不妥协的判断力。', author: '爱因斯坦', role: '评价居里夫人之语，李政道借以悼念吴健雄', icon: '💎' },
+      { quote: '她的意志力和对工作的献身，使人联想到居里夫人，但她更加入世、优雅和智慧。', author: '科学界评价', role: '广泛认可', icon: '🏆' },
+    ],
+
+    // 传承纪念时间线
+    legacyTimeline: [
+      { year: '1997', title: '小行星2752吴', desc: '国际天文学联合会将编号2752的小行星正式命名为"吴健雄星"，永恒闪耀于宇宙之中。' },
+      { year: '2001', title: '美国物理学会奖项', desc: '美国物理学会设立"吴健雄杰出女物理学家奖"，表彰在物理领域做出杰出贡献的女性科学家。' },
+      { year: '2011', title: '美国纪念邮票', desc: '美国邮政总署发行吴健雄纪念邮票，她是少数获此殊荣的华裔科学家之一。' },
+      { year: '2013', title: '吴健雄纪念馆', desc: '南京大学吴健雄纪念馆正式开馆，展示她一生的科学成就与精神风貌。' },
+      { year: '2014', title: '故乡陵园', desc: '江苏太仓吴健雄墓园成为爱国主义教育基地，墓碑刻有她亲手选定的铭文："一个永远的中国人"。' },
+      { year: '至今', title: '薪火相传', desc: '东南大学、南京大学等多所高校设有"吴健雄学院"与"吴健雄奖学金"，持续培养新一代科学人才。' },
+    ],
+
+    // 答题区状态
+    showQuizPanel: false,
+    quizQuestions: [],
+    quizCurrentIndex: 0,
+    quizScore: 0,
+    quizCompleted: false,
+    quizScrollId: '',
+
+    // 错题回顾
+    quizWrongAnswers: [],
+    showWrongReview: false,
+
     particleExplosions: [],
     animationFrameId: null,
   },
 
   onLoad() {
-    // 获取窗口高度
-    wx.getSystemInfo({
+    this.setData({ screenHeight: 812 });
+    wx.getWindowInfo({
       success: (res) => {
-        this.setData({
-          screenHeight: res.windowHeight,
-        });
+        this.setData({ screenHeight: res.windowHeight || 812 });
       },
     });
-    
     this.generateStars();
+    this.initializeEventClouds();
+    // 云调用在渲染后异步执行，不阻塞页面
+    setTimeout(() => this.loadProgress(), 300);
   },
-  
-  // 生成星星数据
+
+  onShow() {
+    setTimeout(() => this.loadProgress(), 300);
+  },
+
+  initializeEventClouds() {
+    const clouds = [];
+    const colors = ['#64c8ff', '#c9a96e', '#ff69b4', '#ffd700', '#00ff00', '#20b2aa'];
+    const sectionNames = ['序章', '生平', '治学', '科研', '尾声', '永恒'];
+    let cloudId = 1;
+
+    for (let section = 1; section <= 5; section++) {
+      for (let storyIndex = 0; storyIndex < 6; storyIndex++) {
+        const row = Math.floor((cloudId - 1) / 6);
+        const col = (cloudId - 1) % 6;
+        const x = 0.15 + (col * 0.13) + (Math.random() - 0.5) * 0.08;
+        const y = 0.2 + (row * 0.15) + (Math.random() - 0.5) * 0.06;
+
+        clouds.push({
+          id: cloudId,
+          name: `${sectionNames[section - 1]} · 故事${storyIndex + 1}`,
+          color: colors[section - 1],
+          x: Math.max(0.1, Math.min(0.9, x)),
+          y: Math.max(0.1, Math.min(0.9, y)),
+          unlocked: false,
+          section: section,
+          storyIndex: storyIndex,
+          particles: [],
+        });
+        cloudId++;
+      }
+    }
+
+    this.setData({ eventClouds: clouds });
+  },
+
+  // 保存进度到本地缓存
+  saveProgressCache(clouds, badges) {
+    try {
+      const cloudList = clouds || this.data.eventClouds;
+      const badgeList = badges || this.data.badges;
+
+      const unlockedClouds = cloudList
+        .filter(c => c.unlocked)
+        .map(c => 'n' + c.id);
+
+      const unlockedBadges = badgeList
+        .filter(b => b.unlocked)
+        .map(b => b.id);
+
+      const data = {
+        timelineNodes: unlockedClouds,
+        badges: unlockedBadges,
+      };
+      console.log('[exhibit] 保存缓存:', JSON.stringify(data));
+      wx.setStorageSync('exhibitProgress', data);
+    } catch (e) {
+      console.error('保存缓存失败:', e);
+    }
+  },
+
+  // 从云端加载进度（替代本地存储）
+  loadProgress() {
+    // 先从本地缓存读取（立即可用）
+    try {
+      const cache = wx.getStorageSync('exhibitProgress') || {};
+      const timelineNodes = cache.timelineNodes || [];
+      const badgeIds = cache.badges || [];
+
+      const eventClouds = this.data.eventClouds.map(cloud => {
+        const nodeId = 'n' + cloud.id;
+        const unlocked = timelineNodes.includes(nodeId);
+        return { ...cloud, unlocked };
+      });
+
+      const badges = this.data.badges.map(badge => ({
+        ...badge,
+        unlocked: badgeIds.includes(badge.id),
+      }));
+
+      this.setData({ eventClouds, badges });
+    } catch (e) {
+      console.warn('读取缓存失败:', e);
+    }
+
+    // 再异步从云端同步（只有云端有数据时才覆盖，否则保留本地缓存）
+    cloudUtil.getUser().then(res => {
+      if (res.code !== 0) return;
+      const data = res.data || {};
+      const progress = data.progress || {};
+      const badgeIds = data.badges || [];
+
+      // 云端数据为空时不覆盖本地缓存（云函数可能还没处理完 grantBadge）
+      if (badgeIds.length === 0 && (!progress.timelineNodes || progress.timelineNodes.length === 0)) return;
+
+      const eventClouds = this.data.eventClouds.map(cloud => {
+        const nodeId = 'n' + cloud.id;
+        const unlocked = progress.timelineNodes && progress.timelineNodes.includes(nodeId);
+        return { ...cloud, unlocked };
+      });
+
+      const badges = this.data.badges.map(badge => ({
+        ...badge,
+        unlocked: badgeIds.includes(badge.id),
+      }));
+
+      this.setData({ eventClouds, badges });
+    }).catch(err => {
+      console.warn('loadProgress 失败，保留本地缓存:', err.message);
+    });
+  },
+
   generateStars() {
     const stars = [];
     for (let i = 0; i < 40; i++) {
@@ -61,80 +257,112 @@ Page({
   },
 
   onScroll(e) {
-    // 处理滚动事件
+    const scrollTop = e.detail.scrollTop;
+    const screenHeight = this.data.screenHeight || 812;
+    const index = Math.round(scrollTop / screenHeight);
+
+    let newStates = this.data.activeStates.slice();
+    let hasChanged = false;
+
+    for (let i = 0; i < 8; i++) {
+      const shouldBeActive = (i <= index && i >= Math.max(0, index - 1));
+      if (newStates[i] !== shouldBeActive) {
+        newStates[i] = shouldBeActive;
+        hasChanged = true;
+      }
+    }
+
+    if (hasChanged) {
+      this.setData({ activeStates: newStates });
+      // 首次滚动到第7部分（致敬墙·传承），自动发放 badge_07
+      if (newStates[6] && !this.data._badge07Granted) {
+        this.setData({ _badge07Granted: true });
+        const badge = this.data.badges.find(b => b.id === 'badge_07');
+        if (badge && !badge.unlocked) {
+          this.unlockBadgeByBadge(badge);
+        }
+      }
+    }
+    this.data.scrollY = scrollTop;
   },
 
-  // 返回首页
   goBack() {
-    wx.navigateBack({
-      delta: 1,
-    });
+    wx.navigateBack({ delta: 1 });
   },
 
-  // 进入故事
   enterStory(e) {
     const section = e.currentTarget.dataset.section;
     const story = e.currentTarget.dataset.story || 0;
-    
-    // 保存进度和解锁云图
-    this.unlockEventCloud(parseInt(section) + 1);
-    
-    // 显示加载提示并准备导航
-    wx.showLoading({
-      title: '故事加载中...',
-      mask: true,
-    });
-    
-    // 延迟导航以允许动画完成
+
+    wx.showLoading({ title: '故事加载中...', mask: true });
     setTimeout(() => {
       wx.hideLoading();
       wx.navigateTo({
-        url: `/pages/story/story?section=${section}&story=${story}`,
-        success: () => {
-          // 导航成功，页面动画会自动播放
-        },
+        url: `/subpkg/pages/story/story?section=${section}&story=${story}`,
         fail: () => {
-          wx.showToast({
-            title: '加载失败',
-            icon: 'error',
-            duration: 2000,
-          });
+          wx.showToast({ title: '加载失败', icon: 'error', duration: 2000 });
         }
       });
     }, 800);
   },
 
-  // 点亮事件云图 - 粒子爆炸效果
+  // 从故事页返回时，解锁对应节点（story.js 已上报进度，这里只刷新云端数据）
+  unlockEventCloudByStory(section, storyIndex) {
+    const cloudIndex = this.data.eventClouds.findIndex(
+      c => c.section === section && c.storyIndex === storyIndex
+    );
+    if (cloudIndex === -1) return;
+
+    const cloud = this.data.eventClouds[cloudIndex];
+    if (cloud.unlocked) return;
+
+    // 乐观更新UI
+    const eventClouds = [...this.data.eventClouds];
+    eventClouds[cloudIndex] = { ...cloud, unlocked: true };
+    this.setData({ eventClouds });
+    this.createParticleExplosion(cloud);
+
+    // 立即保存缓存（不等 setData 回调）
+    this.saveProgressCache(eventClouds, this.data.badges);
+
+    // 检查是否完成整个章节
+    const sectionCloudCount = eventClouds.filter(c => c.section === section).length;
+    const unlockedCount = eventClouds.filter(
+      c => c.section === section && c.unlocked
+    ).length;
+
+    if (unlockedCount === sectionCloudCount) {
+      this.unlockBadge(section);
+      wx.showToast({ title: `${this.getBadgeName(section)} 已获得！`, icon: 'success', duration: 2000 });
+    }
+
+    // 乐观更新已完成，缓存已保存，无需额外云同步（后端云函数开发中）
+  },
+
+  getBadgeName(section) {
+    const badge = this.data.badges.find(b => b.section === section);
+    return badge ? badge.name : '';
+  },
+
   unlockEventCloud(cloudId) {
     const eventClouds = this.data.eventClouds.map(item => {
       if (item.id === cloudId && !item.unlocked) {
-        // 触发粒子爆炸
         this.createParticleExplosion(item);
         return { ...item, unlocked: true };
       }
       return item;
     });
     this.setData({ eventClouds });
-    
-    // 启动动画循环
+
     if (!this.data.animationFrameId && this.data.showCloudPanel) {
       this.startAnimationLoop();
     }
-    
-    // 重绘云图
-    if (this.data.showCloudPanel) {
-      setTimeout(() => {
-        this.drawCloudMap();
-      }, 100);
-    }
   },
 
-  // 创建粒子爆炸效果
   createParticleExplosion(cloud) {
     const particles = [];
     const particleCount = 40;
-    const canvas = wx.createSelectorQuery().select('#cloudMapCanvas').fields({ node: true, size: true });
-    
+
     for (let i = 0; i < particleCount; i++) {
       const angle = (i / particleCount) * Math.PI * 2;
       const speed = 2 + Math.random() * 4;
@@ -147,289 +375,574 @@ Page({
         color: cloud.color,
       });
     }
-    
+
     const explosions = [...this.data.particleExplosions, {
       cloudId: cloud.id,
       particles: particles,
       age: 0,
       duration: 1500,
     }];
-    
+
     this.setData({ particleExplosions: explosions });
   },
 
-  // 启动动画循环
   startAnimationLoop() {
     const animate = () => {
       const explosions = this.data.particleExplosions.map(exp => {
-        exp.age += 16; // 大约60fps
+        exp.age += 16;
         exp.particles = exp.particles.map(p => {
           return {
             ...p,
             x: p.x + p.vx * 0.1,
             y: p.y + p.vy * 0.1,
-            vy: p.vy + 0.05, // 重力效果
+            vy: p.vy + 0.05,
             life: 1 - (exp.age / exp.duration),
           };
         }).filter(p => p.life > 0);
         return exp;
       }).filter(exp => exp.age < exp.duration);
-      
+
       this.setData({ particleExplosions: explosions });
-      
+
       if (explosions.length > 0) {
         this.data.animationFrameId = setTimeout(animate, 16);
       } else {
         this.data.animationFrameId = null;
       }
     };
-    
+
     this.data.animationFrameId = setTimeout(animate, 16);
   },
 
-  // 完成章节，解锁徽章
-  unlockBadge(badgeId) {
+  // 发放徽章（调用 grantBadge 云函数）
+  unlockBadge(sectionId) {
+    const badge = this.data.badges.find(b => b.section === sectionId);
+    if (!badge || badge.unlocked) return;
+
+    // 乐观更新UI
     const badges = this.data.badges.map(item => {
-      if (item.id === badgeId) {
+      if (item.section === sectionId && !item.unlocked) {
         return { ...item, unlocked: true };
       }
       return item;
     });
-    this.setData({ 
+    this.setData({
       badges,
       newBadges: true,
+      badgeNotification: badge,
+    });
+
+    this.saveProgressCache(this.data.eventClouds, badges);
+
+    if (this._badgeNotificationTimer) {
+      clearTimeout(this._badgeNotificationTimer);
+    }
+    this._badgeNotificationTimer = setTimeout(() => {
+      this.setData({ badgeNotification: null });
+    }, 3000);
+
+    // 上报到云端
+    cloudUtil.grantBadge({ badgeId: badge.id }).then(res => {
+      if (res.code === 0) {
+        console.log('徽章发放成功:', res.data);
+      } else if (res.code === 1004) {
+        console.log('徽章已存在（幂等）');
+      }
+    }).catch(err => {
+      console.error('徽章发放失败:', err);
     });
   },
 
-  // 切换事件云图面板
-  toggleClouds() {
+  unlockBadgeByBadge(badge) {
+    const badges = this.data.badges.map(item => {
+      if (item.id === badge.id && !item.unlocked) {
+        return { ...item, unlocked: true };
+      }
+      return item;
+    });
     this.setData({
-      showCloudPanel: !this.data.showCloudPanel,
-      showBadgePanel: false,
-      showAIPanel: false,
+      badges,
+      newBadges: true,
+      badgeNotification: badge,
     });
-    
-    if (this.data.showCloudPanel) {
-      setTimeout(() => {
-        this.drawCloudMap();
-        if (this.data.particleExplosions.length > 0 && !this.data.animationFrameId) {
-          this.startAnimationLoop();
-        }
-      }, 300);
+
+    this.saveProgressCache(this.data.eventClouds, badges);
+
+    if (this._badgeNotificationTimer) {
+      clearTimeout(this._badgeNotificationTimer);
     }
+    this._badgeNotificationTimer = setTimeout(() => {
+      this.setData({ badgeNotification: null });
+    }, 3000);
+
+    cloudUtil.grantBadge({ badgeId: badge.id }).then(res => {
+      if (res.code === 0) {
+        console.log('徽章发放成功:', res.data);
+      }
+    }).catch(err => {
+      console.error('徽章发放失败:', err);
+    });
   },
 
-  // 绘制云图 - 包含粒子爆炸效果
-  drawCloudMap() {
-    const query = wx.createSelectorQuery();
-    query.select('#cloudMapCanvas')
-      .fields({ node: true, size: true })
-      .exec((res) => {
-        if (!res[0]) return;
-        
-        const canvas = res[0].node;
-        const ctx = canvas.getContext('2d');
-        const width = res[0].width;
-        const height = res[0].height;
-
-        // 清空画布
-        ctx.fillStyle = 'rgba(20, 20, 40, 0.3)';
-        ctx.fillRect(0, 0, width, height);
-
-        // 绘制连接线
-        ctx.strokeStyle = 'rgba(100, 200, 255, 0.2)';
-        ctx.lineWidth = 1;
-        for (let i = 0; i < this.data.eventClouds.length; i++) {
-          for (let j = i + 1; j < this.data.eventClouds.length; j++) {
-            const cloud1 = this.data.eventClouds[i];
-            const cloud2 = this.data.eventClouds[j];
-            
-            const x1 = cloud1.x * width;
-            const y1 = cloud1.y * height;
-            const x2 = cloud2.x * width;
-            const y2 = cloud2.y * height;
-            
-            // 只绘制相邻节点的连线
-            const dist = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-            if (dist < 250) {
-              ctx.beginPath();
-              ctx.moveTo(x1, y1);
-              ctx.lineTo(x2, y2);
-              ctx.stroke();
-            }
-          }
-        }
-
-        // 绘制粒子爆炸效果
-        this.data.particleExplosions.forEach(explosion => {
-          explosion.particles.forEach(particle => {
-            const px = particle.x * width;
-            const py = particle.y * height;
-            
-            ctx.fillStyle = this.adjustAlpha(particle.color, particle.life * 0.8);
-            ctx.beginPath();
-            ctx.arc(px, py, 4 * particle.life, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 粒子发光
-            ctx.strokeStyle = this.adjustAlpha(particle.color, particle.life * 0.5);
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          });
-        });
-
-        // 绘制节点
-        this.data.eventClouds.forEach((cloud, index) => {
-          const x = cloud.x * width;
-          const y = cloud.y * height;
-          const radius = cloud.unlocked ? 16 : 12;
-          
-          // 绘制发光效果
-          const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 2);
-          if (cloud.unlocked) {
-            gradient.addColorStop(0, cloud.color + '60');
-            gradient.addColorStop(1, cloud.color + '00');
-          } else {
-            gradient.addColorStop(0, 'rgba(100, 100, 100, 0.2)');
-            gradient.addColorStop(1, 'rgba(100, 100, 100, 0)');
-          }
-          ctx.fillStyle = gradient;
-          ctx.fillRect(x - radius * 2, y - radius * 2, radius * 4, radius * 4);
-          
-          // 绘制节点 - 已解锁时显示呼吸效果
-          if (cloud.unlocked) {
-            const breatheScale = 1 + Math.sin(Date.now() / 800) * 0.2;
-            ctx.fillStyle = this.adjustAlpha(cloud.color, 0.9 + Math.sin(Date.now() / 1000) * 0.1);
-            ctx.beginPath();
-            ctx.arc(x, y, radius * breatheScale, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 呼吸边框
-            ctx.strokeStyle = this.adjustAlpha(cloud.color, 1);
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          } else {
-            ctx.fillStyle = 'rgba(100, 100, 100, 0.4)';
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // 灰暗边框
-            ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          }
-          
-          // 绘制标签
-          ctx.fillStyle = cloud.unlocked ? 'rgba(255, 255, 255, 0.9)' : 'rgba(100, 100, 100, 0.5)';
-          ctx.font = 'bold 12px Arial';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(cloud.name, x, y + radius + 20);
-        });
-      });
+  toggleClouds() {
+    wx.navigateTo({
+      url: '/subpkg/pages/cloud/cloud',
+      fail: (err) => {
+        console.error('导航到云图失败:', err);
+        wx.showToast({ title: '页面加载失败', icon: 'error' });
+      },
+    });
   },
 
-  // 调整颜色透明度
-  adjustAlpha(color, alpha) {
-    // 将hex颜色转为rgba
-    if (color.startsWith('#')) {
-      const hex = color.slice(1);
-      const r = parseInt(hex.substring(0, 2), 16);
-      const g = parseInt(hex.substring(2, 4), 16);
-      const b = parseInt(hex.substring(4, 6), 16);
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-    }
-    return color;
-  },
-
-  // 切换徽章面板
   toggleBadge() {
     this.setData({
       showBadgePanel: !this.data.showBadgePanel,
-      showCloudPanel: false,
       showAIPanel: false,
+      showQuizPanel: false,
       newBadges: false,
     });
   },
 
-  // 切换数字人面板
   toggleAI() {
+    const willShow = !this.data.showAIPanel;
     this.setData({
-      showAIPanel: !this.data.showAIPanel,
-      showCloudPanel: false,
+      showAIPanel: willShow,
       showBadgePanel: false,
+      showQuizPanel: false,
+    });
+    if (willShow && this.data.aiMessages.length === 0) {
+      // 首次打开，初始化欢迎语
+    }
+  },
+
+  // 数字人聊天
+  onAiInput(e) {
+    this.setData({ aiInputValue: e.detail.value });
+  },
+
+  sendAiMessage() {
+    const question = this.data.aiInputValue.trim();
+    if (!question || this.data.aiChatting) return;
+
+    const msgId = ++this.data.aiMsgCounter;
+    const messages = [...this.data.aiMessages, { id: msgId, role: 'user', text: question }];
+
+    this.setData({
+      aiMessages: messages,
+      aiInputValue: '',
+      aiChatting: true,
+      aiScrollId: `ai-msg-${msgId}`,
+    });
+
+    // 添加 loading 消息
+    const loadingId = ++this.data.aiMsgCounter;
+    this.setData({
+      aiMessages: [...this.data.aiMessages, { id: loadingId, role: 'ai', loading: true }],
+      aiScrollId: `ai-msg-${loadingId}`,
+    });
+
+    // 调用云函数
+    cloudUtil.chatWithDigitalHuman({ question })
+      .then(res => {
+        const updated = this.data.aiMessages.map(m =>
+          m.id === loadingId ? { ...m, loading: false, text: res.data.text } : m
+        );
+        this.setData({
+          aiMessages: updated,
+          aiChatting: false,
+          aiScrollId: `ai-msg-${loadingId}`,
+        });
+      })
+      .catch(() => {
+        const updated = this.data.aiMessages.map(m =>
+          m.id === loadingId ? { ...m, loading: false, text: '抱歉，我现在说不上来。不如去展馆里找找答案？' } : m
+        );
+        this.setData({
+          aiMessages: updated,
+          aiChatting: false,
+          aiScrollId: `ai-msg-${loadingId}`,
+        });
+      });
+  },
+
+  sendPreset(e) {
+    const index = e.currentTarget.dataset.index;
+    const question = this.data.presetQuestions[index];
+    if (!question || this.data.aiChatting) return;
+
+    const msgId = ++this.data.aiMsgCounter;
+    const messages = [...this.data.aiMessages, { id: msgId, role: 'user', text: question }];
+
+    this.setData({
+      aiMessages: messages,
+      aiChatting: true,
+      aiScrollId: `ai-msg-${msgId}`,
+    });
+
+    const loadingId = ++this.data.aiMsgCounter;
+    this.setData({
+      aiMessages: [...this.data.aiMessages, { id: loadingId, role: 'ai', loading: true }],
+      aiScrollId: `ai-msg-${loadingId}`,
+    });
+
+    cloudUtil.chatWithDigitalHuman({ question })
+      .then(res => {
+        const updated = this.data.aiMessages.map(m =>
+          m.id === loadingId ? { ...m, loading: false, text: res.data.text } : m
+        );
+        this.setData({
+          aiMessages: updated,
+          aiChatting: false,
+          aiScrollId: `ai-msg-${loadingId}`,
+        });
+      })
+      .catch(() => {
+        const updated = this.data.aiMessages.map(m =>
+          m.id === loadingId ? { ...m, loading: false, text: '抱歉，我现在说不上来。不如去展馆里找找答案？' } : m
+        );
+        this.setData({
+          aiMessages: updated,
+          aiChatting: false,
+          aiScrollId: `ai-msg-${loadingId}`,
+        });
+      });
+  },
+
+  toggleMaterials() {
+    const willShow = !this.data.showMaterialsPanel;
+    this.setData({
+      showMaterialsPanel: willShow,
+      showAIPanel: false,
+      showBadgePanel: false,
+      showQuizPanel: false,
+    });
+    if (willShow && this.data.materialsList.length === 0) {
+      this.loadMaterials();
+    }
+  },
+
+  loadMaterials(isRefresh) {
+    if (this.data.materialsLoading || (!this.data.materialsHasMore && !isRefresh)) return;
+
+    const page = isRefresh ? 1 : this.data.materialsPage;
+    const category = this.data.materialTab === 'all' ? '' : this.data.materialTab;
+
+    this.setData({ materialsLoading: true });
+
+    cloudUtil.call('getMaterialList', { category, page, pageSize: 20 }).then(res => {
+      if (!res || res.code !== 0) {
+        this.setData({ materialsLoading: false });
+        return;
+      }
+
+      const list = (res.data.list || []).map(item => {
+        const ext = (item.fileName || '').split('.').pop().toUpperCase();
+        const date = item.createdAt ? new Date(item.createdAt) : null;
+        return {
+          ...item,
+          fileExt: ext,
+          createdAtStr: date ? `${date.getMonth() + 1}/${date.getDate()}` : '',
+        };
+      });
+
+      // 为每个文件获取临时链接
+      const needUrlItems = list.filter(item => item.category === 'image' && !item.tempFileURL);
+      this.setData({
+        materialsList: isRefresh ? list : [...this.data.materialsList, ...list],
+        materialsPage: page + 1,
+        materialsHasMore: list.length >= 20,
+        materialsLoading: false,
+      });
+
+      // 异步获取图片临时链接
+      if (needUrlItems.length > 0) {
+        this.fetchTempUrls(needUrlItems);
+      }
+    }).catch(() => {
+      this.setData({ materialsLoading: false });
     });
   },
 
-  // 切换更多菜单
+  fetchTempUrls(items) {
+    // 批量获取临时链接，每次5个
+    const batchSize = 5;
+    for (let i = 0; i < items.length; i += batchSize) {
+      const batch = items.slice(i, i + batchSize);
+      const promises = batch.map(item =>
+        cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+          .then(res => ({ index: this.data.materialsList.findIndex(m => m._id === item._id), url: res.data?.tempFileURL }))
+          .catch(() => ({ index: -1, url: null }))
+      );
+      Promise.all(promises).then(results => {
+        const newList = [...this.data.materialsList];
+        for (const r of results) {
+          if (r.index >= 0 && r.url) {
+            newList[r.index] = { ...newList[r.index], tempFileURL: r.url };
+          }
+        }
+        this.setData({ materialsList: newList });
+      });
+    }
+  },
+
+  switchMaterialTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ materialTab: tab, materialsList: [], materialsPage: 1, materialsHasMore: true });
+    this.loadMaterials(true);
+  },
+
+  loadMoreMaterials() {
+    if (!this.data.materialsLoading && this.data.materialsHasMore) {
+      this.loadMaterials();
+    }
+  },
+
+  previewMaterial(e) {
+    const item = e.currentTarget.dataset.item;
+    if (!item || !item.fileID) return;
+
+    if (item.category === 'image') {
+      // 如果有临时链接则预览，没有则先获取
+      if (item.tempFileURL) {
+        wx.previewImage({ urls: [item.tempFileURL] });
+      } else {
+        wx.showLoading({ title: '加载中' });
+        cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+          .then(res => {
+            wx.hideLoading();
+            if (res.data?.tempFileURL) {
+              wx.previewImage({ urls: [res.data.tempFileURL] });
+            }
+          })
+          .catch(() => {
+            wx.hideLoading();
+            wx.showToast({ title: '图片加载失败', icon: 'error' });
+          });
+      }
+    } else if (item.category === 'video') {
+      cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+        .then(res => {
+          if (res.data?.tempFileURL) {
+            wx.navigateToMiniProgram({
+              appId: '',
+              path: `pages/player/index?url=${encodeURIComponent(res.data.tempFileURL)}`,
+            });
+          }
+        });
+    } else if (item.category === 'doc') {
+      wx.showLoading({ title: '加载中' });
+      cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
+        .then(res => {
+          wx.hideLoading();
+          if (res.data?.tempFileURL) {
+            wx.downloadFile({
+              url: res.data.tempFileURL,
+              success: (dlRes) => {
+                wx.openDocument({
+                  filePath: dlRes.tempFilePath,
+                  showMenu: true,
+                  fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
+                });
+              },
+            });
+          }
+        })
+        .catch(() => {
+          wx.hideLoading();
+          wx.showToast({ title: '文件加载失败', icon: 'error' });
+        });
+    }
+  },
+
   toggleMore() {
-    wx.showActionSheet({
-      itemList: ['关于项目', '反馈建议', '分享'],
-      success(res) {
-        console.log(res.tapIndex);
-      },
-      fail(res) {
-        console.log(res.errMsg);
-      },
+    this.toggleQuiz();
+  },
+
+  // 答题区
+  toggleQuiz() {
+    const willShow = !this.data.showQuizPanel;
+    this.setData({
+      showQuizPanel: willShow,
+      showBadgePanel: false,
+      showAIPanel: false,
+      quizCompleted: false,
+    });
+    if (willShow) {
+      this.initQuiz();
+    }
+  },
+
+  initQuiz() {
+    // 随机抽取5道题
+    const shuffled = [...this.data.quizBank].sort(() => Math.random() - 0.5);
+    const questions = shuffled.slice(0, 5).map((q, i) => ({
+      ...q,
+      index: i,
+      selected: null,
+      correct: null,
+    }));
+
+    this.setData({
+      quizQuestions: questions,
+      quizCurrentIndex: 0,
+      quizScore: 0,
+      quizCompleted: false,
+      quizScrollId: 'quiz-q-0',
+      quizWrongAnswers: [],
+      showWrongReview: false,
     });
   },
 
-  // Canvas 点击事件
+  selectQuizAnswer(e) {
+    const { qIndex, optionIndex } = e.currentTarget.dataset;
+    const qIdx = Number(qIndex);
+    const optIdx = Number(optionIndex);
+    const questions = [...this.data.quizQuestions];
+    const q = questions[qIdx];
+
+    if (q.selected !== null) return;
+
+    const isCorrect = optIdx === q.answer;
+    q.selected = optIdx;
+    q.correct = isCorrect;
+    questions[qIdx] = q;
+
+    let score = this.data.quizScore + (isCorrect ? 1 : 0);
+    let completed = false;
+
+    // 收集错题
+    let wrongAnswers = [...this.data.quizWrongAnswers];
+    if (!isCorrect) {
+      wrongAnswers.push({
+        question: q.question,
+        options: q.options,
+        selected: optIdx,
+        answer: q.answer,
+        type: q.type,
+      });
+    }
+
+    if (qIdx === this.data.quizQuestions.length - 1) {
+      completed = true;
+      if (score === 5) {
+        this.unlockQuizBadge();
+      }
+      // 有错题时自动显示回顾
+      if (wrongAnswers.length > 0) {
+        this.setData({ showWrongReview: true });
+      }
+    }
+
+    this.setData({
+      quizQuestions: questions,
+      quizScore: score,
+      quizCompleted: completed,
+      quizWrongAnswers: wrongAnswers,
+    });
+
+    if (qIdx < this.data.quizQuestions.length - 1) {
+      setTimeout(() => {
+        this.setData({
+          quizScrollId: 'quiz-q-' + (qIdx + 1),
+          quizCurrentIndex: qIdx + 1,
+        });
+      }, 800);
+    }
+  },
+
+  unlockQuizBadge() {
+    const badge = this.data.badges.find(b => b.id === 'badge_06');
+    if (!badge || badge.unlocked) return;
+
+    const badges = this.data.badges.map(item => {
+      if (item.id === 'badge_06') return { ...item, unlocked: true };
+      return item;
+    });
+
+    this.setData({
+      badges,
+      newBadges: true,
+      badgeNotification: badge,
+    });
+
+    this.saveProgressCache(this.data.eventClouds, badges);
+
+    cloudUtil.grantBadge({ badgeId: 'badge_06' }).catch(() => {});
+  },
+
+  // 只重答错题
+  retryWrongAnswers() {
+    const wrongQuestions = this.data.quizWrongAnswers.map((q, i) => ({
+      ...q,
+      index: i,
+      selected: null,
+      correct: null,
+    }));
+
+    if (wrongQuestions.length === 0) {
+      wx.showToast({ title: '没有错题需要重答', icon: 'none' });
+      return;
+    }
+
+    this.setData({
+      quizQuestions: wrongQuestions,
+      quizCurrentIndex: 0,
+      quizScore: 0,
+      quizCompleted: false,
+      quizScrollId: 'quiz-q-0',
+      showWrongReview: false,
+    });
+  },
+
+  toggleWrongReview() {
+    this.setData({ showWrongReview: !this.data.showWrongReview });
+  },
+
+  onBadgeTap(e) {
+    const index = e.currentTarget.dataset.index;
+    const badge = this.data.badges[index];
+    wx.showModal({
+      title: badge.name,
+      content: badge.condition,
+      showCancel: false,
+      confirmText: '知道了',
+    });
+  },
+
   onCanvasTap(e) {
     const query = wx.createSelectorQuery();
     query.select('#cloudMapCanvas')
       .fields({ node: true, size: true })
       .exec((res) => {
         if (!res[0]) return;
-        
+
         const width = res[0].width;
         const height = res[0].height;
-        // x, y 是相对于canvas的坐标
         const x = e.detail.x;
         const y = e.detail.y;
-        
+
         let foundCloud = null;
-        
-        // 检查点击的云图节点
+
         this.data.eventClouds.forEach((cloud) => {
           const cloudX = cloud.x * width;
           const cloudY = cloud.y * height;
           const dist = Math.sqrt((x - cloudX) ** 2 + (y - cloudY) ** 2);
-          
+
           if (dist < 30) {
             foundCloud = cloud;
-            // 点击到了节点
-            if (!cloud.unlocked) {
-              // 自动解锁
-              this.unlockEventCloud(cloud.id);
-              // 显示解锁提示
-              wx.showToast({
-                title: cloud.name + ' 已解锁！',
-                icon: 'success',
-                duration: 1500,
-              });
-            }
-            // 更新选中的云
-            this.setData({
-              selectedCloud: cloud,
-            });
-            
-            // 3秒后自动隐藏信息框
+            this.setData({ selectedCloud: cloud });
+
             if (this._infoTimer) {
               clearTimeout(this._infoTimer);
             }
             this._infoTimer = setTimeout(() => {
-              this.setData({
-                selectedCloud: null,
-              });
+              this.setData({ selectedCloud: null });
             }, 3000);
           }
         });
       });
   },
 
-  // 页面销毁时清理
   onUnload() {
     if (this.data.animationFrameId) {
       clearTimeout(this.data.animationFrameId);
