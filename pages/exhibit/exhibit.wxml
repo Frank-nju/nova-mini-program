@@ -263,65 +263,72 @@
     </view>
   </view>
 
-  <!-- 数字人面板 -->
-  <view wx:if="{{showAIPanel}}" class="panel ai-panel">
-    <!-- 背景装饰 -->
-    <view class="ai-bg"></view>
-
-    <view class="panel-header ai-header">
-      <view class="ai-header-left">
-        <text class="ai-avatar-icon">🧪</text>
-        <text class="panel-title">吴健雄</text>
-      </view>
-      <view class="close-btn" bindtap="toggleAI">✕</view>
+  <!-- 数字人面板（全屏） -->
+  <view wx:if="{{showAIPanel}}" class="ai-panel-fullscreen">
+    <!-- 全屏数字人背景 -->
+    <view class="ai-digital-human-bg">
+      <digital-human id="digitalHumanExhibit" size="750" bind:message="onDigitalHumanMessage" bind:speakEnd="onSpeakEnd" bind:error="onDigitalHumanError" />
     </view>
 
-    <!-- 聊天消息区 -->
-    <scroll-view class="ai-messages-scroll" scroll-y="{{true}}" scroll-into-view="{{aiScrollId}}" scroll-with-animation="{{true}}">
-      <view class="ai-messages-container">
-        <!-- 欢迎语 -->
-        <view class="ai-msg ai-msg-welcome">
-          <view class="ai-msg-avatar">🧪</view>
-          <view class="ai-msg-bubble ai-bubble">
-            欢迎来到追光健雄云端数字展馆。我是吴健雄，很高兴能带你走进我的人生旅程。你可以问我关于求学经历、科研探索、人生感悟，或者任何你感兴趣的话题。
+    <!-- 顶部关闭按钮 -->
+    <view class="ai-fullscreen-header">
+      <view class="ai-close-btn" bindtap="toggleAI">✕</view>
+    </view>
+
+    <!-- 聊天消息区（上半部分，避开面部） -->
+    <scroll-view class="ai-messages-float" scroll-y="{{true}}" scroll-into-view="{{aiScrollId}}" scroll-with-animation="{{true}}">
+      <!-- 欢迎语 -->
+      <view class="ai-float-msg ai-float-welcome">
+        <view class="ai-float-bubble">
+          <text>欢迎来到追光健雄云端数字展馆。我是吴健雄，很高兴能与你对话。</text>
+        </view>
+      </view>
+
+      <!-- 聊天记录 -->
+      <view wx:for="{{aiMessages}}" wx:key="id" id="ai-msg-{{item.id}}">
+        <!-- 用户消息 -->
+        <view wx:if="{{item.role === 'user'}}" class="ai-float-msg ai-float-user">
+          <view class="ai-float-bubble user">
+            <text>{{item.text}}</text>
           </view>
         </view>
-
-        <!-- 聊天记录 -->
-        <view wx:for="{{aiMessages}}" wx:key="id" id="ai-msg-{{item.id}}" class="ai-msg {{item.role === 'user' ? 'ai-msg-user' : 'ai-msg-ai'}} {{item.loading ? 'ai-msg-loading-wrap' : ''}}">
-          <view wx:if="{{item.role === 'ai'}}" class="ai-msg-avatar">🧪</view>
-          <view class="ai-msg-bubble {{item.role === 'user' ? 'user-bubble' : 'ai-bubble'}} {{item.loading ? 'ai-loading-bubble' : ''}}">
+        
+        <!-- AI消息 -->
+        <view wx:if="{{item.role === 'ai'}}" class="ai-float-msg ai-float-ai">
+          <view class="ai-float-bubble ai">
             <text wx:if="{{item.loading}}" class="ai-typing-dots"><text></text><text></text><text></text></text>
             <text wx:else>{{item.text}}</text>
           </view>
-          <!-- 语音播放按钮 -->
-          <view wx:if="{{item.role === 'ai' && item.audioUrl && !item.audioPlaying}}" class="audio-play-btn" bindtap="playDigitalHumanAudio" data-audiourl="{{item.audioUrl}}" data-msgid="{{item.id}}">
-            <text>🎤 播放语音</text>
+          <!-- 语音按钮 -->
+          <view wx:if="{{item.audioUrl && !item.audioPlaying}}" class="ai-float-audio-btn" bindtap="playDigitalHumanAudio" data-audiourl="{{item.audioUrl}}" data-msgid="{{item.id}}">
+            <text>▶</text>
           </view>
-          <view wx:if="{{item.role === 'ai' && item.audioPlaying}}" class="audio-play-btn audio-playing" bindtap="stopDigitalHumanAudio">
-            <text>⏸ 停止</text>
+          <view wx:if="{{item.audioPlaying}}" class="ai-float-audio-btn playing" bindtap="stopDigitalHumanAudio">
+            <text>⏸</text>
           </view>
         </view>
       </view>
-      <view style="height: 16rpx;"></view>
+      <view style="height: 40rpx;"></view>
     </scroll-view>
 
-    <!-- 预设问题 -->
-    <view wx:if="{{!aiChatting}}" class="ai-presets">
-      <text class="ai-presets-label">你可以这样问我：</text>
-      <view class="ai-preset-btns">
-        <view wx:for="{{presetQuestions}}" wx:key="index" class="ai-preset-chip" bindtap="sendPreset" data-index="{{index}}">
-          <text>{{item}}</text>
-        </view>
+    <!-- 底部区域 -->
+    <view class="ai-bottom-float">
+      <!-- 预设问题 -->
+      <view wx:if="{{!aiChatting && presetQuestions.length > 0}}" class="ai-presets-float">
+        <scroll-view scroll-x class="ai-presets-scroll">
+          <view class="ai-presets-list">
+            <view wx:for="{{presetQuestions}}" wx:key="index" class="ai-preset-chip-float" bindtap="sendPreset" data-index="{{index}}">
+              <text>{{item}}</text>
+            </view>
+          </view>
+        </scroll-view>
       </view>
-    </view>
 
-    <!-- 输入区 -->
-    <view class="ai-input-area">
-      <view class="ai-input-row">
-        <input class="ai-input" value="{{aiInputValue}}" bindinput="onAiInput" bindconfirm="sendAiMessage" placeholder="输入你想问吴先生的问题..." disabled="{{aiChatting}}" maxlength="100" confirm-type="send" />
-        <view class="ai-send-btn {{aiChatting || !aiInputValue ? 'disabled' : ''}}" bindtap="sendAiMessage">
-          <text>{{aiChatting ? '思考中' : '发送'}}</text>
+      <!-- 输入区 -->
+      <view class="ai-input-float">
+        <input class="ai-input-field" value="{{aiInputValue}}" bindinput="onAiInput" bindconfirm="sendAiMessage" placeholder="输入问题..." disabled="{{aiChatting}}" confirm-type="send" />
+        <view class="ai-send-float {{aiChatting || !aiInputValue ? 'disabled' : ''}}" bindtap="sendAiMessage">
+          <text>{{aiChatting ? '...' : '发送'}}</text>
         </view>
       </view>
     </view>

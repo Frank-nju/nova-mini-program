@@ -1025,6 +1025,19 @@ Page({
     this.setData({ aiMessages: msgs });
   },
 
+  // 数字人组件事件处理
+  onDigitalHumanMessage(e) {
+    console.log('[exhibit] 数字人回答:', e.detail.answer);
+  },
+
+  onSpeakEnd() {
+    console.log('[exhibit] 语音播放结束');
+  },
+
+  onDigitalHumanError(e) {
+    console.error('[exhibit] 数字人错误:', e.detail.err);
+  },
+
   onUnload() {
     if (this.data.innerAudioContext) {
       this.data.innerAudioContext.stop();
