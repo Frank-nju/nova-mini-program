@@ -57,6 +57,12 @@ Page({
     const aiMsgId = this.data.messageId++;
     this.addMessage('ai', '', aiMsgId, { loading: true });
 
+    // 同时触发数字人可视化组件
+    const dhComponent = this.selectComponent('#digitalHuman');
+    if (dhComponent) {
+      dhComponent.ask(question);
+    }
+
     try {
       // 调用云函数（先返回文字，不等待TTS）
       const res = await this.callFunction('askDigitalHuman', {
@@ -80,8 +86,8 @@ Page({
         audioPlaying: false,
       });
 
-      // 异步请求TTS
-      if (data.text && data.text.length > 5) {
+      // 异步请求TTS（如果组件没有处理）
+      if (data.text && data.text.length > 5 && !dhComponent) {
         this.requestTTS(data.text, aiMsgId);
       }
     } catch (e) {
@@ -185,5 +191,19 @@ Page({
         fail(err) { reject(err); },
       });
     });
+  },
+
+  // 数字人组件事件处理
+  onDigitalHumanMessage(e) {
+    // 组件已处理对话和音频，这里可以更新UI状态
+    console.log('[digital-human] 收到回答:', e.detail.answer);
+  },
+
+  onSpeakEnd() {
+    console.log('[digital-human] 语音播放结束');
+  },
+
+  onDigitalHumanError(e) {
+    console.error('[digital-human] 错误:', e.detail.err);
   },
 });

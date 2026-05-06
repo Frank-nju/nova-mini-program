@@ -1,0 +1,12 @@
+<view class="dh-container" style="width: {{size}}rpx; height: {{size*1.33}}rpx;">
+  <!-- 底图 -->
+  <image class="dh-base" src="{{baseSrc}}" mode="aspectFill"/>
+  
+  <!-- 嘴巴窗口：只露出嘴巴，其他裁掉 -->
+  <view class="dh-mouth-window" style="top: {{mouthTop}}rpx; left: {{mouthLeft}}rpx; width: {{mouthWidth}}rpx; height: {{mouthHeight}}rpx;">
+    <image class="dh-mouth-img" src="{{mouthSrc}}" mode="aspectFill" style="top: {{-mouthTop}}rpx; left: {{-mouthLeft}}rpx; width: {{size}}rpx; height: {{size*1.33}}rpx;"/>
+  </view>
+  
+  <!-- 说话状态 -->
+  <view wx:if="{{isSpeaking}}" class="dh-badge">● 说话中</view>
+</view>

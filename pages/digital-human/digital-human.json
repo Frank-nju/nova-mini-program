@@ -2,5 +2,8 @@
   "navigationBarTitleText": "对话吴健雄",
   "navigationBarBackgroundColor": "#16213e",
   "navigationBarTextStyle": "white",
-  "backgroundColor": "#0A0A0F"
+  "backgroundColor": "#0A0A0F",
+  "usingComponents": {
+    "digital-human": "/components/digital-human/digital-human"
+  }
 }

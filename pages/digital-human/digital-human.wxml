@@ -8,6 +8,11 @@
     <view class="header-placeholder"></view>
   </view>
 
+  <!-- 数字人可视化组件 -->
+  <view class="digital-human-section">
+    <digital-human id="digitalHuman" size="280" bind:message="onDigitalHumanMessage" bind:speakEnd="onSpeakEnd" bind:error="onDigitalHumanError" />
+  </view>
+
   <!-- 聊天消息列表 -->
   <scroll-view class="chat-container" scroll-y scroll-into-view="{{scrollToView}}" scroll-with-animation>
     <!-- 欢迎消息 -->
