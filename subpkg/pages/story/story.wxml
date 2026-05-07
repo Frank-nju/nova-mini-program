@@ -320,7 +320,7 @@
     <scroll-view class="story-dh-messages" scroll-y="{{true}}" scroll-into-view="{{dhScrollId}}" scroll-with-animation="{{true}}">
       <!-- 欢迎语 -->
       <view class="story-dh-msg story-dh-welcome">
-        <view class="story-dh-bubble">
+        <view class="story-dh-bubble ai">
           <text>{{dhWelcome}}</text>
         </view>
       </view>

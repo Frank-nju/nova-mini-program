@@ -279,7 +279,7 @@
     <scroll-view class="ai-messages-float" scroll-y="{{true}}" scroll-into-view="{{aiScrollId}}" scroll-with-animation="{{true}}">
       <!-- 欢迎语 -->
       <view class="ai-float-msg ai-float-welcome">
-        <view class="ai-float-bubble">
+        <view class="ai-float-bubble ai">
           <text>{{welcomeMessage}}</text>
         </view>
       </view>
