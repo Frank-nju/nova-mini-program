@@ -171,6 +171,13 @@ Page({
   },
 
   playAudioUrl(audioUrl, msgId) {
+    // 获取数字人组件，驱动嘴型动画
+    const dhComponent = this.selectComponent('#digitalHuman');
+    if (dhComponent && audioUrl) {
+      dhComponent._playAudio(audioUrl);
+    }
+
+    // 同时用小程序音频播放（备用）
     const innerAudioContext = this.data.innerAudioContext;
     innerAudioContext.src = audioUrl;
     innerAudioContext.play();

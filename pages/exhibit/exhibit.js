@@ -1,5 +1,57 @@
 const cloudUtil = require('../../cloudUtil.js');
 
+// 根据页面 section 定义的针对性预设问题
+const SECTION_PRESETS = {
+  'section-0': {
+    welcome: '欢迎来到追光健雄云端数字展馆。我是吴健雄，很高兴能带你走进我的人生旅程。',
+    questions: [
+      { id: 's0_1', question: '这个展馆有哪些内容？' },
+      { id: 's0_2', question: '您是谁？' },
+      { id: 's0_3', question: '我想了解您的科学贡献' },
+    ]
+  },
+  'section-1': {
+    welcome: '序章讲述了我早年的成长故事。你想了解我的童年还是求学经历？',
+    questions: [
+      { id: 's1_1', question: '您小时候是什么样的？' },
+      { id: 's1_2', question: '为什么选择学物理？' },
+      { id: 's1_3', question: '在苏州女子师范的经历是怎样的？' },
+    ]
+  },
+  'section-2': {
+    welcome: '这里记录了我的生平履历，从求学到科研的历程。',
+    questions: [
+      { id: 's2_1', question: '您是怎么去美国的？' },
+      { id: 's2_2', question: '在伯克利读书时遇到过什么困难？' },
+      { id: 's2_3', question: '您的丈夫袁家骝是怎样的人？' },
+    ]
+  },
+  'section-3': {
+    welcome: '治学风骨是我一生的坚持。严谨、求实、创新，这是我对科学的态度。',
+    questions: [
+      { id: 's3_1', question: '您做实验最注重什么？' },
+      { id: 's3_2', question: '怎么看待实验中的失败？' },
+      { id: 's3_3', question: '对年轻科研工作者有什么建议？' },
+    ]
+  },
+  'section-4': {
+    welcome: '科研丰碑记录了我最重要的科学贡献，特别是宇称不守恒实验。',
+    questions: [
+      { id: 's4_1', question: '什么是宇称不守恒？' },
+      { id: 's4_2', question: '钴-60实验是怎么做的？' },
+      { id: 's4_3', question: '为什么这个实验这么重要？' },
+    ]
+  },
+  'section-5': {
+    welcome: '尾声讲述了我晚年的故事和对科学传承的思考。',
+    questions: [
+      { id: 's5_1', question: '您晚年最关注什么？' },
+      { id: 's5_2', question: '对中国科学发展有什么期望？' },
+      { id: 's5_3', question: '您如何看待自己的一生？' },
+    ]
+  },
+};
+
 Page({
   data: {
     screenHeight: 0,
@@ -14,7 +66,8 @@ Page({
     materialsHasMore: true,
     materialsPage: 1,
     materialTab: 'all',
-    presetQuestions: cloudUtil.getPresetQuestions(),
+    presetQuestions: [],
+    welcomeMessage: '',
     aiMessages: [],
     aiInputValue: '',
     aiChatting: false,
@@ -133,6 +186,8 @@ Page({
     });
     this.generateStars();
     this.initializeEventClouds();
+    // 初始化预设问题
+    this.updateSectionPresets('section-0');
     // 云调用在渲染后异步执行，不阻塞页面
     setTimeout(() => this.loadProgress(), 300);
   },
@@ -282,8 +337,23 @@ Page({
           this.unlockBadgeByBadge(badge);
         }
       }
+      // 更新当前 section 和预设问题
+      const sectionId = `section-${Math.min(index, 5)}`;
+      if (this.data.currentSection !== sectionId) {
+        this.updateSectionPresets(sectionId);
+      }
     }
     this.data.scrollY = scrollTop;
+  },
+
+  // 根据当前 section 更新预设问题
+  updateSectionPresets(sectionId) {
+    const presets = SECTION_PRESETS[sectionId] || SECTION_PRESETS['section-0'];
+    this.setData({
+      currentSection: sectionId,
+      presetQuestions: presets.questions,
+      welcomeMessage: presets.welcome,
+    });
   },
 
   goBack() {
@@ -589,26 +659,68 @@ Page({
       });
   },
 
-  sendPreset(e) {
-    const index = e.currentTarget.dataset.index;
-    const question = this.data.presetQuestions[index];
+  // 发送预设问题（支持预存语音或实时生成）
+  async sendPreset(e) {
+    const presetId = e.currentTarget.dataset.id;
+    const question = e.currentTarget.dataset.question;
     if (!question || this.data.aiChatting) return;
 
+    // 添加用户消息
     const msgId = ++this.data.aiMsgCounter;
-    const messages = [...this.data.aiMessages, { id: msgId, role: 'user', text: question }];
-
     this.setData({
-      aiMessages: messages,
+      aiMessages: [...this.data.aiMessages, { id: msgId, role: 'user', text: question }],
       aiChatting: true,
       aiScrollId: `ai-msg-${msgId}`,
     });
 
+    // 先尝试获取预存回答
+    try {
+      const res = await wx.cloud.callFunction({
+        name: 'presetManager',
+        data: { action: 'get', presetId }
+      });
+
+      if (res.result.code === 0 && res.result.data && res.result.data.text) {
+        // 有预存，直接显示
+        const aiMsgId = ++this.data.aiMsgCounter;
+        this.setData({
+          aiMessages: [...this.data.aiMessages, {
+            id: aiMsgId,
+            role: 'ai',
+            text: res.result.data.text,
+            audioUrl: res.result.data.audioUrl || null,
+            audioPlaying: false
+          }],
+          aiChatting: false,
+          aiScrollId: `ai-msg-${aiMsgId}`,
+        });
+
+        // 如果有预存语音，播放并驱动嘴型
+        if (res.result.data.audioUrl) {
+          this.playAudioUrl(res.result.data.audioUrl, aiMsgId);
+        }
+        return;
+      }
+    } catch (e) {
+      console.log('预存未找到，走API:', e.message);
+    }
+
+    // 没有预存，走实时生成
     const loadingId = ++this.data.aiMsgCounter;
     this.setData({
       aiMessages: [...this.data.aiMessages, { id: loadingId, role: 'ai', loading: true }],
       aiScrollId: `ai-msg-${loadingId}`,
     });
 
+    // 调用数字人组件（它会处理 LLM + TTS + 嘴型动画）
+    const dhComponent = this.selectComponent('#digitalHumanExhibit');
+    if (dhComponent) {
+      dhComponent.ask(question);
+      // 监听 message 事件获取回答
+      return;
+    }
+
+    // 备用：走云函数
     cloudUtil.chatWithDigitalHuman({ question })
       .then(res => {
         const updated = this.data.aiMessages.map(m =>
@@ -630,6 +742,55 @@ Page({
           aiScrollId: `ai-msg-${loadingId}`,
         });
       });
+  },
+
+  // 数字人组件事件处理
+  onDigitalHumanMessage(e) {
+    const { answer } = e.detail;
+    // 找到最后一个 loading 消息并更新
+    const messages = this.data.aiMessages.map(m =>
+      m.loading ? { ...m, loading: false, text: answer, role: 'ai' } : m
+    );
+    this.setData({
+      aiMessages: messages,
+      aiChatting: false,
+    });
+  },
+
+  onSpeakEnd() {
+    // 语音播放结束
+    console.log('[exhibit] 语音播放结束');
+  },
+
+  onDigitalHumanError(e) {
+    console.error('[exhibit] 数字人错误:', e.detail);
+    this.setData({ aiChatting: false });
+  },
+
+  // 播放音频（同时驱动数字人嘴型）
+  playAudioUrl(audioUrl, msgId) {
+    // 获取数字人组件，驱动嘴型动画
+    const dhComponent = this.selectComponent('#digitalHumanExhibit');
+    if (dhComponent && audioUrl) {
+      dhComponent._playAudio(audioUrl);
+    }
+
+    // 更新播放状态
+    const messages = this.data.aiMessages.map(msg => {
+      if (msg.id === msgId) return { ...msg, audioPlaying: true };
+      return { ...msg, audioPlaying: false };
+    });
+    this.setData({ messages });
+  },
+
+  // 停止播放
+  stopAudio() {
+    const dhComponent = this.selectComponent('#digitalHumanExhibit');
+    if (dhComponent) {
+      dhComponent.stopSpeaking();
+    }
+    const messages = this.data.aiMessages.map(msg => ({ ...msg, audioPlaying: false }));
+    this.setData({ messages });
   },
 
   toggleMaterials() {
