@@ -17,6 +17,7 @@
 }
 .dh-mouth-img {
   position: absolute;
+  transition: opacity 0.08s ease;
 }
 .dh-badge {
   position: absolute;

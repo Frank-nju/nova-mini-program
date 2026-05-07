@@ -1,10 +1,6 @@
 Component({
   properties: {
     size: { type: Number, value: 300 },
-    mouthTopRatio: { type: Number, value: 0.375 },
-    mouthLeftRatio: { type: Number, value: 0.40 },
-    mouthWidthRatio: { type: Number, value: 0.20 },
-    mouthHeightRatio: { type: Number, value: 0.10 },
     speaking: { type: Boolean, value: false },
     audioUrl: { type: String, value: '' }
   },
@@ -17,8 +13,9 @@ Component({
       '/assets/images/wu_mouth_3.png',
       '/assets/images/wu_mouth_4.png'
     ],
-    mouthSrc: '/assets/images/wu_base.png',
+    mouthIndex: -1,
     isSpeaking: false,
+    // 嘴巴位置（由 attached 根据 size 自动计算）
     mouthTop: 0,
     mouthLeft: 0,
     mouthWidth: 0,
@@ -32,14 +29,15 @@ Component({
   },
 
   methods: {
+    // 计算嘴巴位置（最终确认版锚点）
     _calcMouthPos() {
-      const { size, mouthTopRatio, mouthLeftRatio, mouthWidthRatio, mouthHeightRatio } = this.properties;
+      const size = this.properties.size;
       const height = Math.round(size * 1.33);
       this.setData({
-        mouthTop: Math.round(height * mouthTopRatio),
-        mouthLeft: Math.round(size * mouthLeftRatio),
-        mouthWidth: Math.round(size * mouthWidthRatio),
-        mouthHeight: Math.round(height * mouthHeightRatio)
+        mouthTop: Math.round(height * 0.405),
+        mouthLeft: Math.round(size * 0.425),
+        mouthWidth: Math.round(size * 0.18),
+        mouthHeight: Math.round(height * 0.08)
       });
     },
 
@@ -50,24 +48,25 @@ Component({
       audio.src = url;
 
       let lipTimer;
+
       audio.onPlay(() => {
-        this.setData({ isSpeaking: true });
+        this.setData({ isSpeaking: true, mouthIndex: 0 });
+        
         lipTimer = setInterval(() => {
           const idx = Math.floor(Math.random() * 4);
-          this.setData({ mouthSrc: this.data.mouthList[idx] });
+          this.setData({ mouthIndex: idx });
         }, 150);
       });
 
       audio.onEnded(() => {
         clearInterval(lipTimer);
-        this.setData({ isSpeaking: false, mouthSrc: this.data.baseSrc });
+        this.setData({ isSpeaking: false, mouthIndex: -1 });
         audio.destroy();
-        this.triggerEvent('speakEnd');
       });
 
       audio.onError(() => {
         clearInterval(lipTimer);
-        this.setData({ isSpeaking: false, mouthSrc: this.data.baseSrc });
+        this.setData({ isSpeaking: false, mouthIndex: -1 });
         audio.destroy();
       });
 
@@ -80,14 +79,12 @@ Component({
         this.audioCtx.destroy();
         this.audioCtx = null;
       }
-      this.setData({ isSpeaking: false, mouthSrc: this.data.baseSrc });
+      this.setData({ isSpeaking: false, mouthIndex: -1 });
     },
 
-    // 暴露给外部调用的方法：传文字，自动走 AI+TTS+播放
     speak(text) {
       this._stopSpeaking();
-      this.setData({ isSpeaking: true });
-
+      
       wx.cloud.callFunction({
         name: 'chat',
         data: { message: text }
@@ -101,7 +98,7 @@ Component({
           this._playAudio(ttsRes.result.url);
         });
       }).catch(err => {
-        this.setData({ isSpeaking: false });
+        this.setData({ isSpeaking: false, mouthIndex: -1 });
         this.triggerEvent('error', { err });
       });
     }
