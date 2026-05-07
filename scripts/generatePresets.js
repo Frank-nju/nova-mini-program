@@ -40,8 +40,10 @@ async function main() {
       const text = await generateText(preset.question);
       console.log(`  文字: ${text.substring(0, 50)}...`);
 
-      // 2. 生成语音
-      const audioBase64 = await generateTTS(text);
+      // 2. 生成语音 (使用 sambert 流式接口)
+      const audioBuffer = await generateTTS(text);
+      const audioBase64 = audioBuffer.toString('base64');
+      console.log(`  语音: ${audioBase64.length} bytes`);
       
       // 3. 保存
       const data = {
@@ -107,34 +109,43 @@ function generateText(question) {
   });
 }
 
+// 使用 sambert 流式 TTS (返回二进制音频数据)
 function generateTTS(text) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'cosyvoice-v1',
+      model: 'sambert-zhichu-v1',
       input: { text },
-      voice: 'longxiaochun',
-      response_format: 'mp3'
+      voice: 'zhichu',
+      sample_rate: 16000,
+      format: 'mp3'
     });
 
     const req = https.request({
       hostname: 'dashscope.aliyuncs.com',
       port: 443,
-      path: '/compatible-mode/v1/audio/speech',
+      path: '/api/v1/services/aigc/tts/stream',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
+        'X-DashScope-Streaming': 'true',
         'Content-Length': Buffer.byteLength(body)
       }
     }, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
-        try {
-          const json = JSON.parse(data);
-          resolve(json.audio);
-        } catch (e) {
-          reject(e);
+        const buffer = Buffer.concat(chunks);
+        // 检查是否是 JSON 错误
+        if (buffer.toString().startsWith('{')) {
+          try {
+            const json = JSON.parse(buffer.toString());
+            reject(new Error(json.message || 'TTS API error'));
+          } catch {
+            resolve(buffer);
+          }
+        } else {
+          resolve(buffer);
         }
       });
     });
