@@ -4,7 +4,7 @@
   vertical-align: top;
   border-radius: 16rpx;
   overflow: hidden;
-  background: #0A0A0F;
+  background: #fff;
 }
 .dh-base {
   width: 100%;
