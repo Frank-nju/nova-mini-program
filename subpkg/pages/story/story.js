@@ -1273,11 +1273,15 @@ Page({
     if (!question || this.data.dhChatting) return;
 
     const msgId = ++this.data.dhMsgCounter;
+    const loadingId = ++this.data.dhMsgCounter;
     this.setData({
-      dhMessages: [...this.data.dhMessages, { id: msgId, role: 'user', text: question }],
+      dhMessages: [...this.data.dhMessages, 
+        { id: msgId, role: 'user', text: question },
+        { id: loadingId, role: 'ai', loading: true }
+      ],
       dhInputValue: '',
       dhChatting: true,
-      dhScrollId: `dh-msg-${msgId}`,
+      dhScrollId: `dh-msg-${loadingId}`,
     });
 
     // 调用数字人组件
@@ -1286,10 +1290,6 @@ Page({
       dh.ask(question);
     } else {
       // 备用：走云函数
-      const loadingId = ++this.data.dhMsgCounter;
-      this.setData({
-        dhMessages: [...this.data.dhMessages, { id: loadingId, role: 'ai', loading: true }],
-      });
       wx.cloud.callFunction({
         name: 'askDigitalHuman',
         data: { action: 'chat', question }
@@ -1350,14 +1350,15 @@ Page({
     }
 
     // 走实时生成
+    const loadingId = ++this.data.dhMsgCounter;
+    this.setData({
+      dhMessages: [...this.data.dhMessages, { id: loadingId, role: 'ai', loading: true }],
+    });
+
     const dh = this.selectComponent('#digitalHumanStory');
     if (dh) {
       dh.ask(question);
     } else {
-      const loadingId = ++this.data.dhMsgCounter;
-      this.setData({
-        dhMessages: [...this.data.dhMessages, { id: loadingId, role: 'ai', loading: true }],
-      });
       wx.cloud.callFunction({
         name: 'askDigitalHuman',
         data: { action: 'chat', question }

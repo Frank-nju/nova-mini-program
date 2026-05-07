@@ -267,7 +267,7 @@
   <view wx:if="{{showAIPanel}}" class="ai-panel-fullscreen">
     <!-- 全屏数字人背景 -->
     <view class="ai-digital-human-bg">
-      <digital-human id="digitalHumanExhibit" size="750" bind:message="onDigitalHumanMessage" bind:speakEnd="onSpeakEnd" bind:error="onDigitalHumanError" />
+      <digital-human id="digitalHumanExhibit" bind:message="onDigitalHumanMessage" bind:speakEnd="onSpeakEnd" bind:error="onDigitalHumanError" />
     </view>
 
     <!-- 顶部关闭按钮 -->

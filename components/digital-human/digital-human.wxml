@@ -1,13 +1,13 @@
-<view class="dh-container" style="width: {{size}}rpx; height: {{size*1.33}}rpx;">
+<view class="dh-container" style="width: 100%; height: 100%;">
   <!-- 底图 -->
   <image class="dh-base" src="{{baseSrc}}" mode="aspectFill"/>
 
   <!-- 嘴巴窗口 -->
-  <view class="dh-mouth-window" style="top: {{mouthTop}}rpx; left: {{mouthLeft}}rpx; width: {{mouthWidth}}rpx; height: {{mouthHeight}}rpx;">
-    <image class="dh-mouth-img" src="{{mouthList[0]}}" mode="aspectFill" style="top: {{-mouthTop}}rpx; left: {{-mouthLeft}}rpx; width: {{size}}rpx; height: {{size*1.33}}rpx; opacity: {{mouthIndex===0?1:0}};"/>
-    <image class="dh-mouth-img" src="{{mouthList[1]}}" mode="aspectFill" style="top: {{-mouthTop}}rpx; left: {{-mouthLeft}}rpx; width: {{size}}rpx; height: {{size*1.33}}rpx; opacity: {{mouthIndex===1?1:0}};"/>
-    <image class="dh-mouth-img" src="{{mouthList[2]}}" mode="aspectFill" style="top: {{-mouthTop}}rpx; left: {{-mouthLeft}}rpx; width: {{size}}rpx; height: {{size*1.33}}rpx; opacity: {{mouthIndex===2?1:0}};"/>
-    <image class="dh-mouth-img" src="{{mouthList[3]}}" mode="aspectFill" style="top: {{-mouthTop}}rpx; left: {{-mouthLeft}}rpx; width: {{size}}rpx; height: {{size*1.33}}rpx; opacity: {{mouthIndex===3?1:0}};"/>
+  <view class="dh-mouth-window" style="top: {{mouthTop}}%; left: {{mouthLeft}}%; width: {{mouthWidth}}%; height: {{mouthHeight}}%;">
+    <image class="dh-mouth-img" src="{{mouthList[0]}}" mode="aspectFill" style="top: {{-mouthTop}}%; left: {{-mouthLeft}}%; width: 100%; height: 100%; opacity: {{mouthIndex===0?1:0}};"/>
+    <image class="dh-mouth-img" src="{{mouthList[1]}}" mode="aspectFill" style="top: {{-mouthTop}}%; left: {{-mouthLeft}}%; width: 100%; height: 100%; opacity: {{mouthIndex===1?1:0}};"/>
+    <image class="dh-mouth-img" src="{{mouthList[2]}}" mode="aspectFill" style="top: {{-mouthTop}}%; left: {{-mouthLeft}}%; width: 100%; height: 100%; opacity: {{mouthIndex===2?1:0}};"/>
+    <image class="dh-mouth-img" src="{{mouthList[3]}}" mode="aspectFill" style="top: {{-mouthTop}}%; left: {{-mouthLeft}}%; width: 100%; height: 100%; opacity: {{mouthIndex===3?1:0}};"/>
   </view>
 
   <!-- 说话状态 -->

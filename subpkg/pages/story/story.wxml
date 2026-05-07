@@ -308,7 +308,7 @@
   <view wx:if="{{showDhPanel}}" class="story-dh-panel">
     <!-- 全屏数字人背景 -->
     <view class="story-dh-bg">
-      <digital-human id="digitalHumanStory" size="750" bind:message="onDhMessage" bind:speakEnd="onDhSpeakEnd" bind:error="onDhError" />
+      <digital-human id="digitalHumanStory" bind:message="onDhMessage" bind:speakEnd="onDhSpeakEnd" bind:error="onDhError" />
     </view>
 
     <!-- 顶部关闭 -->
