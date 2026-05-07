@@ -1,10 +1,6 @@
 Component({
   properties: {
     size: { type: Number, value: 300 },
-    mouthTopRatio: { type: Number, value: 0.375 },
-    mouthLeftRatio: { type: Number, value: 0.40 },
-    mouthWidthRatio: { type: Number, value: 0.20 },
-    mouthHeightRatio: { type: Number, value: 0.10 },
     speaking: { type: Boolean, value: false },
     audioUrl: { type: String, value: '' }
   },
@@ -17,8 +13,9 @@ Component({
       '/assets/images/wu_mouth_3.png',
       '/assets/images/wu_mouth_4.png'
     ],
-    mouthSrc: '/assets/images/wu_base.png',
+    mouthIndex: -1,
     isSpeaking: false,
+    // 嘴巴位置（由 attached 根据 size 自动计算）
     mouthTop: 0,
     mouthLeft: 0,
     mouthWidth: 0,
@@ -32,54 +29,51 @@ Component({
   },
 
   methods: {
+    // 计算嘴巴位置（最终确认版锚点）
     _calcMouthPos() {
-      const { size, mouthTopRatio, mouthLeftRatio, mouthWidthRatio, mouthHeightRatio } = this.properties;
+      const size = this.properties.size;
       const height = Math.round(size * 1.33);
       this.setData({
-        mouthTop: Math.round(height * mouthTopRatio),
-        mouthLeft: Math.round(size * mouthLeftRatio),
-        mouthWidth: Math.round(size * mouthWidthRatio),
-        mouthHeight: Math.round(height * mouthHeightRatio)
+        mouthTop: Math.round(height * 0.405),
+        mouthLeft: Math.round(size * 0.425),
+        mouthWidth: Math.round(size * 0.18),
+        mouthHeight: Math.round(height * 0.08)
       });
     },
 
-    // 播放音频并启动口型动画
-    playAudio(url) {
-      if (!url) return;
+    _playAudio(url) {
       this._stopSpeaking();
-      
       const audio = wx.createInnerAudioContext();
       this.audioCtx = audio;
       audio.src = url;
 
       let lipTimer;
+
       audio.onPlay(() => {
-        this.setData({ isSpeaking: true });
-        // 口型动画：每150ms随机切换嘴巴图片
+        this.setData({ isSpeaking: true, mouthIndex: 0 });
+
         lipTimer = setInterval(() => {
           const idx = Math.floor(Math.random() * 4);
-          this.setData({ mouthSrc: this.data.mouthList[idx] });
+          this.setData({ mouthIndex: idx });
         }, 150);
       });
 
       audio.onEnded(() => {
         clearInterval(lipTimer);
-        this.setData({ isSpeaking: false, mouthSrc: this.data.baseSrc });
+        this.setData({ isSpeaking: false, mouthIndex: -1 });
         audio.destroy();
         this.triggerEvent('speakEnd');
       });
 
-      audio.onError((err) => {
-        console.error('[digital-human] 音频播放失败:', err);
+      audio.onError(() => {
         clearInterval(lipTimer);
-        this.setData({ isSpeaking: false, mouthSrc: this.data.baseSrc });
+        this.setData({ isSpeaking: false, mouthIndex: -1 });
         audio.destroy();
       });
 
       audio.play();
     },
 
-    // 停止播放
     stopSpeaking() {
       this._stopSpeaking();
     },
@@ -94,13 +88,13 @@ Component({
         }
         this.audioCtx = null;
       }
-      this.setData({ isSpeaking: false, mouthSrc: this.data.baseSrc });
+      this.setData({ isSpeaking: false, mouthIndex: -1 });
     },
 
     // 暴露给外部：传入问题，自动调用云函数获取回答和音频
     ask(question) {
       if (!question || this.data.isSpeaking) return;
-      
+
       this._stopSpeaking();
       this.setData({ isSpeaking: true });
 
@@ -112,24 +106,24 @@ Component({
         if (res.result.code !== 0) {
           throw new Error(res.result.message || '对话失败');
         }
-        
+
         const answer = res.result.data.text;
         this.triggerEvent('message', { question, answer, retrieval: res.result.data.retrieval });
-        
+
         // 异步请求 TTS
         return wx.cloud.callFunction({
           name: 'askDigitalHuman',
           data: { action: 'tts', text: answer }
         }).then(ttsRes => {
           if (ttsRes.result.code === 0 && ttsRes.result.data.audioUrl) {
-            this.playAudio(ttsRes.result.data.audioUrl);
+            this._playAudio(ttsRes.result.data.audioUrl);
           } else {
-            this.setData({ isSpeaking: false });
+            this.setData({ isSpeaking: false, mouthIndex: -1 });
           }
         });
       }).catch(err => {
         console.error('[digital-human] 请求失败:', err);
-        this.setData({ isSpeaking: false });
+        this.setData({ isSpeaking: false, mouthIndex: -1 });
         this.triggerEvent('error', { err });
       });
     }
