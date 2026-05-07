@@ -40,7 +40,7 @@ async function main() {
       const text = await generateText(preset.question);
       console.log(`  文字: ${text.substring(0, 50)}...`);
 
-      // 2. 生成语音 (使用 dashscope 语音合成 API)
+      // 2. 生成语音 (使用异步任务接口，和云函数一样)
       const audioBase64 = await generateTTS(text);
       console.log(`  语音: ${audioBase64.length} chars (base64)`);
       
@@ -116,20 +116,40 @@ function generateText(question) {
   });
 }
 
-// 使用 dashscope 语音合成 API
-function generateTTS(text) {
+// 使用异步任务接口生成语音（和云函数一样）
+async function generateTTS(text) {
+  // 1. 提交任务
+  const taskId = await submitTTSTask(text);
+  console.log(`  语音任务: ${taskId}`);
+  
+  // 2. 轮询获取结果
+  for (let i = 0; i < 30; i++) {
+    await sleep(1000);
+    const result = await queryTTSTask(taskId);
+    
+    if (result.status === 'SUCCEEDED') {
+      return result.audioBase64;
+    } else if (result.status === 'FAILED') {
+      throw new Error(`语音: ${result.errorMessage}`);
+    }
+    // 继续等待
+  }
+  
+  throw new Error('语音: 生成超时');
+}
+
+function submitTTSTask(text) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'cosyvoice-v1',
+      model: 'sambert-zhichu-v1',
       input: { text },
-      voice: 'longxiaochun',
-      response_format: 'mp3'
+      parameters: { voice: 'zhichu', volume: 50, speech_rate: 0, pitch_rate: 0 }
     });
 
     const req = https.request({
       hostname: 'dashscope.aliyuncs.com',
       port: 443,
-      path: '/compatible-mode/v1/audio/speech',
+      path: '/api/v1/services/aigc/audioGeneration',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,30 +161,70 @@ function generateTTS(text) {
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
         try {
-          // 先尝试解析 JSON
           const json = JSON.parse(data);
-          
-          // 检查是否有 audio 字段 (base64)
-          if (json.audio) {
-            resolve(json.audio);
-          } else if (json.output && json.output.audio) {
-            resolve(json.output.audio);
+          if (json.output && json.output.task_id) {
+            resolve(json.output.task_id);
           } else if (json.error) {
             reject(new Error(`语音: ${json.error.message}`));
           } else {
-            reject(new Error('语音: 未找到音频数据'));
+            reject(new Error('语音: 提交任务失败'));
           }
         } catch (e) {
-          // 不是 JSON，可能是错误 HTML 页面
-          reject(new Error('语音: API 返回格式错误'));
+          reject(e);
         }
       });
     });
 
-    req.on('error', (e) => reject(new Error(`语音: ${e.message}`)));
+    req.on('error', reject);
     req.write(body);
     req.end();
   });
+}
+
+function queryTTSTask(taskId) {
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: 'dashscope.aliyuncs.com',
+      port: 443,
+      path: `/api/v1/tasks/${taskId}`,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${DASHSCOPE_API_KEY}`
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const status = json.output?.task_status || json.output?.status;
+          
+          if (status === 'SUCCEEDED') {
+            resolve({
+              status: 'SUCCEEDED',
+              audioBase64: json.output?.results?.audio || json.results?.audio
+            });
+          } else if (status === 'FAILED') {
+            resolve({
+              status: 'FAILED',
+              errorMessage: json.output?.message || json.message || '未知错误'
+            });
+          } else {
+            resolve({ status: 'PENDING' });
+          }
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 main();
