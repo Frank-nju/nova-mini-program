@@ -5,7 +5,11 @@ cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
 const PRESET_COLLECTION = 'presetAnswers';
 
-// 预设问题列表
+const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || '';
+const LLM_MODEL = process.env.LLM_MODEL || 'qwen-plus';
+const TTS_MODEL = process.env.TTS_MODEL || 'cosyvoice-v3.5-plus';
+const TTS_VOICE = process.env.TTS_VOICE || 'cosyvoice-v3.5-plus-vd-wjxszslow-41e6b9543b174ccfbe0ebae9eb4721c0';
+
 const PRESET_QUESTIONS = [
   { id: "preset_q001", question: "吴先生，您是如何发现宇称不守恒的？" },
   { id: "preset_q002", question: "做科研最重要的是什么？" },
@@ -17,22 +21,29 @@ const PRESET_QUESTIONS = [
   { id: "preset_q008", question: "您对中国女性科研工作者有什么建议？" },
 ];
 
+const SYSTEM_PROMPT = `你是吴健雄，核物理学家。用第一人称回答，简洁亲切，不超过80字。`;
+
 exports.main = async (event, context) => {
   const { action, presetId } = event;
 
-  // 查询单个预设回答
   if (action === 'get' && presetId) {
     return getPresetAnswer(presetId);
   }
 
-  // 查询所有预设
   if (action === 'list') {
     return listPresets();
   }
 
-  // 预生成所有（管理后台用）
+  // 生成所有预设（调用LLM + TTS，上传到云存储）
   if (action === 'generate') {
     return generateAllPresets();
+  }
+
+  // 生成单个预设
+  if (action === 'generateOne' && presetId) {
+    const preset = PRESET_QUESTIONS.find(p => p.id === presetId);
+    if (!preset) return { code: 1004, message: '未找到预设问题', data: null };
+    return generateOnePreset(preset);
   }
 
   return { code: 1001, message: '未知action', data: null };
@@ -42,22 +53,13 @@ exports.main = async (event, context) => {
 async function getPresetAnswer(presetId) {
   try {
     const res = await db.collection(PRESET_COLLECTION).doc(presetId).get();
-    return {
-      code: 0,
-      message: 'ok',
-      data: res.data
-    };
+    return { code: 0, message: 'ok', data: res.data };
   } catch (e) {
-    // 未找到，返回null让前端走API
-    return {
-      code: 0,
-      message: 'not found',
-      data: null
-    };
+    return { code: 0, message: 'not found', data: null };
   }
 }
 
-// 查询所有预设（仅返回元数据，不含语音）
+// 查询所有预设
 async function listPresets() {
   try {
     const res = await db.collection(PRESET_COLLECTION).get();
@@ -73,37 +75,173 @@ async function listPresets() {
   }
 }
 
-// 预生成所有预设（需要配合askDigitalHuman使用）
+// 生成所有预设
 async function generateAllPresets() {
-  // 注意：这里只是创建空记录，实际生成需要调用askDigitalHuman
-  // 或者通过管理后台逐个生成
   const results = [];
-  
+
   for (const preset of PRESET_QUESTIONS) {
     try {
-      // 检查是否已存在
-      const exist = await db.collection(PRESET_COLLECTION).doc(preset.id).get().catch(() => null);
-      if (exist) {
-        results.push({ id: preset.id, status: 'exists' });
-        continue;
-      }
-
-      // 创建占位记录
-      await db.collection(PRESET_COLLECTION).add({
-        data: {
-          _id: preset.id,
-          question: preset.question,
-          text: '',
-          audioUrl: '',
-          createdAt: db.serverDate(),
-          status: 'pending' // pending/generating/done
-        }
-      });
-      results.push({ id: preset.id, status: 'created' });
+      const result = await generateOnePreset(preset);
+      results.push({ id: preset.id, status: 'done', text: result.data.text });
     } catch (e) {
       results.push({ id: preset.id, status: 'error', error: e.message });
     }
   }
 
   return { code: 0, message: 'ok', data: { results } };
+}
+
+// 生成单个预设（LLM + TTS + 上传云存储）
+async function generateOnePreset(preset) {
+  // 1. 调用 LLM 生成文字
+  const text = await callLLM(preset.question);
+  console.log(`[preset] ${preset.id} 文字: ${text.substring(0, 50)}`);
+
+  // 2. 调用 TTS 生成语音
+  let audioUrl = '';
+  try {
+    const audioBuffer = await callTTS(text);
+    // 3. 上传到云存储
+    const cloudPath = `preset-audio/${preset.id}.mp3`;
+    const uploadRes = await cloud.uploadFile({
+      cloudPath,
+      fileContent: audioBuffer,
+    });
+    audioUrl = uploadRes.fileID;
+    console.log(`[preset] ${preset.id} 语音已上传: ${audioUrl}`);
+  } catch (e) {
+    console.error(`[preset] ${preset.id} 语音生成失败: ${e.message}`);
+  }
+
+  // 4. 保存到数据库
+  const record = {
+    _id: preset.id,
+    question: preset.question,
+    text: text,
+    audioUrl: audioUrl,
+    createdAt: db.serverDate(),
+    status: 'done'
+  };
+
+  try {
+    await db.collection(PRESET_COLLECTION).doc(preset.id).set({ data: record });
+  } catch (e) {
+    await db.collection(PRESET_COLLECTION).add({ data: record });
+  }
+
+  return { code: 0, message: 'ok', data: record };
+}
+
+// 调用 LLM
+function callLLM(question) {
+  return new Promise((resolve, reject) => {
+    const https = require('https');
+    const body = JSON.stringify({
+      model: LLM_MODEL,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: question }
+      ],
+      temperature: 0.7,
+      max_tokens: 128
+    });
+
+    const req = https.request({
+      hostname: 'dashscope.aliyuncs.com',
+      port: 443,
+      path: '/compatible-mode/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          if (json.error) {
+            reject(new Error(json.error.message));
+            return;
+          }
+          resolve(json.choices[0].message.content);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+// 调用 TTS（WebSocket，和 askDigitalHuman 一样）
+function callTTS(text) {
+  return new Promise((resolve, reject) => {
+    const WebSocket = require('ws');
+    const wsUrl = `wss://dashscope.aliyuncs.com/api-ws/v1/inference?api_key=${DASHSCOPE_API_KEY}`;
+    const audioChunks = [];
+    const ws = new WebSocket(wsUrl);
+    let isCompleted = false;
+
+    ws.on('open', () => {
+      ws.send(JSON.stringify({
+        header: { action: 'run-task', task_id: `preset-tts-${Date.now()}` },
+        payload: {
+          model: TTS_MODEL,
+          task_group: 'audio',
+          task: 'tts',
+          function: 'SpeechSynthesizer',
+          input: { text },
+          parameters: { voice: TTS_VOICE, format: 'mp3', sample_rate: 24000 },
+        },
+      }));
+    });
+
+    ws.on('message', (data) => {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg.payload && msg.payload.output && msg.payload.output.audio) {
+          audioChunks.push(Buffer.from(msg.payload.output.audio, 'base64'));
+        }
+        if (msg.header && msg.header.event === 'task-finished') {
+          isCompleted = true;
+          ws.close();
+        }
+        if (msg.header && msg.header.event === 'error') {
+          reject(new Error((msg.payload && msg.payload.message) || 'TTS生成失败'));
+          ws.close();
+        }
+      } catch (e) {
+        if (Buffer.isBuffer(data)) {
+          audioChunks.push(data);
+        }
+      }
+    });
+
+    ws.on('error', (err) => reject(new Error('WebSocket错误: ' + err.message)));
+
+    ws.on('close', () => {
+      if (isCompleted || audioChunks.length > 0) {
+        resolve(Buffer.concat(audioChunks));
+      } else {
+        reject(new Error('TTS未收到音频数据'));
+      }
+    });
+
+    setTimeout(() => {
+      if (!isCompleted) {
+        ws.terminate();
+        if (audioChunks.length > 0) {
+          resolve(Buffer.concat(audioChunks));
+        } else {
+          reject(new Error('TTS超时'));
+        }
+      }
+    }, 30000);
+  });
 }
