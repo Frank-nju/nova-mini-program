@@ -1,0 +1,10 @@
+{
+  "name": "askDigitalHuman",
+  "version": "1.1.0",
+  "description": "数字人对话云函数 - TTS直连阿里云",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3",
+    "ws": "^8.14.2"
+  }
+}
