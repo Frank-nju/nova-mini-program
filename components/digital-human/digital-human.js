@@ -1,5 +1,6 @@
 Component({
   properties: {
+    size: { type: Number, value: 300 },
     speaking: { type: Boolean, value: false },
     audioUrl: { type: String, value: '' }
   },
@@ -14,20 +15,31 @@ Component({
     ],
     mouthIndex: -1,
     isSpeaking: false,
-    // 嘴巴位置（百分比，基于图片比例）
-    mouthTop: 40.5,  // 顶部 40.5%
-    mouthLeft: 42.5, // 左边 42.5%
-    mouthWidth: 18,  // 宽度 18%
-    mouthHeight: 8   // 高度 8%
+    // 嘴巴位置（由 attached 根据 size 自动计算）
+    mouthTop: 0,
+    mouthLeft: 0,
+    mouthWidth: 0,
+    mouthHeight: 0
   },
 
   lifetimes: {
     attached() {
-      // 不再需要计算，使用固定百分比
+      this._calcMouthPos();
     }
   },
 
   methods: {
+    // 计算嘴巴位置（最终确认版锚点）
+    _calcMouthPos() {
+      const size = this.properties.size;
+      const height = Math.round(size * 1.33);
+      this.setData({
+        mouthTop: Math.round(height * 0.405),
+        mouthLeft: Math.round(size * 0.425),
+        mouthWidth: Math.round(size * 0.18),
+        mouthHeight: Math.round(height * 0.08)
+      });
+    },
 
     _playAudio(url) {
       this._stopSpeaking();
