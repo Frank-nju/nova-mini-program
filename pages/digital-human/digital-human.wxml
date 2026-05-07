@@ -62,7 +62,7 @@
     <view wx:if="{{presetQuestions.length > 0}}" class="presets-container">
       <scroll-view scroll-x class="presets-scroll">
         <view class="presets-list">
-          <view wx:for="{{presetQuestions}}" wx:key="id" class="preset-btn" bindtap="sendPreset" data-question="{{item.question}}">
+          <view wx:for="{{presetQuestions}}" wx:key="id" class="preset-btn" bindtap="sendPreset" data-question="{{item.question}}" data-id="{{item.id}}">
             <text>{{item.question}}</text>
           </view>
         </view>

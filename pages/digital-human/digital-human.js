@@ -108,9 +108,42 @@ Page({
     }
   },
 
-  // 发送预设问题
-  sendPreset(e) {
+  // 发送预设问题（先查本地预存，没有再走API）
+  async sendPreset(e) {
     const question = e.currentTarget.dataset.question;
+    const presetId = e.currentTarget.dataset.id;
+
+    // 先尝试获取预存回答
+    try {
+      const res = await this.callFunction('presetManager', {
+        action: 'get',
+        presetId: presetId
+      });
+
+      if (res.code === 0 && res.data && res.data.text) {
+        // 有预存，直接显示
+        const userMsgId = this.data.messageId++;
+        this.addMessage('user', question, userMsgId);
+
+        const aiMsgId = this.data.messageId++;
+        this.addMessage('ai', res.data.text, aiMsgId, {
+          audioUrl: res.data.audioUrl || null,
+          audioPlaying: false
+        });
+
+        // 如果有预存语音，播放
+        if (res.data.audioUrl) {
+          this.playAudioUrl(res.data.audioUrl, aiMsgId);
+        }
+
+        this.setData({ inputValue: '' });
+        return;
+      }
+    } catch (e) {
+      console.log('预存未找到，走API:', e.message);
+    }
+
+    // 没有预存，走正常流程
     this.setData({ inputValue: question });
     this.sendMessage();
   },
