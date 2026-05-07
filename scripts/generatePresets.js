@@ -40,10 +40,9 @@ async function main() {
       const text = await generateText(preset.question);
       console.log(`  文字: ${text.substring(0, 50)}...`);
 
-      // 2. 生成语音 (使用 sambert 流式接口)
-      const audioBuffer = await generateTTS(text);
-      const audioBase64 = audioBuffer.toString('base64');
-      console.log(`  语音: ${audioBase64.length} bytes`);
+      // 2. 生成语音 (使用 dashscope 语音合成 API)
+      const audioBase64 = await generateTTS(text);
+      console.log(`  语音: ${audioBase64.length} chars (base64)`);
       
       // 3. 保存
       const data = {
@@ -62,6 +61,10 @@ async function main() {
       console.log(`  ✓ 已保存到 preset-data/${preset.id}.json`);
     } catch (e) {
       console.error(`  ✗ 失败: ${e.message}`);
+      // 文字成功但语音失败时，只保存文字
+      if (e.message.includes('语音')) {
+        console.log('  ⚠ 仅保存文字，语音需后续补充');
+      }
     }
   }
 
@@ -96,6 +99,10 @@ function generateText(question) {
       res.on('end', () => {
         try {
           const json = JSON.parse(data);
+          if (json.error) {
+            reject(new Error(json.error.message));
+            return;
+          }
           resolve(json.choices[0].message.content);
         } catch (e) {
           reject(e);
@@ -109,48 +116,52 @@ function generateText(question) {
   });
 }
 
-// 使用 sambert 流式 TTS (返回二进制音频数据)
+// 使用 dashscope 语音合成 API
 function generateTTS(text) {
   return new Promise((resolve, reject) => {
     const body = JSON.stringify({
-      model: 'sambert-zhichu-v1',
+      model: 'cosyvoice-v1',
       input: { text },
-      voice: 'zhichu',
-      sample_rate: 16000,
-      format: 'mp3'
+      voice: 'longxiaochun',
+      response_format: 'mp3'
     });
 
     const req = https.request({
       hostname: 'dashscope.aliyuncs.com',
       port: 443,
-      path: '/api/v1/services/aigc/tts/stream',
+      path: '/compatible-mode/v1/audio/speech',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
-        'X-DashScope-Streaming': 'true',
         'Content-Length': Buffer.byteLength(body)
       }
     }, (res) => {
-      const chunks = [];
-      res.on('data', chunk => chunks.push(chunk));
+      let data = '';
+      res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        // 检查是否是 JSON 错误
-        if (buffer.toString().startsWith('{')) {
-          try {
-            const json = JSON.parse(buffer.toString());
-            reject(new Error(json.message || 'TTS API error'));
-          } catch {
-            resolve(buffer);
+        try {
+          // 先尝试解析 JSON
+          const json = JSON.parse(data);
+          
+          // 检查是否有 audio 字段 (base64)
+          if (json.audio) {
+            resolve(json.audio);
+          } else if (json.output && json.output.audio) {
+            resolve(json.output.audio);
+          } else if (json.error) {
+            reject(new Error(`语音: ${json.error.message}`));
+          } else {
+            reject(new Error('语音: 未找到音频数据'));
           }
-        } else {
-          resolve(buffer);
+        } catch (e) {
+          // 不是 JSON，可能是错误 HTML 页面
+          reject(new Error('语音: API 返回格式错误'));
         }
       });
     });
 
-    req.on('error', reject);
+    req.on('error', (e) => reject(new Error(`语音: ${e.message}`)));
     req.write(body);
     req.end();
   });
