@@ -1,3 +1,5 @@
 {
-  "usingComponents": {}
+  "usingComponents": {
+    "digital-human": "/components/digital-human/digital-human"
+  }
 }
