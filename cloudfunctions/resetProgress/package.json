@@ -1,0 +1,14 @@
+{
+  "name": "resetProgress",
+  "version": "1.0.0",
+  "description": "重置用户进度（调试用）",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}
