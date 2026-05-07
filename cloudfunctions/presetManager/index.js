@@ -75,17 +75,25 @@ async function listPresets() {
   }
 }
 
-// 生成所有预设
+// 生成所有预设（并行执行，避免超时）
 async function generateAllPresets() {
+  // 使用 Promise.all 并行处理，但限制并发数为 3
+  const concurrency = 3;
   const results = [];
 
-  for (const preset of PRESET_QUESTIONS) {
-    try {
-      const result = await generateOnePreset(preset);
-      results.push({ id: preset.id, status: 'done', text: result.data.text });
-    } catch (e) {
-      results.push({ id: preset.id, status: 'error', error: e.message });
-    }
+  for (let i = 0; i < PRESET_QUESTIONS.length; i += concurrency) {
+    const batch = PRESET_QUESTIONS.slice(i, i + concurrency);
+    const batchResults = await Promise.all(
+      batch.map(async (preset) => {
+        try {
+          const result = await generateOnePreset(preset);
+          return { id: preset.id, status: 'done', text: result.data.text };
+        } catch (e) {
+          return { id: preset.id, status: 'error', error: e.message };
+        }
+      })
+    );
+    results.push(...batchResults);
   }
 
   return { code: 0, message: 'ok', data: { results } };
@@ -124,9 +132,19 @@ async function generateOnePreset(preset) {
   };
 
   try {
-    await db.collection(PRESET_COLLECTION).doc(preset.id).set({ data: record });
+    // 先尝试更新，如果不存在则添加
+    await db.collection(PRESET_COLLECTION).doc(preset.id).update({
+      data: record
+    });
   } catch (e) {
-    await db.collection(PRESET_COLLECTION).add({ data: record });
+    // 记录不存在，添加新记录
+    try {
+      await db.collection(PRESET_COLLECTION).add({
+        data: record
+      });
+    } catch (e2) {
+      console.error(`[preset] ${preset.id} 数据库保存失败:`, e2.message);
+    }
   }
 
   return { code: 0, message: 'ok', data: record };
