@@ -7,6 +7,7 @@ Page({
     presetQuestions: [],
     messageId: 0,
     innerAudioContext: null,
+    currentAiMsgId: null, // 当前AI消息ID，用于组件回调
   },
 
   onLoad() {
@@ -55,14 +56,20 @@ Page({
 
     // 添加 AI 加载中的消息
     const aiMsgId = this.data.messageId++;
+    this.setData({ currentAiMsgId: aiMsgId }); // 保存给组件回调用
     this.addMessage('ai', '', aiMsgId, { loading: true });
 
-    // 同时触发数字人可视化组件
+    // 触发数字人组件（它会处理 LLM + TTS + 播放）
     const dhComponent = this.selectComponent('#digitalHuman');
     if (dhComponent) {
+      // 组件会调用 LLM 和 TTS，这里只传 question
       dhComponent.ask(question);
+      // 组件的 message 事件会返回回答
+      // 页面监听 onDigitalHumanMessage 来更新显示
+      return; // 不再调用页面的 LLM
     }
 
+    // 如果没有组件，才走页面的流程
     try {
       // 调用云函数（先返回文字，不等待TTS）
       const res = await this.callFunction('askDigitalHuman', {
@@ -195,8 +202,15 @@ Page({
 
   // 数字人组件事件处理
   onDigitalHumanMessage(e) {
-    // 组件已处理对话和音频，这里可以更新UI状态
-    console.log('[digital-human] 收到回答:', e.detail.answer);
+    const msgId = this.data.currentAiMsgId;
+    if (msgId !== null) {
+      this.updateMessage(msgId, {
+        loading: false,
+        text: e.detail.answer || '',
+        status: 'done'
+      });
+      this.setData({ sending: false, currentAiMsgId: null });
+    }
   },
 
   onSpeakEnd() {
