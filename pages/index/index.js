@@ -1,5 +1,3 @@
-const { webviewUrl } = require('../../utils/config.js');
-//index.js
 Page({
   data: {
     currentPage: 0,

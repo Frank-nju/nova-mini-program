@@ -1,7 +1,5 @@
-/**
- * 云函数统一响应封装
- * 参考接口文档 v0.1.1 §3.2
- */
+// 云函数统一响应工具
+// 参考接口文档 v0.1.1 §3.2
 
 function success(data = null, message = 'ok') {
   return { code: 0, message, data };

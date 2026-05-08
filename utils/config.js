@@ -8,12 +8,6 @@
  */
 const WEBVIEW_URL = 'https://cloud1-0g0wg0plf9fb9ed2-1421412578.tcloudbaseapp.com/index.html';
 
-// 数字人网关地址
-// 注意：小程序前端直接调用云函数，不直接访问网关
-// 云函数中配置 GATEWAY_URL 环境变量指向 FastAPI 后端
-// 本地开发时云函数默认使用 http://localhost:8000
-// 生产环境请在微信开发者工具 → 云开发 → 云函数 → askDigitalHuman → 版本与配置 → 环境变量中设置 GATEWAY_URL
-
 module.exports = {
   webviewUrl: WEBVIEW_URL,
 };

@@ -137,6 +137,19 @@ function getWorkDetail(params) {
   });
 }
 
+function getCloudNodes() {
+  return call('getCloudNodes', { includeConnections: true }, 8000).then(res => {
+    const valid = validateResponse('getCloudNodes', res, ['nodes', 'connections']);
+    if (!valid) {
+      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: { nodes: [], connections: [] } };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] getCloudNodes 失败:', err.message);
+    return { code: 1, message: err.message, data: { nodes: [], connections: [] } };
+  });
+}
+
 function getCloudMap() {
   return call('getCloudMap', {}, 8000).then(res => {
     const valid = validateResponse('getCloudMap', res, ['nodes', 'connections']);
@@ -170,7 +183,7 @@ function chatWithDigitalHuman(params) {
   if (!params || !params.question) {
     return Promise.resolve({ code: 1001, message: '参数 question 缺失', data: null });
   }
-  return call('askDigitalHuman', { action: 'chat', question: params.question }, 60000).then(res => {
+  return call('digitalHuman', params, 30000).then(res => {
     if (!res || res.code !== 0) {
       // 即使业务报错，只要有 text 就显示
       if (res && res.data && res.data.text) {
@@ -204,6 +217,18 @@ function getPresetQuestions() {
   ];
 }
 
+function resetProgress() {
+  return call('resetProgress', {}, 5000).then(res => {
+    if (!res || res.code !== 0) {
+      return res || { code: 9999, message: '响应异常', data: null };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] resetProgress 失败:', err.message);
+    return { code: 1, message: err.message, data: null };
+  });
+}
+
 module.exports = {
   call,
   isCloudAvailable,
@@ -211,10 +236,12 @@ module.exports = {
   getUser,
   updateProgress,
   grantBadge,
+  getCloudNodes,
   getWorks,
   getWorkDetail,
   getCloudMap,
   getDigitalHumanScript,
   chatWithDigitalHuman,
   getPresetQuestions,
+  resetProgress,
 };
