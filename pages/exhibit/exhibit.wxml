@@ -39,12 +39,12 @@
     <!-- 第二部分：序章 · 西学求索 -->
     <view class="section section-2" id="section-1">
       <!-- 背景图片 -->
-      <image src="/pages/image/序章.jpg" class="section-bg-image {{activeStates[1] ? 'active' : ''}}"></image>
-      
-      <!-- 卷轴叠加层 - 位置在图片下方中央，卷轴在左手 -->
+      <image src="/pages/image/序章.jpg" class="section-bg-image {{activeStates[1] ? 'active' : ''}}" mode="aspectFill"></image>
+
+      <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-1" bindtap="enterStory" data-section="1">
         <view class="scroll-glow-aura"></view>
-        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
       
@@ -57,12 +57,12 @@
     <!-- 第三部分：生平履历 · 孤行远方 -->
     <view class="section section-3" id="section-2">
       <!-- 背景图片 -->
-      <image src="/pages/image/生平履历.jpg" class="section-bg-image {{activeStates[2] ? 'active' : ''}}"></image>
-      
-      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <image src="/pages/image/生平履历.jpg" class="section-bg-image {{activeStates[2] ? 'active' : ''}}" mode="aspectFill"></image>
+
+      <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-2" bindtap="enterStory" data-section="2">
         <view class="scroll-glow-aura"></view>
-        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
       
@@ -75,12 +75,12 @@
     <!-- 第四部分：治学风骨 · 严谨之光 -->
     <view class="section section-4" id="section-3">
       <!-- 背景图片 -->
-      <image src="/pages/image/治学风骨.jpg" class="section-bg-image {{activeStates[3] ? 'active' : ''}}"></image>
-      
-      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <image src="/pages/image/治学风骨.jpg" class="section-bg-image {{activeStates[3] ? 'active' : ''}}" mode="aspectFill"></image>
+
+      <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-3" bindtap="enterStory" data-section="3">
         <view class="scroll-glow-aura"></view>
-        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
       
@@ -93,12 +93,12 @@
     <!-- 第五部分：科研丰碑 · 宇称不守恒 -->
     <view class="section section-5" id="section-4">
       <!-- 背景图片 -->
-      <image src="/pages/image/科研丰碑.jpg" class="section-bg-image {{activeStates[4] ? 'active' : ''}}"></image>
-      
-      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <image src="/pages/image/科研丰碑.jpg" class="section-bg-image {{activeStates[4] ? 'active' : ''}}" mode="aspectFill"></image>
+
+      <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-4" bindtap="enterStory" data-section="4">
         <view class="scroll-glow-aura"></view>
-        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
       
@@ -111,12 +111,12 @@
     <!-- 第六部分：尾声 · 荣耀归来 -->
     <view class="section section-6" id="section-5">
       <!-- 背景图片 -->
-      <image src="/pages/image/尾声.jpg" class="section-bg-image {{activeStates[5] ? 'active' : ''}}"></image>
+      <image src="/pages/image/尾声.jpg" class="section-bg-image {{activeStates[5] ? 'active' : ''}}" mode="aspectFill"></image>
 
-      <!-- 卷轴叠加层 - 位置在图片底部中央 -->
+      <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-5" bindtap="enterStory" data-section="5">
         <view class="scroll-glow-aura"></view>
-        <text class="scroll-label">点击卷轴</text>
+        <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
 
@@ -323,71 +323,101 @@
   <!-- 素材展示面板 -->
   <view wx:if="{{showMaterialsPanel}}" class="panel materials-panel">
     <view class="panel-header">
-      <text class="panel-title">素材资源</text>
+      <text class="panel-title">阅读成果</text>
       <view class="close-btn" bindtap="toggleMaterials">✕</view>
     </view>
 
     <!-- 分类标签栏 -->
-    <view class="material-tabs">
-      <view class="material-tab {{materialTab === 'all' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="all">
+    <view class="works-tabs">
+      <view class="works-tab {{worksTab === 'all' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="all">
         <text>全部</text>
       </view>
-      <view class="material-tab {{materialTab === 'image' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="image">
+      <view class="works-tab {{worksTab === '图片' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="图片">
         <text>图片</text>
       </view>
-      <view class="material-tab {{materialTab === 'video' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="video">
+      <view class="works-tab {{worksTab === '视频' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="视频">
         <text>视频</text>
       </view>
-      <view class="material-tab {{materialTab === 'doc' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="doc">
+      <view class="works-tab {{worksTab === '文档' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="文档">
         <text>文档</text>
-      </view>
-      <view class="material-tab {{materialTab === 'other' ? 'active' : ''}}" bindtap="switchMaterialTab" data-tab="other">
-        <text>其他</text>
       </view>
     </view>
 
-    <!-- 素材列表 -->
-    <scroll-view class="material-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreMaterials">
-      <view wx:if="{{materialsLoading}}" class="material-loading">
+    <!-- 图片网格视图 -->
+    <scroll-view class="works-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreWorks" wx:if="{{worksTab === 'all' || worksTab === '图片'}}">
+      <view wx:if="{{worksLoading}}" class="material-loading">
         <text>加载中...</text>
       </view>
 
-      <view wx:if="{{materialsList.length === 0 && !materialsLoading}}" class="material-empty">
-        <text class="material-empty-icon">📂</text>
-        <text class="material-empty-text">暂无素材资源</text>
+      <view wx:if="{{worksList.length === 0 && !worksLoading}}" class="material-empty">
+        <text class="material-empty-icon">📚</text>
+        <text class="material-empty-text">暂无阅读成果</text>
       </view>
 
-      <view class="material-grid">
-        <view wx:for="{{materialsList}}" wx:key="_id" class="material-card" bindtap="previewMaterial" data-item="{{item}}">
-          <!-- 图片 -->
-          <view wx:if="{{item.category === 'image'}}" class="material-thumb material-thumb-image">
-            <image wx:if="{{item.tempFileURL || item.fileID}}" class="material-thumb-img" src="{{item.tempFileURL || item.fileID}}" mode="aspectFill" />
-            <view wx:else class="material-thumb material-thumb-doc">
-              <text class="material-doc-icon">IMG</text>
+      <view class="works-grid" wx:if="{{worksList.length > 0}}">
+        <view wx:for="{{worksList}}" wx:key="workId" class="works-card" bindtap="previewWork" data-item="{{item}}">
+          <!-- 图片卡片 - 大图展示 -->
+          <view wx:if="{{item.category === '图片'}}" class="works-card-image-wrap">
+            <image wx:if="{{item.fileUrl}}" class="works-card-img" src="{{item.fileUrl}}" mode="aspectFill" />
+            <view wx:else class="works-card-img-placeholder">
+              <text class="works-card-placeholder-icon">🖼</text>
             </view>
           </view>
-          <!-- 视频 -->
-          <view wx:elif="{{item.category === 'video'}}" class="material-thumb material-thumb-video">
-            <text class="material-video-icon">▶</text>
+          <!-- 视频卡片 -->
+          <view wx:elif="{{item.category === '视频'}}" class="works-card-video-wrap">
+            <view class="works-card-video-placeholder">
+              <text class="works-card-video-icon">▶</text>
+            </view>
           </view>
-          <!-- 文档 -->
-          <view wx:elif="{{item.category === 'doc'}}" class="material-thumb material-thumb-doc">
-            <text class="material-doc-icon">{{item.fileExt || 'DOC'}}</text>
+          <!-- 文档卡片 -->
+          <view wx:else class="works-card-doc-wrap">
+            <view class="works-card-doc-icon">📄</view>
           </view>
-          <!-- 其他 -->
-          <view wx:else class="material-thumb material-thumb-other">
-            <text class="material-other-icon">📄</text>
-          </view>
-
-          <view class="material-info">
-            <text class="material-name">{{item.fileName}}</text>
-            <text class="material-meta">{{item.category}} · {{item.createdAtStr || ''}}</text>
+          <view class="works-card-info">
+            <text class="works-card-title">{{item.title}}</text>
+            <text class="works-card-cat">{{item.category}}</text>
           </view>
         </view>
       </view>
+    </scroll-view>
 
-      <view wx:if="{{materialsHasMore && materialsList.length > 0}}" class="material-load-more">
-        <text>上滑加载更多</text>
+    <!-- 视频列表视图 -->
+    <scroll-view class="works-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreWorks" wx:elif="{{worksTab === '视频'}}">
+      <view wx:if="{{worksLoading}}" class="material-loading">
+        <text>加载中...</text>
+      </view>
+      <view wx:if="{{worksList.length === 0 && !worksLoading}}" class="material-empty">
+        <text class="material-empty-icon">📺</text>
+        <text class="material-empty-text">暂无视频成果</text>
+      </view>
+      <view class="works-list" wx:if="{{worksList.length > 0}}">
+        <view wx:for="{{worksList}}" wx:key="workId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
+          <view class="works-list-video">
+            <view class="works-list-play-btn">▶</view>
+          </view>
+          <view class="works-list-info">
+            <text class="works-list-title">{{item.title}}</text>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 文档列表视图 -->
+    <scroll-view class="works-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreWorks" wx:elif="{{worksTab === '文档'}}">
+      <view wx:if="{{worksLoading}}" class="material-loading">
+        <text>加载中...</text>
+      </view>
+      <view wx:if="{{worksList.length === 0 && !worksLoading}}" class="material-empty">
+        <text class="material-empty-icon">📋</text>
+        <text class="material-empty-text">暂无文档成果</text>
+      </view>
+      <view class="works-list" wx:if="{{worksList.length > 0}}">
+        <view wx:for="{{worksList}}" wx:key="workId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
+          <view class="works-list-doc-icon">📄</view>
+          <view class="works-list-info">
+            <text class="works-list-title">{{item.title}}</text>
+          </view>
+        </view>
       </view>
     </scroll-view>
   </view>

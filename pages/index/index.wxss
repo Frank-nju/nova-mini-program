@@ -75,7 +75,7 @@
 /* === 跳过按钮 === */
 .skip-btn {
   position: absolute;
-  top: 100rpx;
+  top: 180rpx;
   right: 40rpx;
   z-index: 100;
   padding: 14rpx 36rpx;
@@ -396,6 +396,7 @@
 
 .page2-container {
   justify-content: space-evenly;
+  padding-top: 260rpx;
 }
 
 .page2-title {
@@ -467,6 +468,7 @@
 
 .page3-container {
   justify-content: space-evenly;
+  padding-top: 260rpx;
 }
 
 .page3-title {

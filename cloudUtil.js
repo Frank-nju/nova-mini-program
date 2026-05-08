@@ -109,7 +109,7 @@ function getWorks(params) {
     page: opts.page || 1,
     pageSize: opts.pageSize || 10,
     category: opts.category || '',
-  }).then(res => {
+  }, 10000).then(res => {
     const valid = validateResponse('getWorks', res, ['list', 'total', 'page', 'pageSize', 'hasMore']);
     if (!valid) {
       return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: { list: [], total: 0, page: 1, pageSize: 10, hasMore: false } };
@@ -126,7 +126,7 @@ function getWorkDetail(params) {
     return Promise.resolve({ code: 1001, message: '参数 workId 缺失', data: null });
   }
   return call('getWorkDetail', { workId: params.workId }).then(res => {
-    const valid = validateResponse('getWorkDetail', res, ['workId', 'title', 'content']);
+    const valid = validateResponse('getWorkDetail', res, ['workId', 'title', 'fileUrl']);
     if (!valid) {
       return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: null };
     }

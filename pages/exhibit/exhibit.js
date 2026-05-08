@@ -10,10 +10,7 @@ Page({
     showAIPanel: false,
     showMaterialsPanel: false,
     materialsList: [],
-    materialsLoading: false,
-    materialsHasMore: true,
-    materialsPage: 1,
-    materialTab: 'all',
+    materialTab: 'works',
     presetQuestions: cloudUtil.getPresetQuestions(),
     aiMessages: [],
     aiInputValue: '',
@@ -122,6 +119,13 @@ Page({
 
     particleExplosions: [],
     animationFrameId: null,
+
+    // 阅读成果
+    worksList: [],
+    worksLoading: false,
+    worksHasMore: true,
+    worksPage: 1,
+    worksTab: 'all',
   },
 
   onLoad() {
@@ -632,141 +636,8 @@ Page({
       showBadgePanel: false,
       showQuizPanel: false,
     });
-    if (willShow && this.data.materialsList.length === 0) {
-      this.loadMaterials();
-    }
-  },
-
-  loadMaterials(isRefresh) {
-    if (this.data.materialsLoading || (!this.data.materialsHasMore && !isRefresh)) return;
-
-    const page = isRefresh ? 1 : this.data.materialsPage;
-    const category = this.data.materialTab === 'all' ? '' : this.data.materialTab;
-
-    this.setData({ materialsLoading: true });
-
-    cloudUtil.call('getMaterialList', { category, page, pageSize: 20 }).then(res => {
-      if (!res || res.code !== 0) {
-        this.setData({ materialsLoading: false });
-        return;
-      }
-
-      const list = (res.data.list || []).map(item => {
-        const ext = (item.fileName || '').split('.').pop().toUpperCase();
-        const date = item.createdAt ? new Date(item.createdAt) : null;
-        return {
-          ...item,
-          fileExt: ext,
-          createdAtStr: date ? `${date.getMonth() + 1}/${date.getDate()}` : '',
-        };
-      });
-
-      // 为每个文件获取临时链接
-      const needUrlItems = list.filter(item => item.category === 'image' && !item.tempFileURL);
-      this.setData({
-        materialsList: isRefresh ? list : [...this.data.materialsList, ...list],
-        materialsPage: page + 1,
-        materialsHasMore: list.length >= 20,
-        materialsLoading: false,
-      });
-
-      // 异步获取图片临时链接
-      if (needUrlItems.length > 0) {
-        this.fetchTempUrls(needUrlItems);
-      }
-    }).catch(() => {
-      this.setData({ materialsLoading: false });
-    });
-  },
-
-  fetchTempUrls(items) {
-    // 批量获取临时链接，每次5个
-    const batchSize = 5;
-    for (let i = 0; i < items.length; i += batchSize) {
-      const batch = items.slice(i, i + batchSize);
-      const promises = batch.map(item =>
-        cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
-          .then(res => ({ index: this.data.materialsList.findIndex(m => m._id === item._id), url: res.data?.tempFileURL }))
-          .catch(() => ({ index: -1, url: null }))
-      );
-      Promise.all(promises).then(results => {
-        const newList = [...this.data.materialsList];
-        for (const r of results) {
-          if (r.index >= 0 && r.url) {
-            newList[r.index] = { ...newList[r.index], tempFileURL: r.url };
-          }
-        }
-        this.setData({ materialsList: newList });
-      });
-    }
-  },
-
-  switchMaterialTab(e) {
-    const tab = e.currentTarget.dataset.tab;
-    this.setData({ materialTab: tab, materialsList: [], materialsPage: 1, materialsHasMore: true });
-    this.loadMaterials(true);
-  },
-
-  loadMoreMaterials() {
-    if (!this.data.materialsLoading && this.data.materialsHasMore) {
-      this.loadMaterials();
-    }
-  },
-
-  previewMaterial(e) {
-    const item = e.currentTarget.dataset.item;
-    if (!item || !item.fileID) return;
-
-    if (item.category === 'image') {
-      // 如果有临时链接则预览，没有则先获取
-      if (item.tempFileURL) {
-        wx.previewImage({ urls: [item.tempFileURL] });
-      } else {
-        wx.showLoading({ title: '加载中' });
-        cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
-          .then(res => {
-            wx.hideLoading();
-            if (res.data?.tempFileURL) {
-              wx.previewImage({ urls: [res.data.tempFileURL] });
-            }
-          })
-          .catch(() => {
-            wx.hideLoading();
-            wx.showToast({ title: '图片加载失败', icon: 'error' });
-          });
-      }
-    } else if (item.category === 'video') {
-      cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
-        .then(res => {
-          if (res.data?.tempFileURL) {
-            wx.navigateToMiniProgram({
-              appId: '',
-              path: `pages/player/index?url=${encodeURIComponent(res.data.tempFileURL)}`,
-            });
-          }
-        });
-    } else if (item.category === 'doc') {
-      wx.showLoading({ title: '加载中' });
-      cloudUtil.call('getFilePreviewUrl', { fileID: item.fileID })
-        .then(res => {
-          wx.hideLoading();
-          if (res.data?.tempFileURL) {
-            wx.downloadFile({
-              url: res.data.tempFileURL,
-              success: (dlRes) => {
-                wx.openDocument({
-                  filePath: dlRes.tempFilePath,
-                  showMenu: true,
-                  fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
-                });
-              },
-            });
-          }
-        })
-        .catch(() => {
-          wx.hideLoading();
-          wx.showToast({ title: '文件加载失败', icon: 'error' });
-        });
+    if (willShow && this.data.worksList.length === 0) {
+      this.loadWorks();
     }
   },
 
@@ -923,6 +794,173 @@ Page({
       showCancel: false,
       confirmText: '知道了',
     });
+  },
+
+  // ===== 阅读成果 =====
+
+  loadWorks(isRefresh) {
+    if (this.data.worksLoading || (!this.data.worksHasMore && !isRefresh)) return;
+
+    const page = isRefresh ? 1 : this.data.worksPage;
+    const category = this.data.worksTab === 'all' ? '' : this.data.worksTab;
+
+    this.setData({ worksLoading: true });
+
+    cloudUtil.getWorks({ page, pageSize: 20, category }).then(res => {
+      console.log('[loadWorks] 响应:', JSON.stringify(res));
+      if (!res || res.code !== 0) {
+        console.error('[loadWorks] 请求失败:', res);
+        this.setData({ worksLoading: false });
+        return;
+      }
+
+      let list = res.data.list || [];
+      console.log('[loadWorks] 数据条数:', list.length);
+
+      // 全部 tab 下图片排前面，视频/文档排后面
+      if (this.data.worksTab === 'all') {
+        list.sort((a, b) => {
+          const order = { '图片': 0, '视频': 1, '文档': 2 };
+          return (order[a.category] || 9) - (order[b.category] || 9);
+        });
+      }
+
+      // 预加载有 fileId 的项目
+      const needUrlItems = list.filter(item => item.fileId && !item.fileUrl);
+      if (needUrlItems.length > 0) {
+        this.preloadWorkUrls(needUrlItems, list);
+      }
+
+      this.setData({
+        worksList: isRefresh ? list : [...this.data.worksList, ...list],
+        worksPage: page + 1,
+        worksHasMore: res.data.hasMore,
+        worksLoading: false,
+      });
+    }).catch(err => {
+      console.error('[loadWorks] 异常:', err);
+      this.setData({ worksLoading: false });
+    });
+  },
+
+  // 预加载文件临时链接（批量）
+  preloadWorkUrls(needUrlItems, fullList) {
+    const batchSize = 5;
+    for (let i = 0; i < needUrlItems.length; i += batchSize) {
+      const batch = needUrlItems.slice(i, i + batchSize);
+      Promise.all(batch.map(item =>
+        cloudUtil.getWorkDetail({ workId: item.workId })
+          .then(res => {
+            if (res.code === 0 && res.data.fileUrl) {
+              return { workId: item.workId, fileUrl: res.data.fileUrl };
+            }
+            return null;
+          })
+          .catch(() => null)
+      )).then(results => {
+        const updated = this.data.worksList.map(w => {
+          const found = results.find(r => r && r.workId === w.workId);
+          if (found) return { ...w, fileUrl: found.fileUrl };
+          return w;
+        });
+        this.setData({ worksList: updated });
+      });
+    }
+  },
+
+  loadMoreWorks() {
+    if (!this.data.worksLoading && this.data.worksHasMore) {
+      this.loadWorks();
+    }
+  },
+
+  switchWorksTab(e) {
+    const tab = e.currentTarget.dataset.tab;
+    this.setData({ worksTab: tab, worksList: [], worksPage: 1, worksHasMore: true });
+    this.loadWorks(true);
+  },
+
+  previewWork(e) {
+    const item = e.currentTarget.dataset.item;
+    if (!item) return;
+
+    if (item.category === '图片') {
+      if (item.fileUrl) {
+        wx.previewImage({ urls: [item.fileUrl] });
+      } else {
+        wx.showLoading({ title: '获取链接中' });
+        cloudUtil.getWorkDetail({ workId: item.workId }).then(res => {
+          wx.hideLoading();
+          if (res.code === 0 && res.data.fileUrl) {
+            wx.previewImage({ urls: [res.data.fileUrl] });
+          } else {
+            wx.showToast({ title: '暂无图片文件', icon: 'none' });
+          }
+        }).catch(() => {
+          wx.hideLoading();
+          wx.showToast({ title: '获取失败', icon: 'error' });
+        });
+      }
+    } else if (item.category === '视频') {
+      if (item.fileUrl) {
+        wx.previewMedia({ sources: [{ url: item.fileUrl, type: 'video' }] });
+      } else {
+        wx.showLoading({ title: '获取链接中' });
+        cloudUtil.getWorkDetail({ workId: item.workId }).then(res => {
+          wx.hideLoading();
+          if (res.code === 0 && res.data.fileUrl) {
+            wx.previewMedia({ sources: [{ url: res.data.fileUrl, type: 'video' }] });
+          } else {
+            wx.showToast({ title: '暂无视频文件', icon: 'none' });
+          }
+        }).catch(() => {
+          wx.hideLoading();
+          wx.showToast({ title: '获取失败', icon: 'error' });
+        });
+      }
+    } else {
+      // 文档
+      if (item.fileUrl) {
+        wx.showLoading({ title: '加载中' });
+        wx.downloadFile({
+          url: item.fileUrl,
+          success: (dlRes) => {
+            wx.hideLoading();
+            wx.openDocument({
+              filePath: dlRes.tempFilePath,
+              showMenu: true,
+              fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
+            });
+          },
+          fail: () => {
+            wx.hideLoading();
+            wx.showToast({ title: '文件加载失败', icon: 'error' });
+          },
+        });
+      } else {
+        wx.showLoading({ title: '获取链接中' });
+        cloudUtil.getWorkDetail({ workId: item.workId }).then(res => {
+          wx.hideLoading();
+          if (res.code === 0 && res.data.fileUrl) {
+            wx.downloadFile({
+              url: res.data.fileUrl,
+              success: (dlRes) => {
+                wx.openDocument({
+                  filePath: dlRes.tempFilePath,
+                  showMenu: true,
+                  fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
+                });
+              },
+            });
+          } else {
+            wx.showToast({ title: '暂无文件内容', icon: 'none' });
+          }
+        }).catch(() => {
+          wx.hideLoading();
+          wx.showToast({ title: '获取失败', icon: 'error' });
+        });
+      }
+    }
   },
 
   onCanvasTap(e) {

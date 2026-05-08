@@ -1,7 +1,8 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/exhibit/exhibit"
+    "pages/exhibit/exhibit",
+    "pages/digital-human/digital-human"
   ],
   "subpackages": [
     {

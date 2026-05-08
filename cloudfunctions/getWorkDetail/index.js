@@ -1,5 +1,5 @@
 const cloud = require('wx-server-sdk');
-const { success, error } = require('../utils/response');
+const { success, error } = require('./response');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 
