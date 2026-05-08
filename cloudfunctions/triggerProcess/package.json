@@ -1,0 +1,9 @@
+{
+  "name": "triggerProcess",
+  "version": "1.0.0",
+  "description": "接收南大云盘 ZIP 链接，下载并暂存至云存储，调用 unzipAndUpload",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "latest"
+  }
+}

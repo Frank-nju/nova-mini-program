@@ -134,27 +134,3 @@
   box-shadow: 0 6px 20rpx rgba(68, 170, 255, 0.6);
 }
 
-/* 调试重置按钮 */
-.debug-reset-btn {
-  position: fixed;
-  bottom: 60rpx;
-  left: 30rpx;
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ff6b6b 0%, #cc3333 100%);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-  box-shadow: 0 4px 15rpx rgba(255, 100, 100, 0.4);
-  z-index: 1000;
-  cursor: pointer;
-}
-
-.debug-reset-btn:active {
-  transform: scale(1.1);
-  box-shadow: 0 6px 20rpx rgba(255, 100, 100, 0.6);
-}
-

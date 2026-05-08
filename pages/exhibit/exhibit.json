@@ -1,6 +1,4 @@
 {
   "navigationBarTitleText": "追光健雄",
-  "usingComponents": {
-    "digital-human": "/components/digital-human/digital-human"
-  }
+  "usingComponents": {}
 }

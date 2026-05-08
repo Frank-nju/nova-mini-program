@@ -17,16 +17,6 @@ Page({
       image: '',
     },
 
-    // 数字人面板状态
-    showDhPanel: false,
-    dhPresets: [],
-    dhWelcome: '',
-    dhMessages: [],
-    dhInputValue: '',
-    dhChatting: false,
-    dhScrollId: '',
-    dhMsgCounter: 0,
-
     // 各章节额外数据
     chapterSubtitles: [
       '远方追光',
@@ -501,24 +491,6 @@ Page({
     return titles[section - 1] || '故事';
   },
 
-  // 直接写入 exhibitProgress 缓存，不依赖上一页是否有 unlockEventCloudByStory
-  _saveProgressToCache(nodeId) {
-    try {
-      const existing = wx.getStorageSync('exhibitProgress') || {};
-      const timelineNodes = existing.timelineNodes || [];
-      if (!timelineNodes.includes(nodeId)) {
-        timelineNodes.push(nodeId);
-        wx.setStorageSync('exhibitProgress', {
-          timelineNodes: timelineNodes,
-          badges: existing.badges || [],
-        });
-        console.log('[story] 直接写缓存, nodeId:', nodeId, '当前已解锁:', timelineNodes);
-      }
-    } catch (e) {
-      console.error('[story] 写缓存失败:', e);
-    }
-  },
-
   goBack() {
     const cloudId = (this.data.section - 1) * 6 + this.data.currentStoryIndex + 1;
     const nodeId = 'n' + cloudId;
@@ -531,9 +503,6 @@ Page({
       console.error('上报进度失败:', err);
     });
 
-    // 直接写缓存（不依赖上一页方法是否存在）
-    this._saveProgressToCache(nodeId);
-
     const pages = getCurrentPages();
     if (pages.length > 1) {
       const prePage = pages[pages.length - 2];
@@ -545,23 +514,8 @@ Page({
     wx.navigateBack({ delta: 1 });
   },
 
-  // 保存当前故事进度（prev/next 切换前调用）
-  _saveCurrentStory() {
-    const cloudId = (this.data.section - 1) * 6 + this.data.currentStoryIndex + 1;
-    const nodeId = 'n' + cloudId;
-    this._saveProgressToCache(nodeId);
-    cloudUtil.updateProgress({
-      type: 'timeline',
-      nodeId: nodeId,
-      action: 'unlock',
-    }).catch(err => {
-      console.error('上报进度失败:', err);
-    });
-  },
-
   prevStory() {
     if (this.data.currentStoryIndex > 0) {
-      this._saveCurrentStory();
       const newIndex = this.data.currentStoryIndex - 1;
       const sectionIndex = this.data.section - 1;
       const stories = this.data.storiesData[sectionIndex].stories;
@@ -605,7 +559,6 @@ Page({
 
   nextStory() {
     if (this.data.currentStoryIndex < this.data.totalStories - 1) {
-      this._saveCurrentStory();
       const newIndex = this.data.currentStoryIndex + 1;
       const sectionIndex = this.data.section - 1;
       const stories = this.data.storiesData[sectionIndex].stories;
@@ -1183,9 +1136,6 @@ Page({
       console.error('上报进度失败:', err);
     });
 
-    // 直接写缓存（不依赖上一页方法是否存在）
-    this._saveProgressToCache(nodeId);
-
     const pages = getCurrentPages();
     if (pages.length > 1) {
       const prePage = pages[pages.length - 2];
@@ -1212,251 +1162,5 @@ Page({
         showCompleteAnimation: false,
       });
     }, 2000);
-  },
-
-  // ========== 数字人相关方法 ==========
-
-  // 根据当前故事内容生成针对性预设问题
-  generateDhPresets() {
-    const story = this.data.currentStory;
-    if (!story || !story.content) return [];
-
-    const title = story.title || '';
-    const content = story.content || '';
-    const section = this.data.section;
-
-    // 基于故事内容关键词生成预设问题
-    const presets = [];
-
-    // 通用问题1：关于当前故事的具体细节
-    presets.push({
-      id: `dh_${section}_${this.data.currentStoryIndex}_1`,
-      question: `能多讲讲${title.replace(/^[^·]+·/, '')}的故事吗？`
-    });
-
-    // 基于内容关键词生成问题2
-    if (content.includes('实验') || content.includes('研究') || content.includes('发现')) {
-      presets.push({
-        id: `dh_${section}_${this.data.currentStoryIndex}_2`,
-        question: '这个实验过程中遇到过什么困难？'
-      });
-    } else if (content.includes('老师') || content.includes('教授') || content.includes('恩师')) {
-      presets.push({
-        id: `dh_${section}_${this.data.currentStoryIndex}_2`,
-        question: '这位老师对您的影响有多大？'
-      });
-    } else if (content.includes('父亲') || content.includes('母亲') || content.includes('家人') || content.includes('家庭')) {
-      presets.push({
-        id: `dh_${section}_${this.data.currentStoryIndex}_2`,
-        question: '家人对您的选择有什么看法？'
-      });
-    } else {
-      presets.push({
-        id: `dh_${section}_${this.data.currentStoryIndex}_2`,
-        question: '这段经历对您后来有什么影响？'
-      });
-    }
-
-    // 基于内容关键词生成问题3
-    if (content.includes('美国') || content.includes('留学') || content.includes('伯克利')) {
-      presets.push({
-        id: `dh_${section}_${this.data.currentStoryIndex}_3`,
-        question: '初到美国时适应得怎么样？'
-      });
-    } else if (content.includes('物理') || content.includes('科学') || content.includes('核')) {
-      presets.push({
-        id: `dh_${section}_${this.data.currentStoryIndex}_3`,
-        question: '为什么对物理如此着迷？'
-      });
-    } else {
-      presets.push({
-        id: `dh_${section}_${this.data.currentStoryIndex}_3`,
-        question: '您当时的心情是怎样的？'
-      });
-    }
-
-    return presets;
-  },
-
-  // 切换数字人面板
-  toggleDigitalHuman() {
-    const show = !this.data.showDhPanel;
-    if (show) {
-      // 打开时生成针对性预设问题
-      const presets = this.generateDhPresets();
-      const story = this.data.currentStory;
-      this.setData({
-        showDhPanel: show,
-        dhPresets: presets,
-        dhWelcome: `你正在阅读「${story.title}」。关于这段经历，你有什么想问的吗？`,
-        dhMessages: [],
-        dhChatting: false,
-        dhInputValue: '',
-        dhMsgCounter: 0,
-      });
-    } else {
-      // 关闭时停止播放
-      const dh = this.selectComponent('#digitalHumanStory');
-      if (dh) dh.stopSpeaking();
-      this.setData({ showDhPanel: false });
-    }
-  },
-
-  // 输入框
-  onDhInput(e) {
-    this.setData({ dhInputValue: e.detail.value });
-  },
-
-  // 发送自定义消息
-  sendDhMessage() {
-    const question = this.data.dhInputValue.trim();
-    if (!question || this.data.dhChatting) return;
-
-    const msgId = ++this.data.dhMsgCounter;
-    const loadingId = ++this.data.dhMsgCounter;
-    this.setData({
-      dhMessages: [...this.data.dhMessages, 
-        { id: msgId, role: 'user', text: question },
-        { id: loadingId, role: 'ai', loading: true }
-      ],
-      dhInputValue: '',
-      dhChatting: true,
-      dhScrollId: `dh-msg-${loadingId}`,
-    });
-
-    // 调用数字人组件
-    const dh = this.selectComponent('#digitalHumanStory');
-    if (dh) {
-      dh.ask(question);
-    } else {
-      // 备用：走云函数
-      wx.cloud.callFunction({
-        name: 'askDigitalHuman',
-        data: { action: 'chat', question }
-      }).then(res => {
-        if (res.result.code === 0) {
-          const msgs = this.data.dhMessages.map(m =>
-            m.id === loadingId ? { ...m, loading: false, text: res.result.data.text } : m
-          );
-          this.setData({ dhMessages: msgs, dhChatting: false });
-        }
-      }).catch(() => {
-        const msgs = this.data.dhMessages.map(m =>
-          m.id === loadingId ? { ...m, loading: false, text: '抱歉，我现在说不上来。' } : m
-        );
-        this.setData({ dhMessages: msgs, dhChatting: false });
-      });
-    }
-  },
-
-  // 发送预设问题
-  async sendDhPreset(e) {
-    const presetId = e.currentTarget.dataset.id;
-    const question = e.currentTarget.dataset.question;
-    if (!question || this.data.dhChatting) return;
-
-    const msgId = ++this.data.dhMsgCounter;
-    this.setData({
-      dhMessages: [...this.data.dhMessages, { id: msgId, role: 'user', text: question }],
-      dhChatting: true,
-      dhScrollId: `dh-msg-${msgId}`,
-    });
-
-    // 先尝试预存
-    try {
-      const res = await wx.cloud.callFunction({
-        name: 'presetManager',
-        data: { action: 'get', presetId }
-      });
-
-      if (res.result.code === 0 && res.result.data && res.result.data.text) {
-        const aiMsgId = ++this.data.dhMsgCounter;
-        this.setData({
-          dhMessages: [...this.data.dhMessages, {
-            id: aiMsgId, role: 'ai', text: res.result.data.text,
-            audioUrl: res.result.data.audioUrl || null, audioPlaying: false
-          }],
-          dhChatting: false,
-          dhScrollId: `dh-msg-${aiMsgId}`,
-        });
-
-        if (res.result.data.audioUrl) {
-          this.playDhAudioUrl(res.result.data.audioUrl, aiMsgId);
-        }
-        return;
-      }
-    } catch (e) {
-      // 预存未找到
-    }
-
-    // 走实时生成
-    const loadingId = ++this.data.dhMsgCounter;
-    this.setData({
-      dhMessages: [...this.data.dhMessages, { id: loadingId, role: 'ai', loading: true }],
-    });
-
-    const dh = this.selectComponent('#digitalHumanStory');
-    if (dh) {
-      dh.ask(question);
-    } else {
-      wx.cloud.callFunction({
-        name: 'askDigitalHuman',
-        data: { action: 'chat', question }
-      }).then(res => {
-        if (res.result.code === 0) {
-          const msgs = this.data.dhMessages.map(m =>
-            m.id === loadingId ? { ...m, loading: false, text: res.result.data.text } : m
-          );
-          this.setData({ dhMessages: msgs, dhChatting: false });
-        }
-      }).catch(() => {
-        const msgs = this.data.dhMessages.map(m =>
-          m.id === loadingId ? { ...m, loading: false, text: '抱歉，我现在说不上来。' } : m
-        );
-        this.setData({ dhMessages: msgs, dhChatting: false });
-      });
-    }
-  },
-
-  // 数字人组件事件
-  onDhMessage(e) {
-    const { answer } = e.detail;
-    const msgs = this.data.dhMessages.map(m =>
-      m.loading ? { ...m, loading: false, text: answer, role: 'ai' } : m
-    );
-    this.setData({ dhMessages: msgs, dhChatting: false });
-  },
-
-  onDhSpeakEnd() {},
-
-  onDhError(e) {
-    console.error('[story-dh] 错误:', e.detail);
-    this.setData({ dhChatting: false });
-  },
-
-  // 播放音频（驱动嘴型）
-  playDhAudio(e) {
-    const audioUrl = e.currentTarget.dataset.audiourl;
-    const msgId = e.currentTarget.dataset.msgid;
-    this.playDhAudioUrl(audioUrl, msgId);
-  },
-
-  playDhAudioUrl(audioUrl, msgId) {
-    const dh = this.selectComponent('#digitalHumanStory');
-    if (dh && audioUrl) {
-      dh._playAudio(audioUrl);
-    }
-    const msgs = this.data.dhMessages.map(msg => {
-      if (msg.id === msgId) return { ...msg, audioPlaying: true };
-      return { ...msg, audioPlaying: false };
-    });
-    this.setData({ dhMessages: msgs });
-  },
-
-  stopDhAudio() {
-    const dh = this.selectComponent('#digitalHumanStory');
-    if (dh) dh.stopSpeaking();
-    const msgs = this.data.dhMessages.map(msg => ({ ...msg, audioPlaying: false }));
-    this.setData({ dhMessages: msgs });
   },
 });

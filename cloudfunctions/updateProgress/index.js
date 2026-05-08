@@ -30,27 +30,15 @@ exports.main = async (event, context) => {
       return { code: 1001, message: '无效的 action 参数，可选值：unlock、complete', data: null }
     }
 
-    // 查找或创建用户
-    let userRes = await db.collection('users').where({ _openid: openid }).get()
-    let userId
+    // 查找用户
+    const userRes = await db.collection('users').where({ _openid: openid }).get()
 
+    // 1002: 用户不存在
     if (userRes.data.length === 0) {
-      const addRes = await db.collection('users').add({
-        data: {
-          nickName: '追光者',
-          avatarUrl: '',
-          badges: [],
-          progress: { timelineNodes: [], cloudNodes: [], readWorks: [] },
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      })
-      userId = addRes._id
-    } else {
-      userId = userRes.data[0]._id
+      return { code: 1002, message: '用户不存在', data: null }
     }
 
-    const user = (userRes.data.length > 0) ? userRes.data[0] : (await db.collection('users').doc(userId).get()).data
+    const user = userRes.data[0]
     const progress = user.progress || { timelineNodes: [], cloudNodes: [], readWorks: [] }
 
     // 根据 type 确定要更新的进度字段
@@ -79,7 +67,7 @@ exports.main = async (event, context) => {
     const updatedList = [...currentList, nodeId]
     const updatedProgress = { ...progress, [fieldName]: updatedList }
 
-    await db.collection('users').doc(userId).update({
+    await db.collection('users').doc(user._id).update({
       data: {
         progress: updatedProgress,
         updatedAt: new Date().toISOString()
