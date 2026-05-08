@@ -491,6 +491,24 @@ Page({
     return titles[section - 1] || '故事';
   },
 
+  // 直接写入 exhibitProgress 缓存，不依赖上一页是否有 unlockEventCloudByStory
+  _saveProgressToCache(nodeId) {
+    try {
+      const existing = wx.getStorageSync('exhibitProgress') || {};
+      const timelineNodes = existing.timelineNodes || [];
+      if (!timelineNodes.includes(nodeId)) {
+        timelineNodes.push(nodeId);
+        wx.setStorageSync('exhibitProgress', {
+          timelineNodes: timelineNodes,
+          badges: existing.badges || [],
+        });
+        console.log('[story] 直接写缓存, nodeId:', nodeId, '当前已解锁:', timelineNodes);
+      }
+    } catch (e) {
+      console.error('[story] 写缓存失败:', e);
+    }
+  },
+
   goBack() {
     const cloudId = (this.data.section - 1) * 6 + this.data.currentStoryIndex + 1;
     const nodeId = 'n' + cloudId;
@@ -503,6 +521,9 @@ Page({
       console.error('上报进度失败:', err);
     });
 
+    // 直接写缓存（不依赖上一页方法是否存在）
+    this._saveProgressToCache(nodeId);
+
     const pages = getCurrentPages();
     if (pages.length > 1) {
       const prePage = pages[pages.length - 2];
@@ -514,8 +535,23 @@ Page({
     wx.navigateBack({ delta: 1 });
   },
 
+  // 保存当前故事进度（prev/next 切换前调用）
+  _saveCurrentStory() {
+    const cloudId = (this.data.section - 1) * 6 + this.data.currentStoryIndex + 1;
+    const nodeId = 'n' + cloudId;
+    this._saveProgressToCache(nodeId);
+    cloudUtil.updateProgress({
+      type: 'timeline',
+      nodeId: nodeId,
+      action: 'unlock',
+    }).catch(err => {
+      console.error('上报进度失败:', err);
+    });
+  },
+
   prevStory() {
     if (this.data.currentStoryIndex > 0) {
+      this._saveCurrentStory();
       const newIndex = this.data.currentStoryIndex - 1;
       const sectionIndex = this.data.section - 1;
       const stories = this.data.storiesData[sectionIndex].stories;
@@ -559,6 +595,7 @@ Page({
 
   nextStory() {
     if (this.data.currentStoryIndex < this.data.totalStories - 1) {
+      this._saveCurrentStory();
       const newIndex = this.data.currentStoryIndex + 1;
       const sectionIndex = this.data.section - 1;
       const stories = this.data.storiesData[sectionIndex].stories;
@@ -1135,6 +1172,9 @@ Page({
     }).catch(err => {
       console.error('上报进度失败:', err);
     });
+
+    // 直接写缓存（不依赖上一页方法是否存在）
+    this._saveProgressToCache(nodeId);
 
     const pages = getCurrentPages();
     if (pages.length > 1) {
