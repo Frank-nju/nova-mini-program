@@ -1,31 +1,238 @@
 <view class="page">
-  <!-- 背景粒子效果 -->
+  <!-- 背景粒子 -->
   <view class="background-particles">
-    <view class="particle" wx:for="{{60}}" wx:key="index"></view>
+    <view class="particle" wx:for="{{80}}" wx:key="index"></view>
   </view>
 
   <!-- 深空背景 -->
   <view class="deep-space"></view>
 
-  <!-- 中心内容区 -->
-  <view class="center-content">
-    <view class="title-section">
-      <text class="main-title">追光</text>
-      <text class="sub-title">吴健雄传</text>
-    </view>
-
-    <view class="description">
-      <text>一位伟大的核物理学家</text>
-      <text>她用严谨改写科学历史</text>
-    </view>
-
-    <button class="btn-start" bindtap="goExhibit">
-      <text>进入展馆</text>
-    </button>
+  <!-- 跳过按钮 -->
+  <view class="skip-btn" bindtap="skipGuide">
+    <text>跳过</text>
   </view>
 
-  <!-- 底部署名 -->
-  <view class="footer-text">
-    <text>云端数字展馆</text>
+  <!-- 主轮播 -->
+  <swiper
+    class="guide-swiper"
+    current="{{currentPage}}"
+    bindchange="onPageChange"
+    duration="{{400}}"
+    circular="{{true}}"
+    easing-function="easeOutCubic"
+  >
+    <!-- ===== 第1页：传承初心 ===== -->
+    <swiper-item class="guide-item">
+      <view class="page-container page1-container">
+        <view class="page-icon">✦</view>
+        <text class="page-title page1-title">传承</text>
+        <text class="page-subtitle">大先生精神</text>
+
+        <view class="divider-line"></view>
+
+        <view class="desc-block">
+          <text class="desc-text">吴健雄——被誉为"东方居里夫人"的核物理学家</text>
+          <text class="desc-text">她用严谨的实验精神，改写了科学历史的轨迹</text>
+          <text class="desc-text">本展馆以数字化方式，让大先生的精神跨越时空，薪火相传</text>
+        </view>
+
+        <view class="team-badge">
+          <text class="team-label">制作团队</text>
+          <text class="team-name">NOVA小分队</text>
+          <text class="team-tag">云端数字展馆</text>
+        </view>
+
+        <view class="swipe-hint">
+          <text class="swipe-hint-text">向右滑动继续</text>
+          <text class="swipe-arrow">›</text>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- ===== 第2页：六大展区 ===== -->
+    <swiper-item class="guide-item">
+      <view class="page-container page2-container">
+        <view class="page-icon">✦</view>
+        <text class="page-title page2-title">六大展区</text>
+
+        <view class="divider-line"></view>
+
+        <view class="exhibit-list">
+          <view class="exhibit-row exhibit-row-1">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="row-num">01</view>
+            <view class="row-info">
+              <text class="row-title">序章</text>
+              <text class="row-subtitle">西学求索</text>
+            </view>
+          </view>
+          <view class="exhibit-row exhibit-row-2">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="row-num">02</view>
+            <view class="row-info">
+              <text class="row-title">生平履历</text>
+              <text class="row-subtitle">孤行远方</text>
+            </view>
+          </view>
+          <view class="exhibit-row exhibit-row-3">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="row-num">03</view>
+            <view class="row-info">
+              <text class="row-title">治学风骨</text>
+              <text class="row-subtitle">严谨之光</text>
+            </view>
+          </view>
+          <view class="exhibit-row exhibit-row-4">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="row-num">04</view>
+            <view class="row-info">
+              <text class="row-title">科研丰碑</text>
+              <text class="row-subtitle">宇称不守恒</text>
+            </view>
+          </view>
+          <view class="exhibit-row exhibit-row-5">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="row-num">05</view>
+            <view class="row-info">
+              <text class="row-title">尾声</text>
+              <text class="row-subtitle">荣耀归来</text>
+            </view>
+          </view>
+          <view class="exhibit-row exhibit-row-6">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="row-num">06</view>
+            <view class="row-info">
+              <text class="row-title">致敬墙</text>
+              <text class="row-subtitle">传承纪念</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="swipe-hint">
+          <text class="swipe-hint-text">向右滑动继续</text>
+          <text class="swipe-arrow">›</text>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- ===== 第3页：五大功能 ===== -->
+    <swiper-item class="guide-item">
+      <view class="page-container page3-container">
+        <view class="page-icon">✦</view>
+        <text class="page-title page3-title">五大功能</text>
+
+        <view class="divider-line"></view>
+
+        <view class="feature-list">
+          <view class="feature-row feature-row-1">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="feature-icon-wrap">☁</view>
+            <view class="feature-info">
+              <text class="feature-name">事件云图</text>
+              <text class="feature-desc">探索故事节点，解锁章节进度</text>
+            </view>
+          </view>
+          <view class="feature-row feature-row-2">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="feature-icon-wrap">★</view>
+            <view class="feature-info">
+              <text class="feature-name">徽章成就</text>
+              <text class="feature-desc">收集阅读与答题徽章，见证成长</text>
+            </view>
+          </view>
+          <view class="feature-row feature-row-3">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="feature-icon-wrap">📁</view>
+            <view class="feature-info">
+              <text class="feature-name">素材资源</text>
+              <text class="feature-desc">同学们阅读《吴健雄传》的成果展示</text>
+            </view>
+          </view>
+          <view class="feature-row feature-row-4">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="feature-icon-wrap">🤖</view>
+            <view class="feature-info">
+              <text class="feature-name">数字人</text>
+              <text class="feature-desc">与"吴健雄"AI对话，走进她的人生</text>
+            </view>
+          </view>
+          <view class="feature-row feature-row-5">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="feature-icon-wrap">📝</view>
+            <view class="feature-info">
+              <text class="feature-name">知识问答</text>
+              <text class="feature-desc">关于吴健雄的知识问答挑战</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="swipe-hint">
+          <text class="swipe-hint-text">向右滑动继续</text>
+          <text class="swipe-arrow">›</text>
+        </view>
+      </view>
+    </swiper-item>
+
+    <!-- ===== 第4页：启程 ===== -->
+    <swiper-item class="guide-item">
+      <view class="page-container page4-container">
+        <view class="page-icon">✦</view>
+        <text class="page-title page4-title">追光之旅</text>
+        <text class="page-subtitle page4-subtitle">即刻启程</text>
+
+        <view class="divider-line"></view>
+
+        <view class="desc-block">
+          <text class="desc-text">从序章出发，走过生平履历与治学风骨</text>
+          <text class="desc-text">在科研丰碑上见证宇称不守恒的伟大实验</text>
+          <text class="desc-text">最终抵达致敬墙，感受精神的不朽传承</text>
+        </view>
+
+        <button class="btn-enter" bindtap="goExhibit">
+          <text class="btn-enter-text">进入展馆</text>
+        </button>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 页码指示器 -->
+  <view class="page-indicators">
+    <view class="indicator {{currentPage === 0 ? 'active' : ''}}"></view>
+    <view class="indicator {{currentPage === 1 ? 'active' : ''}}"></view>
+    <view class="indicator {{currentPage === 2 ? 'active' : ''}}"></view>
+    <view class="indicator {{currentPage === 3 ? 'active' : ''}}"></view>
   </view>
 </view>
