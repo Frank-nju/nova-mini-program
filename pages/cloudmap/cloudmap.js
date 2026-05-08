@@ -37,7 +37,7 @@ Page({
 
   // 从云端加载云图数据
   loadCloudMapData() {
-    cloudUtil.getCloudMap().then(res => {
+    cloudUtil.getCloudNodes().then(res => {
       if (res.code !== 0 || !res.data || !res.data.nodes) {
         console.warn('[cloudmap] 云端数据异常，使用兜底数据');
         this.generateSampleEvents();

@@ -227,7 +227,7 @@ Page({
     this.setData({ eventClouds: clouds });
   },
 
-  // 保存进度到本地缓存
+  // 保存进度到本地缓存（与已有缓存合并，只增不删）
   saveProgressCache(clouds, badges) {
     try {
       const cloudList = clouds || this.data.eventClouds;
@@ -241,9 +241,25 @@ Page({
         .filter(b => b.unlocked)
         .map(b => b.id);
 
+      // 与已有缓存合并，避免覆盖 story.js 单独写入的进度
+      const existing = wx.getStorageSync('exhibitProgress') || {};
+      const existingTl = existing.timelineNodes || [];
+      const existingBadges = existing.badges || [];
+
+      for (var i = 0; i < unlockedClouds.length; i++) {
+        if (existingTl.indexOf(unlockedClouds[i]) < 0) {
+          existingTl.push(unlockedClouds[i]);
+        }
+      }
+      for (var j = 0; j < unlockedBadges.length; j++) {
+        if (existingBadges.indexOf(unlockedBadges[j]) < 0) {
+          existingBadges.push(unlockedBadges[j]);
+        }
+      }
+
       const data = {
-        timelineNodes: unlockedClouds,
-        badges: unlockedBadges,
+        timelineNodes: existingTl,
+        badges: existingBadges,
       };
       console.log('[exhibit] 保存缓存:', JSON.stringify(data));
       wx.setStorageSync('exhibitProgress', data);

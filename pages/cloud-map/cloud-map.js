@@ -49,7 +49,7 @@ Page({
 
   // 加载云图数据（从云端获取）
   loadCloudData() {
-    cloudUtil.getCloudMap().then(res => {
+    cloudUtil.getCloudNodes().then(res => {
       if (res.code !== 0 || !res.data) {
         console.warn('[cloud-map] 云端数据异常，使用兜底数据');
         this.loadFallbackData();

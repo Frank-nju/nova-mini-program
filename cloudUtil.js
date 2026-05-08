@@ -103,66 +103,16 @@ function grantBadge(params) {
   });
 }
 
-function getWorks(params) {
-  const opts = params || {};
-  return call('getWorks', {
-    page: opts.page || 1,
-    pageSize: opts.pageSize || 10,
-    category: opts.category || '',
-  }).then(res => {
-    const valid = validateResponse('getWorks', res, ['list', 'total', 'page', 'pageSize', 'hasMore']);
-    if (!valid) {
-      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: { list: [], total: 0, page: 1, pageSize: 10, hasMore: false } };
-    }
-    return res;
-  }).catch(err => {
-    console.warn('[cloudUtil] getWorks 失败:', err.message);
-    return { code: 1, message: err.message, data: { list: [], total: 0, page: 1, pageSize: 10, hasMore: false } };
-  });
-}
-
-function getWorkDetail(params) {
-  if (!params || !params.workId) {
-    return Promise.resolve({ code: 1001, message: '参数 workId 缺失', data: null });
-  }
-  return call('getWorkDetail', { workId: params.workId }).then(res => {
-    const valid = validateResponse('getWorkDetail', res, ['workId', 'title', 'content']);
-    if (!valid) {
-      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: null };
-    }
-    return res;
-  }).catch(err => {
-    console.warn('[cloudUtil] getWorkDetail 失败:', err.message);
-    return { code: 1, message: err.message, data: null };
-  });
-}
-
-function getCloudMap() {
-  return call('getCloudMap', {}, 8000).then(res => {
-    const valid = validateResponse('getCloudMap', res, ['nodes', 'connections']);
+function getCloudNodes() {
+  return call('getCloudNodes', { includeConnections: true }, 8000).then(res => {
+    const valid = validateResponse('getCloudNodes', res, ['nodes', 'connections']);
     if (!valid) {
       return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: { nodes: [], connections: [] } };
     }
     return res;
   }).catch(err => {
-    console.warn('[cloudUtil] getCloudMap 失败:', err.message);
+    console.warn('[cloudUtil] getCloudNodes 失败:', err.message);
     return { code: 1, message: err.message, data: { nodes: [], connections: [] } };
-  });
-}
-
-function getDigitalHumanScript(params) {
-  if (!params || !params.scene) {
-    return Promise.resolve({ code: 1001, message: '参数 scene 缺失', data: null });
-  }
-  return call('getDigitalHumanScript', { scene: params.scene }).then(res => {
-    const valid = validateResponse('getDigitalHumanScript', res, ['scene', 'text']);
-    if (!valid) {
-      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: null };
-    }
-    return res;
-  }).catch(err => {
-    console.warn('[cloudUtil] getDigitalHumanScript 失败:', err.message);
-    return { code: 1, message: err.message, data: null };
   });
 }
 
@@ -193,6 +143,18 @@ function chatWithDigitalHuman(params) {
   });
 }
 
+function resetProgress() {
+  return call('resetProgress', {}, 5000).then(res => {
+    if (!res || res.code !== 0) {
+      return res || { code: 9999, message: '响应异常', data: null };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] resetProgress 失败:', err.message);
+    return { code: 1, message: err.message, data: null };
+  });
+}
+
 function getPresetQuestions() {
   return [
     '您是如何发现宇称不守恒的？',
@@ -211,10 +173,8 @@ module.exports = {
   getUser,
   updateProgress,
   grantBadge,
-  getWorks,
-  getWorkDetail,
-  getCloudMap,
-  getDigitalHumanScript,
+  getCloudNodes,
   chatWithDigitalHuman,
+  resetProgress,
   getPresetQuestions,
 };
