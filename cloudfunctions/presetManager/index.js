@@ -46,6 +46,16 @@ exports.main = async (event, context) => {
     return generateOnePreset(preset);
   }
 
+  // 上传数字人图片到云存储（从临时文件URL）
+  if (action === 'uploadDhImages') {
+    return uploadDhImages(event.fileUrls || []);
+  }
+
+  // 获取数字人图片的云存储fileID列表
+  if (action === 'getDhImageUrls') {
+    return getDhImageUrls();
+  }
+
   return { code: 1001, message: '未知action', data: null };
 };
 
@@ -262,4 +272,70 @@ function callTTS(text) {
       }
     }, 30000);
   });
+}
+
+// ========== 数字人图片管理 ==========
+
+const DH_IMAGE_NAMES = [
+  'wu_base.png',
+  'wu_mouth_1.png',
+  'wu_mouth_2.png',
+  'wu_mouth_3.png',
+  'wu_mouth_4.png',
+];
+
+// 上传数字人图片到云存储（从小程序端传入临时文件路径）
+async function uploadDhImages(fileUrls) {
+  if (!fileUrls || fileUrls.length === 0) {
+    return { code: 1005, message: '请提供图片临时路径列表', data: null };
+  }
+
+  const results = [];
+  for (let i = 0; i < Math.min(fileUrls.length, DH_IMAGE_NAMES.length); i++) {
+    const fileName = DH_IMAGE_NAMES[i];
+    const cloudPath = `digital-human/${fileName}`;
+    try {
+      const uploadRes = await cloud.uploadFile({
+        cloudPath,
+        fileContent: fileUrls[i], // 小程序端传来的临时文件路径
+      });
+      results.push({ fileName, fileID: uploadRes.fileID, status: 'ok' });
+      console.log(`[dh-image] ${fileName} 上传成功: ${uploadRes.fileID}`);
+    } catch (e) {
+      results.push({ fileName, error: e.message, status: 'error' });
+      console.error(`[dh-image] ${fileName} 上传失败:`, e.message);
+    }
+  }
+
+  return { code: 0, message: 'ok', data: { results } };
+}
+
+// 获取数字人图片的云存储fileID列表
+async function getDhImageUrls() {
+  try {
+    const results = await Promise.all(
+      DH_IMAGE_NAMES.map(async (fileName) => {
+        const cloudPath = `digital-human/${fileName}`;
+        try {
+          const res = await cloud.getTempFileURL({
+            fileList: [cloudPath],
+          });
+          if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
+            return {
+              fileName,
+              fileID: res.fileList[0].fileID,
+              tempFileURL: res.fileList[0].tempFileURL,
+              status: 'ok',
+            };
+          }
+          return { fileName, status: 'not_found' };
+        } catch (e) {
+          return { fileName, status: 'not_found', error: e.message };
+        }
+      })
+    );
+    return { code: 0, message: 'ok', data: { images: results } };
+  } catch (e) {
+    return { code: 1006, message: e.message, data: null };
+  }
 }

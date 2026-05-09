@@ -6,12 +6,12 @@ Component({
   },
 
   data: {
-    baseSrc: '/assets/images/wu_base.png',
+    baseSrc: 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_base.png',
     mouthList: [
-      '/assets/images/wu_mouth_1.png',
-      '/assets/images/wu_mouth_2.png',
-      '/assets/images/wu_mouth_3.png',
-      '/assets/images/wu_mouth_4.png'
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_1.png',
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_2.png',
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_3.png',
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_4.png'
     ],
     mouthIndex: -1,
     isSpeaking: false,
