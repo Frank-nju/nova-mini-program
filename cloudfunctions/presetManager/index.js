@@ -312,12 +312,12 @@ async function uploadDhImages(fileUrls) {
 
 // 获取数字人图片的云存储fileID列表
 async function getDhImageUrls() {
+  // 从上传结果获取的环境ID
+  const ENV_ID = 'cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578';
   try {
-    const { env } = cloud.getWXContext();
     const results = await Promise.all(
       DH_IMAGE_NAMES.map(async (fileName) => {
-        const cloudPath = `digital-human/${fileName}`;
-        const fileID = `cloud://${env}/${cloudPath}`;
+        const fileID = `cloud://${ENV_ID}/digital-human/${fileName}`;
         try {
           const res = await cloud.getTempFileURL({
             fileList: [fileID],
