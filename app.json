@@ -20,5 +20,11 @@
     "backgroundColor": "#0A0A0F"
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "packOptions": {
+    "ignore": [
+      { "type": "folder", "value": "cloudfunctions" },
+      { "type": "folder", "value": "assets" }
+    ]
+  }
 }
