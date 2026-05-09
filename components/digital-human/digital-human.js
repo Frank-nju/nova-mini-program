@@ -30,22 +30,29 @@ Component({
   },
 
   methods: {
-    // 将 cloud:// 路径转换为带签名的 HTTPS 临时链接
+    // 通过云函数获取图片临时链接（云函数端 getTempFileURL 稳定可靠）
     _loadCloudImages() {
-      const fileList = [this.data.baseSrc, ...this.data.mouthList];
-      wx.cloud.getTempFileURL({
-        fileList,
-        success: (res) => {
-          if (res.fileList && res.fileList.length > 0) {
-            const baseSrc = res.fileList[0].tempFileURL;
-            const mouthList = res.fileList.slice(1).map(item => item.tempFileURL);
-            this.setData({ baseSrc, mouthList });
+      wx.cloud.callFunction({
+        name: 'presetManager',
+        data: { action: 'getDhImageUrls' }
+      }).then(res => {
+        if (res.result && res.result.code === 0 && res.result.data && res.result.data.images) {
+          const images = res.result.data.images;
+          const baseImg = images.find(img => img.fileName === 'wu_base.png');
+          const mouthImgs = ['wu_mouth_1.png', 'wu_mouth_2.png', 'wu_mouth_3.png', 'wu_mouth_4.png']
+            .map(name => images.find(img => img.fileName === name))
+            .filter(Boolean);
+
+          if (baseImg && baseImg.tempFileURL) {
+            const mouthList = mouthImgs.map(img => img.tempFileURL);
+            console.log('[digital-human] baseSrc:', baseImg.tempFileURL);
+            console.log('[digital-human] mouthList:', mouthList);
+            this.setData({ baseSrc: baseImg.tempFileURL, mouthList });
             console.log('[digital-human] 图片加载成功');
           }
-        },
-        fail: (err) => {
-          console.error('[digital-human] 图片加载失败:', err);
         }
+      }).catch(err => {
+        console.warn('[digital-human] 云函数获取图片链接失败，使用 cloud:// 路径:', err.message);
       });
     },
 
