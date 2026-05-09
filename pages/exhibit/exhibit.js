@@ -817,16 +817,22 @@ Page({
       let list = res.data.list || [];
       console.log('[loadWorks] 数据条数:', list.length);
 
-      // 全部 tab 下图片排前面，视频/文档排后面
+      // "其他" tab 严格过滤：只有 category 为 "其他" 的才能显示
+      if (this.data.worksTab === '其他') {
+        list = list.filter(item => item.category === '其他');
+      }
+
+      // 全部 tab 下图片排前面，视频/文档排后面，"其他"不展示在全部中
       if (this.data.worksTab === 'all') {
+        list = list.filter(item => item.category !== '其他');
         list.sort((a, b) => {
           const order = { '图片': 0, '视频': 1, '文档': 2 };
           return (order[a.category] || 9) - (order[b.category] || 9);
         });
       }
 
-      // 预加载有 fileId 的项目
-      const needUrlItems = list.filter(item => item.fileId && !item.fileUrl);
+      // 预加载有 fileId 的项目（"其他"类别不需要预加载，fileId 就是直链）
+      const needUrlItems = list.filter(item => item.fileId && !item.fileUrl && item.category !== '其他');
       if (needUrlItems.length > 0) {
         this.preloadWorkUrls(needUrlItems, list);
       }
@@ -961,6 +967,20 @@ Page({
         });
       }
     }
+  },
+
+  openLink(e) {
+    const item = e.currentTarget.dataset.item;
+    if (!item || !item.fileId) {
+      wx.showToast({ title: '暂无链接', icon: 'none' });
+      return;
+    }
+    wx.setClipboardData({
+      data: item.fileId,
+      success: () => {
+        wx.showToast({ title: '链接已复制到剪贴板', icon: 'success' });
+      },
+    });
   },
 
   onCanvasTap(e) {

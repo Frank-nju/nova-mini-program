@@ -58,6 +58,8 @@
         <view class="divider-line"></view>
 
         <view class="exhibit-list">
+          <view class="exhibit-list-fade exhibit-list-fade-top"></view>
+          <view class="exhibit-list-fade exhibit-list-fade-bottom"></view>
           <view class="exhibit-row exhibit-row-1">
             <view class="row-corner tl"></view>
             <view class="row-corner tr"></view>
@@ -69,7 +71,7 @@
               <text class="row-subtitle">西学求索</text>
             </view>
           </view>
-          <view class="exhibit-row exhibit-row-2">
+          <view class="exhibit-row exhibit-row-2 exhibit-row-stagger-right">
             <view class="row-corner tl"></view>
             <view class="row-corner tr"></view>
             <view class="row-corner bl"></view>
@@ -91,7 +93,7 @@
               <text class="row-subtitle">严谨之光</text>
             </view>
           </view>
-          <view class="exhibit-row exhibit-row-4">
+          <view class="exhibit-row exhibit-row-4 exhibit-row-stagger-right">
             <view class="row-corner tl"></view>
             <view class="row-corner tr"></view>
             <view class="row-corner bl"></view>
@@ -113,7 +115,7 @@
               <text class="row-subtitle">荣耀归来</text>
             </view>
           </view>
-          <view class="exhibit-row exhibit-row-6">
+          <view class="exhibit-row exhibit-row-6 exhibit-row-stagger-right">
             <view class="row-corner tl"></view>
             <view class="row-corner tr"></view>
             <view class="row-corner bl"></view>
@@ -142,6 +144,8 @@
         <view class="divider-line"></view>
 
         <view class="feature-list">
+          <view class="feature-list-fade feature-list-fade-top"></view>
+          <view class="feature-list-fade feature-list-fade-bottom"></view>
           <view class="feature-row feature-row-1">
             <view class="row-corner tl"></view>
             <view class="row-corner tr"></view>
@@ -153,7 +157,7 @@
               <text class="feature-desc">探索故事节点，解锁章节进度</text>
             </view>
           </view>
-          <view class="feature-row feature-row-2">
+          <view class="feature-row feature-row-2 feature-row-stagger-right">
             <view class="row-corner tl"></view>
             <view class="row-corner tr"></view>
             <view class="row-corner bl"></view>
@@ -175,7 +179,7 @@
               <text class="feature-desc">同学们阅读《吴健雄传》的成果展示</text>
             </view>
           </view>
-          <view class="feature-row feature-row-4">
+          <view class="feature-row feature-row-4 feature-row-stagger-right">
             <view class="row-corner tl"></view>
             <view class="row-corner tr"></view>
             <view class="row-corner bl"></view>

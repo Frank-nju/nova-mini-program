@@ -341,6 +341,9 @@
       <view class="works-tab {{worksTab === '文档' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="文档">
         <text>文档</text>
       </view>
+      <view class="works-tab {{worksTab === '其他' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="其他">
+        <text>其他</text>
+      </view>
     </view>
 
     <!-- 图片网格视图 -->
@@ -417,6 +420,27 @@
           <view class="works-list-info">
             <text class="works-list-title">{{item.title}}</text>
           </view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 其他列表视图 -->
+    <scroll-view class="works-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreWorks" wx:elif="{{worksTab === '其他'}}">
+      <view wx:if="{{worksLoading}}" class="material-loading">
+        <text>加载中...</text>
+      </view>
+      <view wx:if="{{worksList.length === 0 && !worksLoading}}" class="material-empty">
+        <text class="material-empty-icon">🔗</text>
+        <text class="material-empty-text">暂无其他资源</text>
+      </view>
+      <view class="works-list" wx:if="{{worksList.length > 0}}">
+        <view wx:for="{{worksList}}" wx:key="workId" class="works-list-card works-link-card" bindtap="openLink" data-item="{{item}}">
+          <view class="works-link-icon">🔗</view>
+          <view class="works-list-info">
+            <text class="works-list-title">{{item.title}}</text>
+            <text class="works-link-url">{{item.fileId}}</text>
+          </view>
+          <view class="works-link-arrow">›</view>
         </view>
       </view>
     </scroll-view>

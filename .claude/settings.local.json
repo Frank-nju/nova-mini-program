@@ -3,7 +3,12 @@
     "allow": [
       "WebSearch",
       "Bash(node -c D:/nova-mini-program/subpkg/pages/story/story.js)",
-      "Bash(node -c D:/nova-mini-program/pages/exhibit/exhibit.js)"
+      "Bash(node -c D:/nova-mini-program/pages/exhibit/exhibit.js)",
+      "Bash(find pages/starmap pages/story pages/cloud -type f)",
+      "Bash(ls -la pages/starmap/)",
+      "Bash(ls -la pages/story/)",
+      "Bash(ls -la pages/cloud/)",
+      "Bash(git checkout *)"
     ]
   }
 }

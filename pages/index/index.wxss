@@ -410,7 +410,27 @@
   flex-direction: column;
   justify-content: space-evenly;
   gap: 12rpx;
-  padding: 8rpx 0;
+  padding: 40rpx 0;
+  position: relative;
+}
+
+/* 顶部虚化渐变 */
+.exhibit-list-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.exhibit-list-fade-top {
+  top: 0;
+  height: 80rpx;
+  background: linear-gradient(to bottom, #0a0a12, transparent);
+}
+.exhibit-list-fade-bottom {
+  bottom: 0;
+  height: 80rpx;
+  background: linear-gradient(to top, #0a0a12, transparent);
 }
 
 .exhibit-row {
@@ -424,6 +444,12 @@
   border: 1rpx solid rgba(201, 169, 110, 0.15);
   gap: 24rpx;
   transition: all 0.3s ease;
+  transform: translateX(0);
+}
+
+/* 交错布局：偶数行向右偏移 */
+.exhibit-row-stagger-right {
+  transform: translateX(36rpx);
 }
 
 /* 各行不同颜色的左边框 */
@@ -482,7 +508,27 @@
   flex-direction: column;
   justify-content: space-evenly;
   gap: 12rpx;
-  padding: 8rpx 0;
+  padding: 40rpx 0;
+  position: relative;
+}
+
+/* 顶部虚化渐变 */
+.feature-list-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+.feature-list-fade-top {
+  top: 0;
+  height: 80rpx;
+  background: linear-gradient(to bottom, #0a0a12, transparent);
+}
+.feature-list-fade-bottom {
+  bottom: 0;
+  height: 80rpx;
+  background: linear-gradient(to top, #0a0a12, transparent);
 }
 
 .feature-row {
@@ -495,6 +541,12 @@
   background: linear-gradient(135deg, rgba(20, 15, 40, 0.85) 0%, rgba(30, 25, 50, 0.75) 100%);
   border: 1rpx solid rgba(100, 200, 255, 0.12);
   gap: 24rpx;
+  transform: translateX(0);
+}
+
+/* 交错布局：偶数行向右偏移 */
+.feature-row-stagger-right {
+  transform: translateX(36rpx);
 }
 
 .feature-row-1 { border-left: 3rpx solid rgba(100, 200, 255, 0.6); }
