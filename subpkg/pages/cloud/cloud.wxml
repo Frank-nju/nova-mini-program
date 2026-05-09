@@ -23,5 +23,8 @@
     <view class="zoom-btn" bindtap="zoomIn">+</view>
     <view class="zoom-btn" bindtap="zoomOut">−</view>
   </view>
+
+  <!-- 调试：重置进度按钮（仅开发/体验版可见） -->
+  <view wx:if="{{isDev}}" class="debug-reset-btn" bindtap="debugReset">重置</view>
 </view>
 
