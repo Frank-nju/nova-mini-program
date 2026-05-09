@@ -9,7 +9,8 @@
       "root": "subpkg",
       "pages": [
         "pages/story/story",
-        "pages/cloud/cloud"
+        "pages/cloud/cloud",
+        "pages/manga-viewer/manga-viewer"
       ]
     }
   ],

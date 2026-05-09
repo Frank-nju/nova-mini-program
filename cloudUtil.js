@@ -137,6 +137,21 @@ function getWorkDetail(params) {
   });
 }
 
+function getFilePreviewUrl(params) {
+  if (!params || !params.fileID) {
+    return Promise.resolve({ code: 1001, message: '参数 fileID 缺失', data: null });
+  }
+  return call('getFilePreviewUrl', { fileID: params.fileID }, 8000).then(res => {
+    if (!res || res.code !== 0) {
+      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: null };
+    }
+    return { code: 0, message: 'ok', data: { fileUrl: res.data.tempFileURL } };
+  }).catch(err => {
+    console.warn('[cloudUtil] getFilePreviewUrl 失败:', err.message);
+    return { code: 1, message: err.message, data: null };
+  });
+}
+
 function getCloudNodes() {
   return call('getCloudNodes', { includeConnections: true }, 8000).then(res => {
     const valid = validateResponse('getCloudNodes', res, ['nodes', 'connections']);
@@ -239,6 +254,7 @@ module.exports = {
   getCloudNodes,
   getWorks,
   getWorkDetail,
+  getFilePreviewUrl,
   getCloudMap,
   getDigitalHumanScript,
   chatWithDigitalHuman,

@@ -344,6 +344,9 @@
       <view class="works-tab {{worksTab === '其他' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="其他">
         <text>其他</text>
       </view>
+      <view class="works-tab {{worksTab === '漫画' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="漫画">
+        <text>漫画</text>
+      </view>
     </view>
 
     <!-- 图片网格视图 -->
@@ -358,7 +361,7 @@
       </view>
 
       <view class="works-grid" wx:if="{{worksList.length > 0}}">
-        <view wx:for="{{worksList}}" wx:key="workId" class="works-card" bindtap="previewWork" data-item="{{item}}">
+        <view wx:for="{{worksList}}" wx:key="fileId" class="works-card" bindtap="previewWork" data-item="{{item}}">
           <!-- 图片卡片 - 大图展示 -->
           <view wx:if="{{item.category === '图片'}}" class="works-card-image-wrap">
             <image wx:if="{{item.fileUrl}}" class="works-card-img" src="{{item.fileUrl}}" mode="aspectFill" />
@@ -377,8 +380,8 @@
             <view class="works-card-doc-icon">📄</view>
           </view>
           <view class="works-card-info">
-            <text class="works-card-title">{{item.title}}</text>
-            <text class="works-card-cat">{{item.category}}</text>
+            <text class="works-card-title">{{item.displayName}}</text>
+            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
           </view>
         </view>
       </view>
@@ -394,12 +397,13 @@
         <text class="material-empty-text">暂无视频成果</text>
       </view>
       <view class="works-list" wx:if="{{worksList.length > 0}}">
-        <view wx:for="{{worksList}}" wx:key="workId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
+        <view wx:for="{{worksList}}" wx:key="fileId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
           <view class="works-list-video">
             <view class="works-list-play-btn">▶</view>
           </view>
           <view class="works-list-info">
-            <text class="works-list-title">{{item.title}}</text>
+            <text class="works-list-title">{{item.displayName}}</text>
+            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
           </view>
         </view>
       </view>
@@ -415,10 +419,11 @@
         <text class="material-empty-text">暂无文档成果</text>
       </view>
       <view class="works-list" wx:if="{{worksList.length > 0}}">
-        <view wx:for="{{worksList}}" wx:key="workId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
+        <view wx:for="{{worksList}}" wx:key="fileId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
           <view class="works-list-doc-icon">📄</view>
           <view class="works-list-info">
-            <text class="works-list-title">{{item.title}}</text>
+            <text class="works-list-title">{{item.displayName}}</text>
+            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
           </view>
         </view>
       </view>
@@ -434,13 +439,40 @@
         <text class="material-empty-text">暂无其他资源</text>
       </view>
       <view class="works-list" wx:if="{{worksList.length > 0}}">
-        <view wx:for="{{worksList}}" wx:key="workId" class="works-list-card works-link-card" bindtap="openLink" data-item="{{item}}">
+        <view wx:for="{{worksList}}" wx:key="fileId" class="works-list-card works-link-card" bindtap="openLink" data-item="{{item}}">
           <view class="works-link-icon">🔗</view>
           <view class="works-list-info">
-            <text class="works-list-title">{{item.title}}</text>
+            <text class="works-list-title">{{item.displayName}}</text>
+            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
             <text class="works-link-url">{{item.fileId}}</text>
           </view>
           <view class="works-link-arrow">›</view>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 漫画列表视图 -->
+    <scroll-view class="works-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreWorks" wx:elif="{{worksTab === '漫画'}}">
+      <view wx:if="{{worksLoading}}" class="material-loading">
+        <text>加载中...</text>
+      </view>
+      <view wx:if="{{mangaGroups.length === 0 && !worksLoading}}" class="material-empty">
+        <text class="material-empty-icon">📚</text>
+        <text class="material-empty-text">暂无漫画成果</text>
+      </view>
+      <view class="works-grid" wx:if="{{mangaGroups.length > 0}}">
+        <view wx:for="{{mangaGroups}}" wx:key="groupId" class="works-card works-manga-card" bindtap="openMangaViewer" data-group="{{item}}">
+          <view class="works-card-manga-cover">
+            <image wx:if="{{item.pages[0].fileUrl}}" class="works-card-manga-img" src="{{item.pages[0].fileUrl}}" mode="aspectFill" />
+            <view wx:else class="works-card-manga-placeholder">
+              <text class="works-card-placeholder-icon">📖</text>
+            </view>
+            <view class="works-manga-page-count">{{item.pages.length}}P</view>
+          </view>
+          <view class="works-card-info">
+            <text class="works-manga-title">{{item.title}}</text>
+            <text class="works-manga-author">{{item.author}}</text>
+          </view>
         </view>
       </view>
     </scroll-view>

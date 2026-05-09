@@ -126,6 +126,9 @@ Page({
     worksHasMore: true,
     worksPage: 1,
     worksTab: 'all',
+
+    // 漫画分组数据
+    mangaGroups: [],
   },
 
   onLoad() {
@@ -822,16 +825,28 @@ Page({
         list = list.filter(item => item.category === '其他');
       }
 
-      // 全部 tab 下图片排前面，视频/文档排后面，"其他"不展示在全部中
+      // 全部 tab 下图片排前面，视频/文档排后面，"其他"和"漫画"不展示在全部中
       if (this.data.worksTab === 'all') {
-        list = list.filter(item => item.category !== '其他');
+        list = list.filter(item => item.category !== '其他' && item.category !== '漫画');
         list.sort((a, b) => {
           const order = { '图片': 0, '视频': 1, '文档': 2 };
           return (order[a.category] || 9) - (order[b.category] || 9);
         });
       }
 
-      // 预加载有 fileId 的项目（"其他"类别不需要预加载，fileId 就是直链）
+      // 解析 title，拆分为 displayName 和 displayAuthor
+      list = list.map(item => {
+        const parsed = this.parseWorkTitle(item.title);
+        return { ...item, displayName: parsed.title, displayAuthor: parsed.author };
+      });
+
+      // 漫画类别需要分组
+      if (this.data.worksTab === '漫画') {
+        const mangaGroups = this.groupMangaByTitle(list);
+        this.setData({ mangaGroups });
+      }
+
+      // 预加载有 fileId 的项目（"其他"类别不需要预加载，fileId 就是直链；漫画需要预加载图片URL）
       const needUrlItems = list.filter(item => item.fileId && !item.fileUrl && item.category !== '其他');
       if (needUrlItems.length > 0) {
         this.preloadWorkUrls(needUrlItems, list);
@@ -845,6 +860,7 @@ Page({
       });
     }).catch(err => {
       console.error('[loadWorks] 异常:', err);
+      wx.showToast({ title: '加载失败', icon: 'error' });
       this.setData({ worksLoading: false });
     });
   },
@@ -864,12 +880,26 @@ Page({
           })
           .catch(() => null)
       )).then(results => {
+        // 更新 worksList
         const updated = this.data.worksList.map(w => {
           const found = results.find(r => r && r.workId === w.workId);
           if (found) return { ...w, fileUrl: found.fileUrl };
           return w;
         });
         this.setData({ worksList: updated });
+
+        // 同时更新 mangaGroups（如果在漫画 tab）
+        if (this.data.worksTab === '漫画' && this.data.mangaGroups.length > 0) {
+          const updatedGroups = this.data.mangaGroups.map(g => {
+            const updatedPages = g.pages.map(p => {
+              const found = results.find(r => r && r.workId === p.workId);
+              if (found) return { ...p, fileUrl: found.fileUrl };
+              return p;
+            });
+            return { ...g, pages: updatedPages };
+          });
+          this.setData({ mangaGroups: updatedGroups });
+        }
       });
     }
   },
@@ -882,23 +912,101 @@ Page({
 
   switchWorksTab(e) {
     const tab = e.currentTarget.dataset.tab;
-    this.setData({ worksTab: tab, worksList: [], worksPage: 1, worksHasMore: true });
+    this.setData({ worksTab: tab, worksList: [], worksPage: 1, worksHasMore: true, mangaGroups: [] });
     this.loadWorks(true);
+  },
+
+  // 解析作品标题 "作品名-by: 作者" 或 "作品名_XX-by: 作者"
+  // 支持全角/半角冒号："作品名-by: 作者" 或 "作品名-by：作者"
+  // 返回 { title, author }，如果没有 "-by" 则 author 为空
+  parseWorkTitle(fullTitle) {
+    if (!fullTitle) return { title: '', author: '' };
+    // 匹配 "-by:" 或 "-by："（全角或半角冒号）
+    const byIndex = fullTitle.indexOf('-by:');
+    const byIndex2 = fullTitle.indexOf('-by：');
+    let splitIndex = -1;
+    if (byIndex !== -1 && byIndex2 !== -1) {
+      splitIndex = Math.min(byIndex, byIndex2);
+    } else if (byIndex !== -1) {
+      splitIndex = byIndex;
+    } else if (byIndex2 !== -1) {
+      splitIndex = byIndex2;
+    }
+    if (splitIndex === -1) {
+      return { title: fullTitle, author: '' };
+    }
+    let title = fullTitle.substring(0, splitIndex).trim();
+    const author = fullTitle.substring(splitIndex + 4).trim();
+    // 去掉标题末尾的章节编号如 "_01", "_02"
+    title = title.replace(/_\d+$/, '');
+    return { title, author };
+  },
+
+  // 漫画分组：将 "作品名_XX-by: 作者" 的条目按作品名+作者合并
+  groupMangaByTitle(list) {
+    const groups = {};
+    list.forEach(item => {
+      const parsed = this.parseWorkTitle(item.title);
+      const key = parsed.title + '__' + parsed.author;
+      if (!groups[key]) {
+        groups[key] = {
+          groupId: key,
+          title: parsed.title,
+          author: parsed.author,
+          pages: [],
+        };
+      }
+      groups[key].pages.push(item);
+    });
+
+    // 对每组内的页面按章节编号排序
+    const result = Object.values(groups).map(group => {
+      group.pages.sort((a, b) => {
+        const numA = this.extractMangaChapter(a.title);
+        const numB = this.extractMangaChapter(b.title);
+        return numA - numB;
+      });
+      return group;
+    });
+
+    return result;
+  },
+
+  // 从 "作品名_XX-by: 作者" 中提取章节编号
+  extractMangaChapter(fullTitle) {
+    const match = fullTitle.match(/_(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
+  },
+
+  // 打开漫画阅读器（跳转到新页面）
+  openMangaViewer(e) {
+    const group = e.currentTarget.dataset.group;
+    const pagesData = group.pages.map(p => ({ workId: p.workId, fileId: p.fileId, title: p.title }));
+    wx.navigateTo({
+      url: `/subpkg/pages/manga-viewer/manga-viewer?title=${encodeURIComponent(group.title)}&author=${encodeURIComponent(group.author)}&pages=${encodeURIComponent(JSON.stringify(pagesData))}`,
+    });
   },
 
   previewWork(e) {
     const item = e.currentTarget.dataset.item;
     if (!item) return;
 
+    const getPreviewUrl = (workId) => {
+      return cloudUtil.getWorkDetail({ workId }).then(res => {
+        if (res.code === 0 && res.data.fileUrl) return res.data.fileUrl;
+        return null;
+      });
+    };
+
     if (item.category === '图片') {
       if (item.fileUrl) {
         wx.previewImage({ urls: [item.fileUrl] });
-      } else {
+      } else if (item.workId) {
         wx.showLoading({ title: '获取链接中' });
-        cloudUtil.getWorkDetail({ workId: item.workId }).then(res => {
+        getPreviewUrl(item.workId).then(url => {
           wx.hideLoading();
-          if (res.code === 0 && res.data.fileUrl) {
-            wx.previewImage({ urls: [res.data.fileUrl] });
+          if (url) {
+            wx.previewImage({ urls: [url] });
           } else {
             wx.showToast({ title: '暂无图片文件', icon: 'none' });
           }
@@ -906,16 +1014,18 @@ Page({
           wx.hideLoading();
           wx.showToast({ title: '获取失败', icon: 'error' });
         });
+      } else {
+        wx.showToast({ title: '暂无图片文件', icon: 'none' });
       }
     } else if (item.category === '视频') {
       if (item.fileUrl) {
         wx.previewMedia({ sources: [{ url: item.fileUrl, type: 'video' }] });
-      } else {
+      } else if (item.workId) {
         wx.showLoading({ title: '获取链接中' });
-        cloudUtil.getWorkDetail({ workId: item.workId }).then(res => {
+        getPreviewUrl(item.workId).then(url => {
           wx.hideLoading();
-          if (res.code === 0 && res.data.fileUrl) {
-            wx.previewMedia({ sources: [{ url: res.data.fileUrl, type: 'video' }] });
+          if (url) {
+            wx.previewMedia({ sources: [{ url, type: 'video' }] });
           } else {
             wx.showToast({ title: '暂无视频文件', icon: 'none' });
           }
@@ -923,13 +1033,15 @@ Page({
           wx.hideLoading();
           wx.showToast({ title: '获取失败', icon: 'error' });
         });
+      } else {
+        wx.showToast({ title: '暂无视频文件', icon: 'none' });
       }
     } else {
       // 文档
-      if (item.fileUrl) {
+      const openDoc = (url) => {
         wx.showLoading({ title: '加载中' });
         wx.downloadFile({
-          url: item.fileUrl,
+          url,
           success: (dlRes) => {
             wx.hideLoading();
             wx.openDocument({
@@ -943,21 +1055,16 @@ Page({
             wx.showToast({ title: '文件加载失败', icon: 'error' });
           },
         });
-      } else {
+      };
+
+      if (item.fileUrl) {
+        openDoc(item.fileUrl);
+      } else if (item.workId) {
         wx.showLoading({ title: '获取链接中' });
-        cloudUtil.getWorkDetail({ workId: item.workId }).then(res => {
+        getPreviewUrl(item.workId).then(url => {
           wx.hideLoading();
-          if (res.code === 0 && res.data.fileUrl) {
-            wx.downloadFile({
-              url: res.data.fileUrl,
-              success: (dlRes) => {
-                wx.openDocument({
-                  filePath: dlRes.tempFilePath,
-                  showMenu: true,
-                  fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
-                });
-              },
-            });
+          if (url) {
+            openDoc(url);
           } else {
             wx.showToast({ title: '暂无文件内容', icon: 'none' });
           }
@@ -965,6 +1072,8 @@ Page({
           wx.hideLoading();
           wx.showToast({ title: '获取失败', icon: 'error' });
         });
+      } else {
+        wx.showToast({ title: '暂无文件内容', icon: 'none' });
       }
     }
   },

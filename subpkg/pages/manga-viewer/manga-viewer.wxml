@@ -1,0 +1,23 @@
+<view class="manga-viewer-page">
+  <!-- 顶部信息栏 -->
+  <view class="manga-info-bar">
+    <text class="manga-title">{{title}}</text>
+    <text class="manga-author">{{author}}</text>
+  </view>
+
+  <!-- 漫画浏览区 -->
+  <swiper class="manga-swiper" circular="{{true}}" indicator-dots="{{true}}" indicator-active-color="#c9a96e" indicator-color="rgba(200,200,220,0.3)" bindchange="onSwiperChange">
+    <swiper-item wx:for="{{pages}}" wx:key="fileId">
+      <view class="manga-swiper-item">
+        <image wx:if="{{item.fileUrl}}" class="manga-page-img" src="{{item.fileUrl}}" mode="widthFix" />
+        <view wx:else class="manga-page-placeholder">
+          <view class="loading-spinner"></view>
+          <text>加载中...</text>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 底部页码 -->
+  <view class="manga-page-indicator">{{current + 1}} / {{pages.length}}</view>
+</view>

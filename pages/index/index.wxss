@@ -75,7 +75,7 @@
 /* === 跳过按钮 === */
 .skip-btn {
   position: absolute;
-  top: 180rpx;
+  top: 260rpx;
   right: 40rpx;
   z-index: 100;
   padding: 14rpx 36rpx;
