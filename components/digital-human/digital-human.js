@@ -25,10 +25,41 @@ Component({
   lifetimes: {
     attached() {
       this._calcMouthPos();
+      this._loadImageUrls();
     }
   },
 
   methods: {
+    // 将 cloud:// 路径转换为带签名的 HTTPS 临时链接
+    _loadImageUrls() {
+      wx.cloud.callFunction({
+        name: 'presetManager',
+        data: { action: 'getDhImageUrls' }
+      }).then(res => {
+        if (res.result && res.result.code === 0 && res.result.data && res.result.data.images) {
+          const images = res.result.data.images;
+          const baseImg = images.find(img => img.fileName === 'wu_base.png');
+          const mouthImgs = ['wu_mouth_1.png', 'wu_mouth_2.png', 'wu_mouth_3.png', 'wu_mouth_4.png']
+            .map(name => images.find(img => img.fileName === name))
+            .filter(Boolean);
+
+          const newData = {};
+          if (baseImg && baseImg.tempFileURL) {
+            newData.baseSrc = baseImg.tempFileURL;
+          }
+          if (mouthImgs.length === 4 && mouthImgs.every(img => img.tempFileURL)) {
+            newData.mouthList = mouthImgs.map(img => img.tempFileURL);
+          }
+
+          if (Object.keys(newData).length > 0) {
+            this.setData(newData);
+          }
+        }
+      }).catch(err => {
+        console.warn('[digital-human] 获取图片临时链接失败，使用 cloud:// 路径:', err.message);
+      });
+    },
+
     // 计算嘴巴位置（最终确认版锚点）
     _calcMouthPos() {
       const size = this.properties.size;
