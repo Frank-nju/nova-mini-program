@@ -359,10 +359,11 @@ async function getDhImageUrls() {
 
 // 检查数字人图片实际大小
 async function checkDhImages() {
+  const envId = 'cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578';
   const results = [];
 
   for (const fileName of DH_IMAGE_NAMES) {
-    const fileID = `cloud://${ENV_ID}/digital-human/${fileName}`;
+    const fileID = `cloud://${envId}/digital-human/${fileName}`;
     try {
       const res = await cloud.getTempFileURL({ fileList: [fileID] });
       const fileRes = res.fileList[0];
