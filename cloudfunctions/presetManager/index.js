@@ -56,6 +56,11 @@ exports.main = async (event, context) => {
     return getDhImageUrls();
   }
 
+  // 检查数字人图片大小（排查是否上传失败）
+  if (action === 'checkDhImages') {
+    return checkDhImages();
+  }
+
   return { code: 1001, message: '未知action', data: null };
 };
 
@@ -350,4 +355,51 @@ async function getDhImageUrls() {
   } catch (e) {
     return { code: 1006, message: e.message, data: null };
   }
+}
+
+// 检查数字人图片实际大小
+async function checkDhImages() {
+  const results = [];
+
+  for (const fileName of DH_IMAGE_NAMES) {
+    const fileID = `cloud://${ENV_ID}/digital-human/${fileName}`;
+    try {
+      const res = await cloud.getTempFileURL({ fileList: [fileID] });
+      const fileRes = res.fileList[0];
+
+      if (!fileRes.tempFileURL) {
+        results.push({ fileName, size: 0, status: 'no_temp_url' });
+        continue;
+      }
+
+      // 下载文件检查大小
+      const size = await downloadFileSize(fileRes.tempFileURL);
+      const sizeKB = (size / 1024).toFixed(1);
+      console.log(`[dh-check] ${fileName}: ${size} bytes (${sizeKB} KB)`);
+
+      results.push({
+        fileName,
+        size,
+        sizeKB,
+        status: size < 1000 ? 'too_small' : 'ok',
+      });
+    } catch (e) {
+      console.error(`[dh-check] ${fileName} error:`, e.message);
+      results.push({ fileName, status: 'error', error: e.message });
+    }
+  }
+
+  return { code: 0, message: 'ok', data: { images: results } };
+}
+
+function downloadFileSize(url) {
+  return new Promise((resolve, reject) => {
+    const https = require('https');
+    let totalSize = 0;
+
+    https.get(url, (res) => {
+      res.on('data', (chunk) => { totalSize += chunk.length; });
+      res.on('end', () => resolve(totalSize));
+    }).on('error', reject);
+  });
 }
