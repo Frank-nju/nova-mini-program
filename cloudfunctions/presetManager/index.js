@@ -322,6 +322,7 @@ async function getDhImageUrls() {
           const res = await cloud.getTempFileURL({
             fileList: [fileID],
           });
+          console.log(`[dh-image] ${fileName} getTempFileURL result:`, JSON.stringify(res.fileList[0]));
           if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
             return {
               fileName,
@@ -330,8 +331,17 @@ async function getDhImageUrls() {
               status: 'ok',
             };
           }
+          // 文件存在但获取临时链接失败，也返回fileID
+          if (res.fileList && res.fileList[0] && res.fileList[0].fileID) {
+            return {
+              fileName,
+              fileID: res.fileList[0].fileID,
+              status: res.fileList[0].status || 'no_temp_url',
+            };
+          }
           return { fileName, status: 'not_found' };
         } catch (e) {
+          console.error(`[dh-image] ${fileName} getTempFileURL error:`, e.message);
           return { fileName, status: 'not_found', error: e.message };
         }
       })
