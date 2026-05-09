@@ -312,16 +312,17 @@ async function uploadDhImages(fileUrls) {
 
 // 获取数字人图片的云存储fileID列表
 async function getDhImageUrls() {
+  // 从上传结果获取的环境ID
+  const ENV_ID = 'cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578';
   try {
-    const { env } = cloud.getWXContext();
     const results = await Promise.all(
       DH_IMAGE_NAMES.map(async (fileName) => {
-        const cloudPath = `digital-human/${fileName}`;
-        const fileID = `cloud://${env}/${cloudPath}`;
+        const fileID = `cloud://${ENV_ID}/digital-human/${fileName}`;
         try {
           const res = await cloud.getTempFileURL({
             fileList: [fileID],
           });
+          console.log(`[dh-image] ${fileName} getTempFileURL result:`, JSON.stringify(res.fileList[0]));
           if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
             return {
               fileName,
@@ -330,8 +331,17 @@ async function getDhImageUrls() {
               status: 'ok',
             };
           }
+          // 文件存在但获取临时链接失败，也返回fileID
+          if (res.fileList && res.fileList[0] && res.fileList[0].fileID) {
+            return {
+              fileName,
+              fileID: res.fileList[0].fileID,
+              status: res.fileList[0].status || 'no_temp_url',
+            };
+          }
           return { fileName, status: 'not_found' };
         } catch (e) {
+          console.error(`[dh-image] ${fileName} getTempFileURL error:`, e.message);
           return { fileName, status: 'not_found', error: e.message };
         }
       })
