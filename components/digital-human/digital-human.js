@@ -6,12 +6,12 @@ Component({
   },
 
   data: {
-    baseSrc: '/assets/images/wu_base.png',
+    baseSrc: 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_base.png',
     mouthList: [
-      '/assets/images/wu_mouth_1.png',
-      '/assets/images/wu_mouth_2.png',
-      '/assets/images/wu_mouth_3.png',
-      '/assets/images/wu_mouth_4.png'
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_1.png',
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_2.png',
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_3.png',
+      'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/digital-human/wu_mouth_4.png'
     ],
     mouthIndex: -1,
     isSpeaking: false,
@@ -25,10 +25,35 @@ Component({
   lifetimes: {
     attached() {
       this._calcMouthPos();
+      this._loadCloudImages();
     }
   },
 
   methods: {
+    // 通过云函数获取图片临时链接
+    _loadCloudImages() {
+      wx.cloud.callFunction({
+        name: 'presetManager',
+        data: { action: 'getDhImageUrls' }
+      }).then(res => {
+        if (res.result && res.result.code === 0 && res.result.data && res.result.data.images) {
+          const images = res.result.data.images;
+          const baseImg = images.find(img => img.fileName === 'wu_base.png');
+          const mouthImgs = ['wu_mouth_1.png', 'wu_mouth_2.png', 'wu_mouth_3.png', 'wu_mouth_4.png']
+            .map(name => images.find(img => img.fileName === name))
+            .filter(Boolean);
+
+          if (baseImg && baseImg.tempFileURL) {
+            const mouthList = mouthImgs.map(img => img.tempFileURL);
+            console.log('[digital-human] 图片加载成功');
+            this.setData({ baseSrc: baseImg.tempFileURL, mouthList });
+          }
+        }
+      }).catch(err => {
+        console.warn('[digital-human] 获取图片链接失败，使用 cloud:// 路径:', err.message);
+      });
+    },
+
     // 计算嘴巴位置（最终确认版锚点）
     _calcMouthPos() {
       const size = this.properties.size;
