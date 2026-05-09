@@ -312,8 +312,8 @@ async function uploadDhImages(fileUrls) {
 
 // 获取数字人图片的云存储fileID列表
 async function getDhImageUrls() {
-  const env = cloud.DYNAMIC_CURRENT_ENV;
   try {
+    const { env } = cloud.getWXContext();
     const results = await Promise.all(
       DH_IMAGE_NAMES.map(async (fileName) => {
         const cloudPath = `digital-human/${fileName}`;
