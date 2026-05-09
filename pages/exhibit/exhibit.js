@@ -1037,16 +1037,20 @@ Page({
         wx.showToast({ title: '暂无视频文件', icon: 'none' });
       }
     } else {
-      // 文档
+      // 文档 — 在小程序内部预览，不跳转外部编辑器
       const openDoc = (url) => {
         wx.showLoading({ title: '加载中' });
+        const ext = this._extractExt(item.fileId || url || '');
+        const fileType = this._docType(ext);
         wx.downloadFile({
           url,
           success: (dlRes) => {
             wx.hideLoading();
             wx.openDocument({
               filePath: dlRes.tempFilePath,
+              fileType: fileType || undefined,
               showMenu: true,
+              useDocViewAnywhere: false,
               fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
             });
           },
@@ -1076,6 +1080,23 @@ Page({
         wx.showToast({ title: '暂无文件内容', icon: 'none' });
       }
     }
+  },
+
+  // 从路径提取文件扩展名
+  _extractExt(path) {
+    const idx = path.lastIndexOf('.');
+    if (idx === -1) return '';
+    return path.substring(idx + 1).split('?')[0].toLowerCase();
+  },
+
+  // 扩展名映射为 wx.openDocument fileType 参数
+  _docType(ext) {
+    const map = {
+      pdf: 'pdf', doc: 'doc', docx: 'docx',
+      xls: 'xls', xlsx: 'xlsx',
+      ppt: 'ppt', pptx: 'pptx',
+    };
+    return map[ext] || '';
   },
 
   openLink(e) {

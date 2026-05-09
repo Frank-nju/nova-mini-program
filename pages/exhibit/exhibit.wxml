@@ -16,7 +16,7 @@
     <!-- 第一部分：首页（追光封面） -->
     <view class="section section-1" id="section-0">
       <!-- 背景图片 -->
-      <image src="/pages/image/首页.png" class="section-bg-image {{activeStates[0] ? 'active' : ''}}"></image>
+      <image src="/pages/image/首页.png" class="section-bg-image {{activeStates[0] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 封面文字层 -->
       <view class="cover-text-layer">
@@ -25,14 +25,12 @@
           <view class="cover-title-line reveal {{activeStates[0] ? 'visible' : ''}} reveal-delay-2"></view>
           <text class="cover-subtitle reveal {{activeStates[0] ? 'visible' : ''}} reveal-delay-3">吴健雄传</text>
         </view>
-        <view class="cover-hint reveal {{activeStates[0] ? 'visible' : ''}} reveal-delay-4">向下滑动探索</view>
       </view>
 
-      <!-- 制作团队（右下角） -->
-      <view class="cover-credits reveal {{activeStates[0] ? 'visible' : ''}} reveal-delay-5">
-        <view class="cover-credits-line"></view>
-        <text class="cover-credits-label">制作团队</text>
-        <text class="cover-credits-name">nova小分队</text>
+      <!-- 向下滑动提示 -->
+      <view class="scroll-hint-bottom">
+        <view class="scroll-hint-arrow-down"></view>
+        <text class="scroll-hint-text">向下滑动探索</text>
       </view>
     </view>
 
@@ -47,10 +45,16 @@
         <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
-      
+
       <!-- 内容（可选，放在顶部） -->
       <view class="section-content">
         <view class="scene-title scene-title-1">序章</view>
+      </view>
+
+      <!-- 向下滑动提示 -->
+      <view class="scroll-hint-bottom">
+        <view class="scroll-hint-arrow-down"></view>
+        <text class="scroll-hint-text">向下滑动探索</text>
       </view>
     </view>
 
@@ -65,10 +69,16 @@
         <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
-      
+
       <!-- 内容（可选，放在顶部） -->
       <view class="section-content">
         <view class="scene-title scene-title-2">生平履历</view>
+      </view>
+
+      <!-- 向下滑动提示 -->
+      <view class="scroll-hint-bottom">
+        <view class="scroll-hint-arrow-down"></view>
+        <text class="scroll-hint-text">向下滑动探索</text>
       </view>
     </view>
 
@@ -83,10 +93,16 @@
         <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
-      
+
       <!-- 内容（可选，放在顶部） -->
       <view class="section-content">
         <view class="scene-title scene-title-3">治学风骨</view>
+      </view>
+
+      <!-- 向下滑动提示 -->
+      <view class="scroll-hint-bottom">
+        <view class="scroll-hint-arrow-down"></view>
+        <text class="scroll-hint-text">向下滑动探索</text>
       </view>
     </view>
 
@@ -101,10 +117,16 @@
         <text class="scroll-label">点击书本</text>
         <text class="scroll-label-sub">以继续</text>
       </view>
-      
+
       <!-- 内容（可选，放在顶部） -->
       <view class="section-content">
         <view class="scene-title scene-title-4">科研丰碑</view>
+      </view>
+
+      <!-- 向下滑动提示 -->
+      <view class="scroll-hint-bottom">
+        <view class="scroll-hint-arrow-down"></view>
+        <text class="scroll-hint-text">向下滑动探索</text>
       </view>
     </view>
 
@@ -123,6 +145,12 @@
       <!-- 内容（可选，放在顶部） -->
       <view class="section-content">
         <view class="scene-title scene-title-5">尾声</view>
+      </view>
+
+      <!-- 向下滑动提示 -->
+      <view class="scroll-hint-bottom">
+        <view class="scroll-hint-arrow-down"></view>
+        <text class="scroll-hint-text">向下滑动探索</text>
       </view>
     </view>
 
@@ -322,30 +350,39 @@
 
   <!-- 素材展示面板 -->
   <view wx:if="{{showMaterialsPanel}}" class="panel materials-panel">
-    <view class="panel-header">
-      <text class="panel-title">阅读成果</text>
+    <view class="panel-header materials-header">
+      <view class="materials-header-left">
+        <text class="materials-header-icon">✦</text>
+        <text class="panel-title">阅读成果</text>
+      </view>
       <view class="close-btn" bindtap="toggleMaterials">✕</view>
     </view>
 
     <!-- 分类标签栏 -->
     <view class="works-tabs">
       <view class="works-tab {{worksTab === 'all' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="all">
+        <text class="works-tab-icon">◆</text>
         <text>全部</text>
       </view>
       <view class="works-tab {{worksTab === '图片' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="图片">
+        <text class="works-tab-icon">🖼</text>
         <text>图片</text>
       </view>
       <view class="works-tab {{worksTab === '视频' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="视频">
+        <text class="works-tab-icon">▶</text>
         <text>视频</text>
       </view>
       <view class="works-tab {{worksTab === '文档' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="文档">
+        <text class="works-tab-icon">📄</text>
         <text>文档</text>
       </view>
-      <view class="works-tab {{worksTab === '其他' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="其他">
-        <text>其他</text>
-      </view>
       <view class="works-tab {{worksTab === '漫画' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="漫画">
+        <text class="works-tab-icon">📖</text>
         <text>漫画</text>
+      </view>
+      <view class="works-tab {{worksTab === '其他' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="其他">
+        <text class="works-tab-icon">🔗</text>
+        <text>其他</text>
       </view>
     </view>
 
@@ -362,26 +399,34 @@
 
       <view class="works-grid" wx:if="{{worksList.length > 0}}">
         <view wx:for="{{worksList}}" wx:key="fileId" class="works-card" bindtap="previewWork" data-item="{{item}}">
-          <!-- 图片卡片 - 大图展示 -->
+          <!-- 图片卡片 -->
           <view wx:if="{{item.category === '图片'}}" class="works-card-image-wrap">
             <image wx:if="{{item.fileUrl}}" class="works-card-img" src="{{item.fileUrl}}" mode="aspectFill" />
             <view wx:else class="works-card-img-placeholder">
+              <view class="works-card-img-glow"></view>
               <text class="works-card-placeholder-icon">🖼</text>
             </view>
           </view>
           <!-- 视频卡片 -->
           <view wx:elif="{{item.category === '视频'}}" class="works-card-video-wrap">
-            <view class="works-card-video-placeholder">
-              <text class="works-card-video-icon">▶</text>
-            </view>
+            <view class="works-card-video-bg"></view>
+            <view class="works-card-video-play">▶</view>
           </view>
           <!-- 文档卡片 -->
           <view wx:else class="works-card-doc-wrap">
-            <view class="works-card-doc-icon">📄</view>
+            <view class="works-card-doc-lines">
+              <view class="works-card-doc-line line-1"></view>
+              <view class="works-card-doc-line line-2"></view>
+              <view class="works-card-doc-line line-3"></view>
+            </view>
+            <view class="works-card-doc-badge">{{item.displayName ? item.displayName.substring(0, 3) : 'DOC'}}</view>
           </view>
           <view class="works-card-info">
             <text class="works-card-title">{{item.displayName}}</text>
-            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
+            <view class="works-card-author-row" wx:if="{{item.displayAuthor}}">
+              <view class="works-card-author-dot"></view>
+              <text class="works-card-author">{{item.displayAuthor}}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -398,12 +443,16 @@
       </view>
       <view class="works-list" wx:if="{{worksList.length > 0}}">
         <view wx:for="{{worksList}}" wx:key="fileId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
-          <view class="works-list-video">
+          <view class="works-list-video-thumb">
+            <view class="works-list-video-glow"></view>
             <view class="works-list-play-btn">▶</view>
           </view>
           <view class="works-list-info">
             <text class="works-list-title">{{item.displayName}}</text>
-            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
+            <view class="works-list-author-row" wx:if="{{item.displayAuthor}}">
+              <view class="works-list-author-dot"></view>
+              <text class="works-card-author">{{item.displayAuthor}}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -420,10 +469,15 @@
       </view>
       <view class="works-list" wx:if="{{worksList.length > 0}}">
         <view wx:for="{{worksList}}" wx:key="fileId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
-          <view class="works-list-doc-icon">📄</view>
+          <view class="works-list-doc-thumb">
+            <view class="works-list-doc-icon-inner">📄</view>
+          </view>
           <view class="works-list-info">
             <text class="works-list-title">{{item.displayName}}</text>
-            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
+            <view class="works-list-author-row" wx:if="{{item.displayAuthor}}">
+              <view class="works-list-author-dot"></view>
+              <text class="works-card-author">{{item.displayAuthor}}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -440,10 +494,15 @@
       </view>
       <view class="works-list" wx:if="{{worksList.length > 0}}">
         <view wx:for="{{worksList}}" wx:key="fileId" class="works-list-card works-link-card" bindtap="openLink" data-item="{{item}}">
-          <view class="works-link-icon">🔗</view>
+          <view class="works-list-link-thumb">
+            <text>🔗</text>
+          </view>
           <view class="works-list-info">
             <text class="works-list-title">{{item.displayName}}</text>
-            <text wx:if="{{item.displayAuthor}}" class="works-card-author">{{item.displayAuthor}}</text>
+            <view class="works-list-author-row" wx:if="{{item.displayAuthor}}">
+              <view class="works-list-author-dot"></view>
+              <text class="works-card-author">{{item.displayAuthor}}</text>
+            </view>
             <text class="works-link-url">{{item.fileId}}</text>
           </view>
           <view class="works-link-arrow">›</view>
@@ -465,13 +524,17 @@
           <view class="works-card-manga-cover">
             <image wx:if="{{item.pages[0].fileUrl}}" class="works-card-manga-img" src="{{item.pages[0].fileUrl}}" mode="aspectFill" />
             <view wx:else class="works-card-manga-placeholder">
+              <view class="works-card-img-glow"></view>
               <text class="works-card-placeholder-icon">📖</text>
             </view>
             <view class="works-manga-page-count">{{item.pages.length}}P</view>
           </view>
           <view class="works-card-info">
             <text class="works-manga-title">{{item.title}}</text>
-            <text class="works-manga-author">{{item.author}}</text>
+            <view class="works-card-author-row" wx:if="{{item.author}}">
+              <view class="works-card-author-dot"></view>
+              <text class="works-manga-author">{{item.author}}</text>
+            </view>
           </view>
         </view>
       </view>
