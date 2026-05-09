@@ -25,7 +25,27 @@ Component({
   lifetimes: {
     attached() {
       this._calcMouthPos();
+      this._loadCloudImages();
     }
+  },
+
+  // 加载云存储图片（将 cloud:// 转换为临时 HTTPS 链接）
+  _loadCloudImages() {
+    const fileList = [this.data.baseSrc, ...this.data.mouthList];
+    wx.cloud.getTempFileURL({
+      fileList,
+      success: (res) => {
+        if (res.fileList && res.fileList.length > 0) {
+          const baseSrc = res.fileList[0].tempFileURL;
+          const mouthList = res.fileList.slice(1).map(item => item.tempFileURL);
+          this.setData({ baseSrc, mouthList });
+          console.log('[digital-human] 图片加载成功');
+        }
+      },
+      fail: (err) => {
+        console.error('[digital-human] 图片加载失败:', err);
+      }
+    });
   },
 
   methods: {
