@@ -29,26 +29,26 @@ Component({
     }
   },
 
-  // 加载云存储图片（将 cloud:// 转换为临时 HTTPS 链接）
-  _loadCloudImages() {
-    const fileList = [this.data.baseSrc, ...this.data.mouthList];
-    wx.cloud.getTempFileURL({
-      fileList,
-      success: (res) => {
-        if (res.fileList && res.fileList.length > 0) {
-          const baseSrc = res.fileList[0].tempFileURL;
-          const mouthList = res.fileList.slice(1).map(item => item.tempFileURL);
-          this.setData({ baseSrc, mouthList });
-          console.log('[digital-human] 图片加载成功');
-        }
-      },
-      fail: (err) => {
-        console.error('[digital-human] 图片加载失败:', err);
-      }
-    });
-  },
-
   methods: {
+    // 将 cloud:// 路径转换为带签名的 HTTPS 临时链接
+    _loadCloudImages() {
+      const fileList = [this.data.baseSrc, ...this.data.mouthList];
+      wx.cloud.getTempFileURL({
+        fileList,
+        success: (res) => {
+          if (res.fileList && res.fileList.length > 0) {
+            const baseSrc = res.fileList[0].tempFileURL;
+            const mouthList = res.fileList.slice(1).map(item => item.tempFileURL);
+            this.setData({ baseSrc, mouthList });
+            console.log('[digital-human] 图片加载成功');
+          }
+        },
+        fail: (err) => {
+          console.error('[digital-human] 图片加载失败:', err);
+        }
+      });
+    },
+
     // 计算嘴巴位置（最终确认版锚点）
     _calcMouthPos() {
       const size = this.properties.size;
