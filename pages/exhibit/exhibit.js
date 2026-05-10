@@ -169,6 +169,15 @@ Page({
       { year: '至今', title: '薪火相传', desc: '东南大学、南京大学等多所高校设有"吴健雄学院"与"吴健雄奖学金"，持续培养新一代科学人才。' },
     ],
 
+    // 用户致敬留言
+    userTributes: [],
+    tributeLoading: false,
+    tributeHasMore: true,
+    tributePage: 1,
+    tributeInputValue: '',
+    tributeSubmitting: false,
+    tributeInputFocused: false,
+
     // 答题区状态
     showQuizPanel: false,
     quizQuestions: [],
@@ -207,12 +216,14 @@ Page({
     // 云调用在渲染后异步执行，不阻塞页面
     this.loadPageImages();
     setTimeout(() => this.loadProgress(), 300);
+    setTimeout(() => this.loadTributes(true), 600);
     // 初始化预设问题
     this.updateSectionPresets('section-0');
   },
 
   onShow() {
     setTimeout(() => this.loadProgress(), 300);
+    setTimeout(() => this.loadTributes(true), 600);
   },
 
   initializeEventClouds() {
@@ -1499,5 +1510,84 @@ Page({
 
   onDigitalHumanError(e) {
     console.error('[digital-human] 错误:', e.detail.err);
+  },
+
+  // ===== 用户致敬留言 =====
+
+  loadTributes(isRefresh) {
+    if (this.data.tributeLoading || (!this.data.tributeHasMore && !isRefresh)) return;
+
+    const page = isRefresh ? 1 : this.data.tributePage;
+    this.setData({ tributeLoading: true });
+
+    cloudUtil.getTributes({ page, pageSize: 20 }).then(res => {
+      if (!res || res.code !== 0) {
+        console.error('[loadTributes] 请求失败:', res);
+        this.setData({ tributeLoading: false });
+        return;
+      }
+      const list = res.data.list || [];
+      this.setData({
+        userTributes: isRefresh ? list : this.data.userTributes.concat(list),
+        tributePage: page + 1,
+        tributeHasMore: res.data.hasMore,
+        tributeLoading: false,
+      });
+    }).catch(err => {
+      console.error('[loadTributes] 异常:', err);
+      this.setData({ tributeLoading: false });
+    });
+  },
+
+  onTributeInput(e) {
+    this.setData({ tributeInputValue: e.detail.value });
+  },
+
+  onTributeFocus() {
+    this.setData({ tributeInputFocused: true });
+  },
+
+  onTributeBlur() {
+    this.setData({ tributeInputFocused: false });
+  },
+
+  submitTribute() {
+    const message = this.data.tributeInputValue.trim();
+    if (!message) {
+      wx.showToast({ title: '请输入致敬内容', icon: 'none' });
+      return;
+    }
+    if (message.length > 500) {
+      wx.showToast({ title: '内容不能超过500字', icon: 'none' });
+      return;
+    }
+    if (this.data.tributeSubmitting) return;
+
+    this.setData({ tributeSubmitting: true });
+
+    cloudUtil.submitTribute({ message }).then(res => {
+      if (res.code === 0) {
+        wx.showToast({ title: '致敬已提交', icon: 'success' });
+        const newItem = {
+          _id: res.data.tributeId,
+          message: res.data.message,
+          nickname: res.data.nickname,
+          avatarUrl: res.data.avatarUrl,
+          createdAt: res.data.createdAt,
+        };
+        this.setData({
+          tributeInputValue: '',
+          tributeSubmitting: false,
+          userTributes: [newItem].concat(this.data.userTributes),
+        });
+      } else {
+        wx.showToast({ title: res.message || '提交失败', icon: 'none' });
+        this.setData({ tributeSubmitting: false });
+      }
+    }).catch(err => {
+      console.error('[submitTribute] 异常:', err);
+      wx.showToast({ title: '网络异常，请重试', icon: 'none' });
+      this.setData({ tributeSubmitting: false });
+    });
   },
 });

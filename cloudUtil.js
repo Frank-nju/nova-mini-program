@@ -257,6 +257,42 @@ function resetProgress() {
   });
 }
 
+function submitTribute(params) {
+  if (!params || !params.message || typeof params.message !== 'string' || !params.message.trim()) {
+    return Promise.resolve({ code: 1001, message: '参数 message 缺失或为空', data: null });
+  }
+  const trimmed = params.message.trim();
+  if (trimmed.length > 500) {
+    return Promise.resolve({ code: 1001, message: 'message 不能超过 500 个字符', data: null });
+  }
+  return call('submitTribute', { message: trimmed }, 5000).then(res => {
+    if (!res || res.code !== 0) {
+      return res || { code: 9999, message: '响应异常', data: null };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] submitTribute 失败:', err.message);
+    return { code: 1, message: err.message, data: null };
+  });
+}
+
+function getTributes(params) {
+  const opts = params || {};
+  return call('getTributes', {
+    page: opts.page || 1,
+    pageSize: Math.min(opts.pageSize || 20, 50),
+  }, 8000).then(res => {
+    const valid = validateResponse('getTributes', res, ['list', 'total', 'page', 'pageSize', 'hasMore']);
+    if (!valid) {
+      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: { list: [], total: 0, page: 1, pageSize: 20, hasMore: false } };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] getTributes 失败:', err.message);
+    return { code: 1, message: err.message, data: { list: [], total: 0, page: 1, pageSize: 20, hasMore: false } };
+  });
+}
+
 module.exports = {
   call,
   isCloudAvailable,
@@ -274,4 +310,6 @@ module.exports = {
   getPresetQuestions,
   getPageImages,
   resetProgress,
+  submitTribute,
+  getTributes,
 };
