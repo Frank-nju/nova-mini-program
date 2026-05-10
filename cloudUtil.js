@@ -232,6 +232,19 @@ function getPresetQuestions() {
   ];
 }
 
+function getPageImages() {
+  return call('getPageImages', {}, 10000).then(res => {
+    const valid = validateResponse('getPageImages', res, ['images']);
+    if (!valid) {
+      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: { images: [] } };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] getPageImages 失败:', err.message);
+    return { code: 1, message: err.message, data: { images: [] } };
+  });
+}
+
 function resetProgress() {
   return call('resetProgress', {}, 5000).then(res => {
     if (!res || res.code !== 0) {
@@ -259,5 +272,6 @@ module.exports = {
   getDigitalHumanScript,
   chatWithDigitalHuman,
   getPresetQuestions,
+  getPageImages,
   resetProgress,
 };

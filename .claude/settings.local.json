@@ -8,7 +8,19 @@
       "Bash(ls -la pages/starmap/)",
       "Bash(ls -la pages/story/)",
       "Bash(ls -la pages/cloud/)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(cp \"D:/nova-mini-program - 副本/subpkg/pages/story/story.js\" \"D:/nova-mini-program/subpkg/pages/story/story.js\")",
+      "Bash(cp \"D:/nova-mini-program - 副本/subpkg/pages/story/story.wxml\" \"D:/nova-mini-program/subpkg/pages/story/story.wxml\")",
+      "Bash(cp \"D:/nova-mini-program - 副本/subpkg/pages/story/story.json\" \"D:/nova-mini-program/subpkg/pages/story/story.json\")",
+      "Bash(cp \"D:/nova-mini-program - 副本/subpkg/pages/story/story.wxss\" \"D:/nova-mini-program/subpkg/pages/story/story.wxss\")",
+      "Bash(node -c pages/exhibit/exhibit.js)",
+      "Bash(node -c components/digital-human/digital-human.js)",
+      "Bash(node -c cloudfunctions/presetManager/index.js)",
+      "Bash(node -c subpkg/pages/manga-viewer/manga-viewer.js)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('app.json'\\)\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('app.json','utf8'\\)\\); console.log\\('valid'\\)\")",
+      "Bash(git ls-tree *)",
+      "Bash(xxd \"D:/nova-mini-program/subpkg/pages/manga-viewer/manga-viewer.js\")"
     ]
   }
 }

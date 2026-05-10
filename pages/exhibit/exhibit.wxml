@@ -7,16 +7,14 @@
   </view>
 
   <!-- 六部分卷轴区域 -->
-  <scroll-view class="sections-scroll" scroll-y="{{true}}" 
+  <scroll-view class="sections-scroll" scroll-y="{{true}}"
                bindscroll="onScroll"
-               scroll-into-view="{{currentSection}}"
-               scroll-with-animation="{{true}}"
                style="height: {{screenHeight}}px">
     
     <!-- 第一部分：首页（追光封面） -->
     <view class="section section-1" id="section-0">
       <!-- 背景图片 -->
-      <image src="/pages/image/首页.png" class="section-bg-image {{activeStates[0] ? 'active' : ''}}" mode="aspectFill"></image>
+      <image src="{{pageImages['首页'] || '/pages/image/首页.png'}}" class="section-bg-image {{activeStates[0] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 封面文字层 -->
       <view class="cover-text-layer">
@@ -37,7 +35,7 @@
     <!-- 第二部分：序章 · 西学求索 -->
     <view class="section section-2" id="section-1">
       <!-- 背景图片 -->
-      <image src="/pages/image/序章.jpg" class="section-bg-image {{activeStates[1] ? 'active' : ''}}" mode="aspectFill"></image>
+      <image src="{{pageImages['序章'] || '/pages/image/序章.jpg'}}" class="section-bg-image {{activeStates[1] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-1" bindtap="enterStory" data-section="1">
@@ -61,7 +59,7 @@
     <!-- 第三部分：生平履历 · 孤行远方 -->
     <view class="section section-3" id="section-2">
       <!-- 背景图片 -->
-      <image src="/pages/image/生平履历.jpg" class="section-bg-image {{activeStates[2] ? 'active' : ''}}" mode="aspectFill"></image>
+      <image src="{{pageImages['生平履历'] || '/pages/image/生平履历.jpg'}}" class="section-bg-image {{activeStates[2] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-2" bindtap="enterStory" data-section="2">
@@ -85,7 +83,7 @@
     <!-- 第四部分：治学风骨 · 严谨之光 -->
     <view class="section section-4" id="section-3">
       <!-- 背景图片 -->
-      <image src="/pages/image/治学风骨.jpg" class="section-bg-image {{activeStates[3] ? 'active' : ''}}" mode="aspectFill"></image>
+      <image src="{{pageImages['治学风骨'] || '/pages/image/治学风骨.jpg'}}" class="section-bg-image {{activeStates[3] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-3" bindtap="enterStory" data-section="3">
@@ -109,7 +107,7 @@
     <!-- 第五部分：科研丰碑 · 宇称不守恒 -->
     <view class="section section-5" id="section-4">
       <!-- 背景图片 -->
-      <image src="/pages/image/科研丰碑.jpg" class="section-bg-image {{activeStates[4] ? 'active' : ''}}" mode="aspectFill"></image>
+      <image src="{{pageImages['科研丰碑'] || '/pages/image/科研丰碑.jpg'}}" class="section-bg-image {{activeStates[4] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-4" bindtap="enterStory" data-section="4">
@@ -133,7 +131,7 @@
     <!-- 第六部分：尾声 · 荣耀归来 -->
     <view class="section section-6" id="section-5">
       <!-- 背景图片 -->
-      <image src="/pages/image/尾声.jpg" class="section-bg-image {{activeStates[5] ? 'active' : ''}}" mode="aspectFill"></image>
+      <image src="{{pageImages['尾声'] || '/pages/image/尾声.jpg'}}" class="section-bg-image {{activeStates[5] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 书本叠加层 - 位置在图片底部中央 -->
       <view class="scroll-overlay scroll-overlay-5" bindtap="enterStory" data-section="5">
@@ -275,6 +273,13 @@
     </view>
   </view>
 
+  <!-- 故事完成通知 -->
+  <view wx:if="{{storyCompleteNotification}}" class="story-complete-toast" style="animation: storyCompletePop 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards">
+    <view class="story-complete-icon">✓</view>
+    <view class="story-complete-title">{{storyCompleteNotification.title}}</view>
+    <view class="story-complete-text">{{storyCompleteNotification.text}}</view>
+  </view>
+
   <!-- 徽章成就面板 -->
   <view wx:if="{{showBadgePanel}}" class="panel badge-panel">
     <view class="panel-header">
@@ -291,58 +296,72 @@
     </view>
   </view>
 
-  <!-- 数字人面板 -->
-  <view wx:if="{{showAIPanel}}" class="panel ai-panel">
-    <!-- 背景装饰 -->
-    <view class="ai-bg"></view>
-
-    <view class="panel-header ai-header">
-      <view class="ai-header-left">
-        <text class="ai-avatar-icon">🧪</text>
-        <text class="panel-title">吴健雄</text>
-      </view>
-      <view class="close-btn" bindtap="toggleAI">✕</view>
+  <!-- 数字人面板（全屏） -->
+  <view wx:if="{{showAIPanel}}" class="ai-panel-fullscreen">
+    <!-- 全屏数字人背景 -->
+    <view class="ai-digital-human-bg">
+      <digital-human id="digitalHumanExhibit" size="750" bind:message="onDigitalHumanMessage" bind:speakEnd="onSpeakEnd" bind:error="onDigitalHumanError" />
     </view>
 
-    <!-- 聊天消息区 -->
-    <scroll-view class="ai-messages-scroll" scroll-y="{{true}}" scroll-into-view="{{aiScrollId}}" scroll-with-animation="{{true}}">
-      <view class="ai-messages-container">
-        <!-- 欢迎语 -->
-        <view class="ai-msg ai-msg-welcome">
-          <view class="ai-msg-avatar">🧪</view>
-          <view class="ai-msg-bubble">
-            欢迎来到追光健雄云端数字展馆。我是吴健雄，很高兴能带你走进我的人生旅程。你可以问我关于求学经历、科研探索、人生感悟，或者任何你感兴趣的话题。
+    <!-- 顶部关闭按钮 -->
+    <view class="ai-fullscreen-header">
+      <view class="ai-close-btn" bindtap="toggleAI">✕</view>
+    </view>
+
+    <!-- 聊天消息区（底部，不遮挡面部） -->
+    <scroll-view class="ai-messages-float" scroll-y="{{true}}" scroll-into-view="{{aiScrollId}}" scroll-with-animation="{{true}}">
+      <!-- 欢迎语 -->
+      <view class="ai-float-msg ai-float-welcome">
+        <view class="ai-float-bubble ai">
+          <text>{{welcomeMessage}}</text>
+        </view>
+      </view>
+
+      <!-- 聊天记录 -->
+      <view wx:for="{{aiMessages}}" wx:key="id" id="ai-msg-{{item.id}}">
+        <!-- 用户消息 -->
+        <view wx:if="{{item.role === 'user'}}" class="ai-float-msg ai-float-user">
+          <view class="ai-float-bubble user">
+            <text>{{item.text}}</text>
           </view>
         </view>
 
-        <!-- 聊天记录 -->
-        <view wx:for="{{aiMessages}}" wx:key="id" id="ai-msg-{{item.id}}" class="ai-msg {{item.role === 'user' ? 'ai-msg-user' : 'ai-msg-ai'}} {{item.loading ? 'ai-msg-loading-wrap' : ''}}">
-          <view wx:if="{{item.role === 'ai'}}" class="ai-msg-avatar">🧪</view>
-          <view class="ai-msg-bubble {{item.role === 'user' ? 'user-bubble' : 'ai-bubble'}} {{item.loading ? 'ai-loading-bubble' : ''}}">
+        <!-- AI消息 -->
+        <view wx:if="{{item.role === 'ai'}}" class="ai-float-msg ai-float-ai">
+          <view class="ai-float-bubble ai">
             <text wx:if="{{item.loading}}" class="ai-typing-dots"><text></text><text></text><text></text></text>
             <text wx:else>{{item.text}}</text>
           </view>
+          <!-- 语音按钮 -->
+          <view wx:if="{{item.audioUrl && !item.audioPlaying}}" class="ai-float-audio-btn" bindtap="playAudioUrl" data-audiourl="{{item.audioUrl}}" data-msgid="{{item.id}}">
+            <text>▶</text>
+          </view>
+          <view wx:if="{{item.audioPlaying}}" class="ai-float-audio-btn playing" bindtap="stopAudio">
+            <text>⏸</text>
+          </view>
         </view>
       </view>
-      <view style="height: 16rpx;"></view>
+      <view style="height: 40rpx;"></view>
     </scroll-view>
 
-    <!-- 预设问题 -->
-    <view wx:if="{{!aiChatting}}" class="ai-presets">
-      <text class="ai-presets-label">你可以这样问我：</text>
-      <view class="ai-preset-btns">
-        <view wx:for="{{presetQuestions}}" wx:key="index" class="ai-preset-chip" bindtap="sendPreset" data-index="{{index}}">
-          <text>{{item}}</text>
-        </view>
+    <!-- 底部区域 -->
+    <view class="ai-bottom-float">
+      <!-- 预设问题（根据当前页面动态） -->
+      <view wx:if="{{!aiChatting && presetQuestions.length > 0}}" class="ai-presets-float">
+        <scroll-view scroll-x class="ai-presets-scroll">
+          <view class="ai-presets-list">
+            <view wx:for="{{presetQuestions}}" wx:key="id" class="ai-preset-chip-float" bindtap="sendPreset" data-id="{{item.id}}" data-question="{{item.question}}">
+              <text>{{item.question}}</text>
+            </view>
+          </view>
+        </scroll-view>
       </view>
-    </view>
 
-    <!-- 输入区 -->
-    <view class="ai-input-area">
-      <view class="ai-input-row">
-        <input class="ai-input" value="{{aiInputValue}}" bindinput="onAiInput" bindconfirm="sendAiMessage" placeholder="输入你想问吴先生的问题..." disabled="{{aiChatting}}" maxlength="100" confirm-type="send" />
-        <view class="ai-send-btn {{aiChatting || !aiInputValue ? 'disabled' : ''}}" bindtap="sendAiMessage">
-          <text>{{aiChatting ? '思考中' : '发送'}}</text>
+      <!-- 输入区 -->
+      <view class="ai-input-float">
+        <input class="ai-input-field" value="{{aiInputValue}}" bindinput="onAiInput" bindconfirm="sendAiMessage" placeholder="输入问题..." disabled="{{aiChatting}}" confirm-type="send" />
+        <view class="ai-send-float {{aiChatting || !aiInputValue ? 'disabled' : ''}}" bindtap="sendAiMessage">
+          <text>{{aiChatting ? '...' : '发送'}}</text>
         </view>
       </view>
     </view>

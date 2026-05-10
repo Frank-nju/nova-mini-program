@@ -46,6 +46,21 @@ exports.main = async (event, context) => {
     return generateOnePreset(preset);
   }
 
+  // 上传数字人图片到云存储（从临时文件URL）
+  if (action === 'uploadDhImages') {
+    return uploadDhImages(event.fileUrls || []);
+  }
+
+  // 获取数字人图片的云存储fileID列表
+  if (action === 'getDhImageUrls') {
+    return getDhImageUrls();
+  }
+
+  // 检查数字人图片大小（排查是否上传失败）
+  if (action === 'checkDhImages') {
+    return checkDhImages();
+  }
+
   return { code: 1001, message: '未知action', data: null };
 };
 
@@ -261,5 +276,131 @@ function callTTS(text) {
         }
       }
     }, 30000);
+  });
+}
+
+// ========== 数字人图片管理 ==========
+
+const DH_IMAGE_NAMES = [
+  'wu_base.png',
+  'wu_mouth_1.png',
+  'wu_mouth_2.png',
+  'wu_mouth_3.png',
+  'wu_mouth_4.png',
+];
+
+// 上传数字人图片到云存储（从小程序端传入临时文件路径）
+async function uploadDhImages(fileUrls) {
+  if (!fileUrls || fileUrls.length === 0) {
+    return { code: 1005, message: '请提供图片临时路径列表', data: null };
+  }
+
+  const results = [];
+  for (let i = 0; i < Math.min(fileUrls.length, DH_IMAGE_NAMES.length); i++) {
+    const fileName = DH_IMAGE_NAMES[i];
+    const cloudPath = `digital-human/${fileName}`;
+    try {
+      const uploadRes = await cloud.uploadFile({
+        cloudPath,
+        fileContent: fileUrls[i], // 小程序端传来的临时文件路径
+      });
+      results.push({ fileName, fileID: uploadRes.fileID, status: 'ok' });
+      console.log(`[dh-image] ${fileName} 上传成功: ${uploadRes.fileID}`);
+    } catch (e) {
+      results.push({ fileName, error: e.message, status: 'error' });
+      console.error(`[dh-image] ${fileName} 上传失败:`, e.message);
+    }
+  }
+
+  return { code: 0, message: 'ok', data: { results } };
+}
+
+// 获取数字人图片的云存储fileID列表
+async function getDhImageUrls() {
+  // 从上传结果获取的环境ID
+  const ENV_ID = 'cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578';
+  try {
+    const results = await Promise.all(
+      DH_IMAGE_NAMES.map(async (fileName) => {
+        const fileID = `cloud://${ENV_ID}/digital-human/${fileName}`;
+        try {
+          const res = await cloud.getTempFileURL({
+            fileList: [fileID],
+          });
+          console.log(`[dh-image] ${fileName} getTempFileURL result:`, JSON.stringify(res.fileList[0]));
+          if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
+            return {
+              fileName,
+              fileID: res.fileList[0].fileID,
+              tempFileURL: res.fileList[0].tempFileURL,
+              status: 'ok',
+            };
+          }
+          // 文件存在但获取临时链接失败，也返回fileID
+          if (res.fileList && res.fileList[0] && res.fileList[0].fileID) {
+            return {
+              fileName,
+              fileID: res.fileList[0].fileID,
+              status: res.fileList[0].status || 'no_temp_url',
+            };
+          }
+          return { fileName, status: 'not_found' };
+        } catch (e) {
+          console.error(`[dh-image] ${fileName} getTempFileURL error:`, e.message);
+          return { fileName, status: 'not_found', error: e.message };
+        }
+      })
+    );
+    return { code: 0, message: 'ok', data: { images: results } };
+  } catch (e) {
+    return { code: 1006, message: e.message, data: null };
+  }
+}
+
+// 检查数字人图片实际大小
+async function checkDhImages() {
+  const envId = 'cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578';
+  const results = [];
+
+  for (const fileName of DH_IMAGE_NAMES) {
+    const fileID = `cloud://${envId}/digital-human/${fileName}`;
+    try {
+      const res = await cloud.getTempFileURL({ fileList: [fileID] });
+      const fileRes = res.fileList[0];
+
+      if (!fileRes.tempFileURL) {
+        results.push({ fileName, size: 0, status: 'no_temp_url' });
+        continue;
+      }
+
+      // 下载文件检查大小
+      const size = await downloadFileSize(fileRes.tempFileURL);
+      const sizeKB = (size / 1024).toFixed(1);
+      console.log(`[dh-check] ${fileName}: ${size} bytes (${sizeKB} KB)`);
+
+      results.push({
+        fileName,
+        size,
+        sizeKB,
+        status: size < 1000 ? 'too_small' : 'ok',
+      });
+    } catch (e) {
+      console.error(`[dh-check] ${fileName} error:`, e.message);
+      results.push({ fileName, status: 'error', error: e.message });
+    }
+  }
+
+  return { code: 0, message: 'ok', data: { images: results } };
+}
+
+function downloadFileSize(url) {
+  return new Promise((resolve, reject) => {
+    const https = require('https');
+    let totalSize = 0;
+
+    https.get(url, (res) => {
+      res.on('data', (chunk) => { totalSize += chunk.length; });
+      res.on('end', () => resolve(totalSize));
+    }).on('error', reject);
   });
 }
