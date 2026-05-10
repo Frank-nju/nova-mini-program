@@ -27,7 +27,6 @@
   width: 100%;
   height: 100%;
   transform-origin: center;
-  transition: transform 0.2s ease;
 }
 
 .line-canvas {
@@ -53,25 +52,43 @@
   50% { opacity: 0.7; box-shadow: 0 0 15rpx #44aaff, 0 0 30rpx rgba(68, 170, 255, 0.5); }
 }
 
+/* star-node 作为 0×0 定位锚点，star-core 绝对居中于此锚点 */
 .star-node {
   position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   z-index: 2;
   cursor: pointer;
   transform: translate(-50%, -50%);
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.6s ease;
+}
+
+.node-fade-out {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .star-node:active {
   transform: translate(-50%, -50%) scale(1.3);
 }
 
-/* 星星内核 - 灰暗状态 */
+/* star-core 绝对居中于锚点 */
+.star-core {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+/* star-text 绝对定位在 core 下方 */
+.star-text {
+  position: absolute;
+  left: 0;
+  transform: translate(-50%, 0);
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+/* ─── 暗状态 ─── */
 .is-dark .star-core {
-  width: 12rpx;
-  height: 12rpx;
+  width: 14rpx;
+  height: 14rpx;
   background: rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   transition: all 0.5s ease;
@@ -80,15 +97,14 @@
 .is-dark .star-text {
   color: rgba(255, 255, 255, 0.2);
   font-size: 20rpx;
-  margin-top: 8rpx;
-  white-space: nowrap;
+  top: 14rpx;
   transition: all 0.3s ease;
 }
 
-/* 星星内核 - 点亮状态 */
+/* ─── 点亮状态 ─── */
 .is-lit .star-core {
-  width: 16rpx;
-  height: 16rpx;
+  width: 18rpx;
+  height: 18rpx;
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 0 20rpx #44aaff, 0 0 40rpx #fff;
@@ -98,12 +114,50 @@
 .is-lit .star-text {
   color: #fff;
   font-size: 22rpx;
-  margin-top: 8rpx;
-  white-space: nowrap;
+  top: 16rpx;
   text-shadow: 0 0 10rpx #44aaff;
 }
 
-/* 缩放控制按钮 */
+/* ─── 中心节点呼吸动画（微金柔光） ─── */
+@keyframes centerBreathe {
+  0%, 100% { opacity: 1; box-shadow: 0 0 60rpx rgba(255, 180, 50, 0.45), 0 0 120rpx rgba(255, 150, 30, 0.22), 0 0 180rpx rgba(255, 255, 240, 0.4); }
+  50% { opacity: 0.88; box-shadow: 0 0 45rpx rgba(255, 170, 40, 0.35), 0 0 90rpx rgba(255, 140, 20, 0.15), 0 0 130rpx rgba(255, 255, 240, 0.28); }
+}
+
+/* ─── 中心节点 - 暗 ─── */
+.is-center.is-dark .star-core {
+  width: 22rpx;
+  height: 22rpx;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  transition: all 0.5s ease;
+}
+
+.is-center.is-dark .star-text {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 24rpx;
+  top: 18rpx;
+  transition: all 0.3s ease;
+}
+
+/* ─── 中心节点 - 点亮（微金柔光，边缘模糊） ─── */
+.is-center.is-lit .star-core {
+  width: 35rpx;
+  height: 35rpx;
+  background: #fffef7;
+  border-radius: 50%;
+  box-shadow: 0 0 60rpx rgba(255, 180, 50, 0.45), 0 0 120rpx rgba(255, 150, 30, 0.22), 0 0 180rpx rgba(255, 255, 240, 0.4);
+  animation: centerBreathe 2.5s infinite ease-in-out;
+}
+
+.is-center.is-lit .star-text {
+  color: #fff;
+  font-size: 30rpx;
+  top: 26rpx;
+  text-shadow: 0 0 20rpx #44aaff, 0 0 40rpx rgba(68, 170, 255, 0.6);
+}
+
+/* ─── 缩放控制按钮 ─── */
 .zoom-controls {
   position: fixed;
   bottom: 60rpx;
@@ -134,7 +188,7 @@
   box-shadow: 0 6px 20rpx rgba(68, 170, 255, 0.6);
 }
 
-/* 调试重置按钮 */
+/* ─── 调试重置按钮 ─── */
 .debug-reset-btn {
   position: fixed;
   bottom: 60rpx;
@@ -158,3 +212,11 @@
   box-shadow: 0 6px 20rpx rgba(255, 100, 100, 0.6);
 }
 
+/* ─── 标签平滑显隐 ─── */
+.star-text.label-show {
+  opacity: 1;
+}
+
+.star-text.label-hide {
+  opacity: 0;
+}
