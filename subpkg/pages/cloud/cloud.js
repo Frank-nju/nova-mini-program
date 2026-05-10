@@ -32,18 +32,48 @@ const UNLOCK_RULES = {
 // 每条连线的点亮条件 = 其目标节点的解锁条件
 // key 格式: 'fromNodeId->toNodeId'
 var CONNECTION_UNLOCK_RULES = {
-  // 3条放射连线(中心→各阶段入口)
-  'node_0->node_1': function (tl) { return hasNode(tl, 'n1'); },
-  'node_0->node_6': function (tl) { return hasNode(tl, 'n19'); },
-  'node_0->node_7': function (tl) { return ['n19','n20','n21','n22','n23','n24'].every(function (id) { return hasNode(tl, id); }); },
+  // 8条放射连线(中心→各节点)：必须全部节点点亮后才亮
+  'node_0->node_1': function (tl) { return UNLOCK_RULES['node_0'](tl); },
+  'node_0->node_2': function (tl) { return UNLOCK_RULES['node_0'](tl); },
+  'node_0->node_3': function (tl) { return UNLOCK_RULES['node_0'](tl); },
+  'node_0->node_4': function (tl) { return UNLOCK_RULES['node_0'](tl); },
+  'node_0->node_5': function (tl) { return UNLOCK_RULES['node_0'](tl); },
+  'node_0->node_6': function (tl) { return UNLOCK_RULES['node_0'](tl); },
+  'node_0->node_7': function (tl) { return UNLOCK_RULES['node_0'](tl); },
+  'node_0->node_8': function (tl) { return UNLOCK_RULES['node_0'](tl); },
   // 2条时间连线(章节内推进)
   'node_1->node_2': function (tl) { return ['n1','n2','n3','n4','n5','n6'].every(function (id) { return hasNode(tl, id); }); },
+  'node_2->node_3': function (tl) { return hasNode(tl, 'n7'); },
   'node_3->node_4': function (tl) { return ['n7','n8','n9'].every(function (id) { return hasNode(tl, id); }); },
   'node_4->node_5': function (tl) { return ['n7','n8','n9','n10','n11','n12'].every(function (id) { return hasNode(tl, id); }); },
+  'node_5->node_6': function (tl) { return hasNode(tl, 'n19'); },
   // 1条逻辑连线(发现→荣誉)
   'node_6->node_7': function (tl) { return ['n19','n20','n21','n22','n23','n24'].every(function (id) { return hasNode(tl, id); }); },
   // 1条精神传承连线(荣誉→遗产)
   'node_7->node_8': function (tl) { return ['n25','n26','n27','n28','n29','n30'].every(function (id) { return hasNode(tl, id); }); },
+};
+
+// ─── 节点年份（吴健雄生平关键节点） ───
+var NODE_YEARS = {
+  'node_1': '1912',
+  'node_2': '1923',
+  'node_3': '1929',
+  'node_4': '1934',
+  'node_5': '1936',
+  'node_6': '1944',
+  'node_7': '1956',
+  'node_8': '1997',
+};
+
+// ─── 时间线刻度点年份（段间里程碑） ───
+var TIMELINE_DOT_YEARS = {
+  'node_1->node_2': ['1915', '1918', '1921'],
+  'node_2->node_3': ['1925', '1927', '1928'],
+  'node_3->node_4': ['1930', '1932', '1933'],
+  'node_4->node_5': ['1934', '1935', '1936'],
+  'node_5->node_6': ['1938', '1940', '1942'],
+  'node_6->node_7': ['1948', '1952', '1954'],
+  'node_7->node_8': ['1965', '1975', '1990'],
 };
 
 Page({
@@ -57,6 +87,7 @@ Page({
     lastTouchY: 0,
     scaleMin: 0.5,
     scaleMax: 2.0,
+    zoomState: 4,
     canvas: null,
     ctx: null,
     canvasWidth: 0,
@@ -114,6 +145,35 @@ Page({
     this.stopAnimation();
   },
 
+  // ─── 缩放状态 0~8（4=默认） ───
+  _getZoomState() {
+    var s = this.data.mapScale;
+    var state = 4 - Math.round(Math.log(s) / Math.log(1.18));
+    if (state < 0) state = 0;
+    if (state > 8) state = 8;
+    return state;
+  },
+
+  _updateZoomState() {
+    var st = this._getZoomState();
+    if (st !== this._zoomStatePending) {
+      this._zoomStatePending = st;
+      this._zoomStatePendingFrame = this._frameCount;
+    }
+    // 插值结束后或每 15 帧才更新 CSS 状态，让 CSS transition 有时间完成
+    if (st !== this.data.zoomState && this._interpTarget === undefined) {
+      this._flushZoomState(st);
+    } else if (st !== this.data.zoomState && this._frameCount - (this._zoomStatePendingFrame || 0) >= 15) {
+      this._flushZoomState(st);
+    }
+  },
+
+  _flushZoomState(st) {
+    if (st !== this.data.zoomState) {
+      this.setData({ zoomState: st });
+    }
+  },
+
   // ─── 从云端数据构建全部节点 ───
   buildFromCloud(cloudNodes, cloudConnections) {
     // 归一化 nodeId（数据库中有 nodeId 和 nodeid 两种写法）
@@ -162,14 +222,17 @@ Page({
       }
       label = label.replace(/&/g, '＆').replace(/</g, '＜').replace(/>/g, '＞');
 
-      var bx = 375; // 默认居中
-      var by = 667;
+      var cx = 375, cy = 667; // 设计稿中心
+      var bx = cx;
+      var by = cy;
       if (cn.position && typeof cn.position === 'object') {
         var px = Number(cn.position.x);
         var py = Number(cn.position.y);
         if (!isNaN(px) && !isNaN(py)) {
-          bx = px * 750;
-          by = py * 1334;
+          // 以中心为原点扩散 20%，节点间距拉开
+          var spread = 1.2;
+          bx = cx + (px * 750 - cx) * spread;
+          by = cy + (py * 1334 - cy) * spread;
         }
       }
 
@@ -179,6 +242,7 @@ Page({
         section: cn.section || 0,
         type: cn.type || 'event',
         title: label,
+        year: NODE_YEARS[normId(cn)] || '',
         color: cn.color || '#64c8ff',
         shape: cn.shape || 'circle',
         baseX: bx,
@@ -316,8 +380,10 @@ Page({
   drawLines() {
     var query = wx.createSelectorQuery();
     var self = this;
-    query.select('#lineCanvas').fields({ node: true, size: true }).exec(function (res) {
-      if (!res || !res[0]) {
+    query.select('#lineCanvas').fields({ node: true, size: true, rect: true });
+    query.select('.zoom-container').boundingClientRect();
+    query.exec(function (res) {
+      if (!res || !res[0] || !res[1]) {
         console.error('[cloud] Canvas 获取失败');
         return;
       }
@@ -332,6 +398,15 @@ Page({
 
       var sys = wx.getSystemInfoSync();
       self._rpxToPx = sys.windowWidth / 750;
+
+      // 计算 canvas 原点与 zoom-container 原点之间的偏移（统一坐标系）
+      var canvasRect = res[0];
+      var zoomRect = res[1];
+      self._originDeltaX = zoomRect.left - canvasRect.left;
+      self._originDeltaY = zoomRect.top - canvasRect.top;
+      console.log('[cloud] 原点偏移:', self._originDeltaX, self._originDeltaY,
+        'canvas:', canvasRect.width, 'x', canvasRect.height,
+        'zoom:', zoomRect.width, 'x', zoomRect.height);
 
       self.setData({
         canvas: canvas,
@@ -348,12 +423,13 @@ Page({
     if (this.data.animating) return;
     this.setData({ animating: true });
     this._frameCount = 0;
+    if (!this._orbitalParticles) this._initOrbitalParticles();
     this.animateFrame();
   },
 
   stopAnimation() {
     if (this._animFrameId) {
-      clearTimeout(this._animFrameId);
+      this.data.canvas.cancelAnimationFrame(this._animFrameId);
       this._animFrameId = null;
     }
     this.setData({ animating: false });
@@ -363,7 +439,10 @@ Page({
     if (!this.data.animating) return;
     this.updateNodes();
     this.drawFrame();
-    this._animFrameId = setTimeout(() => this.animateFrame(), 16);
+    var self = this;
+    this._animFrameId = this.data.canvas.requestAnimationFrame(function () {
+      self.animateFrame();
+    });
   },
 
   updateNodes() {
@@ -393,10 +472,290 @@ Page({
       n.y = n.baseY + n.fy;
     }
 
+    // ── 缩放插值：固定时长 ease-out，保证状态切换充分展开 ──
+    var scaleChanged = false;
+    if (this._interpTarget !== undefined) {
+      var elapsed = this._frameCount - (this._interpStartFrame || 0);
+      var dur = this._interpDuration || 15;
+      var t = Math.min(1, elapsed / dur);
+      t = 1 - Math.pow(1 - t, 3); // cubic ease-out
+      this.data.mapScale = this._interpStart + (this._interpTarget - this._interpStart) * t;
+      if (t >= 1) {
+        this.data.mapScale = this._interpTarget;
+        this._interpTarget = undefined;
+      }
+      scaleChanged = true;
+      this._updateZoomState();
+    }
+
     this._frameCount++;
-    if (this._frameCount % 3 === 0) {
+    if (scaleChanged) {
+      // 缩放时只传 mapScale，不传 nodes（减少 setData 数据量，消除延迟）
+      this.setData({ mapScale: this.data.mapScale });
+    } else if (this._frameCount % 4 === 0) {
+      // 非缩放时每 4 帧更新节点浮动位置（浮动动画慢，4 帧仍流畅）
       this.setData({ nodes: [...nodes] });
     }
+    // 更新时钟/环中心为 node_0 实际动画位置
+    for (var k = 0; k < nodes.length; k++) {
+      if (nodes[k].nodeId === 'node_0') {
+        this._clockCenterRpxX = nodes[k].baseX + nodes[k].fx;
+        this._clockCenterRpxY = nodes[k].baseY + nodes[k].fy;
+        break;
+      }
+    }
+    // 更新轨道环 + 时钟粒子
+    if (this._orbitalParticles) this._updateOrbitalParticles();
+    if (this._clockParticles) {
+      this._updateClockParticles();
+    }
+  },
+
+  // ─── 时钟粒子系统（三层：放射流束 + 轨道环 + 核火星点） ───
+  _initClockParticles() {
+    var nodes = this.data.nodes;
+    var centerNode = null;
+    for (var k = 0; k < nodes.length; k++) {
+      if (nodes[k].nodeId === 'node_0') { centerNode = nodes[k]; break; }
+    }
+    var cx = centerNode ? centerNode.baseX : 375;
+    var cy = centerNode ? centerNode.baseY : 667;
+    this._clockCenterRpxX = cx;
+    this._clockCenterRpxY = cy;
+
+    // 计算各外节点距离，用于轨道环半径
+    var nodeDists = [];
+    for (var li = 0; li < 8; li++) {
+      var node = null;
+      var nid = 'node_' + (li + 1);
+      for (var j = 0; j < nodes.length; j++) {
+        if (nodes[j].nodeId === nid) { node = nodes[j]; break; }
+      }
+      if (!node) continue;
+      nodeDists.push(Math.sqrt(
+        (node.baseX - cx) * (node.baseX - cx) +
+        (node.baseY - cy) * (node.baseY - cy)
+      ));
+    }
+    nodeDists.sort(function (a, b) { return a - b; });
+    var avgDist = nodeDists.length > 0 ? nodeDists[Math.floor(nodeDists.length / 2)] : 300;
+
+    var particles = [];
+
+    // 1. 放射流束 — 8条射线×60 粒子，角度/末端每帧动态更新以追踪节点浮动
+    var lineNodes = [];
+    for (var li2 = 0; li2 < 8; li2++) {
+      var snode = null;
+      var snid = 'node_' + (li2 + 1);
+      for (var j2 = 0; j2 < nodes.length; j2++) {
+        if (nodes[j2].nodeId === snid) { snode = nodes[j2]; break; }
+      }
+      lineNodes.push(snode); // 存引用，每帧读取其 fx/fy
+      if (!snode) continue;
+      var staticAngle = Math.atan2(snode.baseY - cy, snode.baseX - cx);
+      var staticMaxDist = Math.sqrt(
+        (snode.baseX - cx) * (snode.baseX - cx) +
+        (snode.baseY - cy) * (snode.baseY - cy)
+      );
+      for (var p = 0; p < 42; p++) {
+        var t = p / 41;
+        var ratio = p < 11 ? Math.pow(t, 1.5) : t;
+        var baseDist = ratio * staticMaxDist;
+        particles.push({
+          type: 'stream',
+          lineIdx: li2,
+          angleOffset: (Math.random() - 0.5) * 0.08,
+          angle: staticAngle + (Math.random() - 0.5) * 0.08,
+          dist: baseDist + (Math.random() - 0.5) * 22,
+          maxDist: staticMaxDist,
+          alpha: 0,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.008 + Math.random() * 0.032,
+          size: 0.7 + Math.random() * 3.2,
+          baseAlpha: p < 16 ? 0.45 + Math.random() * 0.5 : 0.1 + Math.random() * 0.35,
+          baseDistRatio: ratio,
+        });
+      }
+    }
+    this._clockLineNodes = lineNodes;
+
+    // 2. 核火星点 — 中心附近随机闪烁
+    for (var si = 0; si < 35; si++) {
+      particles.push({
+        type: 'spark',
+        angle: Math.random() * Math.PI * 2,
+        dist: Math.random() * 42,
+        alpha: 0,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.04 + Math.random() * 0.08,
+        size: 0.4 + Math.random() * 2.2,
+        baseAlpha: 0.35 + Math.random() * 0.6,
+        sparkTimer: Math.random() * 2,
+      });
+    }
+
+    this._clockParticles = particles;
+  },
+
+  _updateClockParticles() {
+    var pts = this._clockParticles;
+    // 动态追踪：当前中心和外节点位置
+    var centerX = this._clockCenterRpxX || 375;
+    var centerY = this._clockCenterRpxY || 667;
+    var lineNodes = this._clockLineNodes || [];
+
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      p.phase += p.speed;
+
+      if (p.type === 'stream') {
+        // 每帧根据当前浮动位置重新计算射线角度和末端距离
+        var ln = lineNodes[p.lineIdx];
+        if (ln) {
+          var curAngle = Math.atan2(
+            (ln.baseY + ln.fy) - centerY,
+            (ln.baseX + ln.fx) - centerX
+          );
+          p.angle = curAngle + p.angleOffset;
+          p.maxDist = Math.sqrt(
+            ((ln.baseX + ln.fx) - centerX) * ((ln.baseX + ln.fx) - centerX) +
+            ((ln.baseY + ln.fy) - centerY) * ((ln.baseY + ln.fy) - centerY)
+          );
+        }
+        var wave = 0.5 + 0.5 * Math.sin(p.phase);
+        // 状态 7-8 缩放小，加大振幅和速度以保持肉眼可见的动态
+        var boost = this.data.zoomState >= 7 ? 3.0 : 1.0;
+        p.alpha = p.baseAlpha * (0.2 + 0.8 * wave);
+        var targetDist = p.baseDistRatio * p.maxDist;
+        p.dist += (targetDist - p.dist) * 0.3 + Math.sin(p.phase * 1.7) * 1.5 * boost;
+        if (p.dist < 0.5) p.dist = 0.5;
+        if (p.dist > p.maxDist) p.dist = p.maxDist;
+
+      } else if (p.type === 'spark') {
+        p.sparkTimer -= 0.016;
+        if (p.sparkTimer <= 0) {
+          // 重生
+          p.angle = Math.random() * Math.PI * 2;
+          p.dist = Math.random() * 35;
+          p.sparkTimer = 0.2 + Math.random() * 1.6;
+          p.alpha = p.baseAlpha;
+        } else {
+          p.alpha *= 0.86;
+          if (p.alpha < 0.01) p.alpha = 0;
+        }
+      }
+    }
+  },
+
+  // ─── 轨道环粒子系统（全部状态可见，4层同心旋转环） ───
+  _initOrbitalParticles() {
+    var nodes = this.data.nodes;
+    var centerNode = null;
+    for (var k = 0; k < nodes.length; k++) {
+      if (nodes[k].nodeId === 'node_0') { centerNode = nodes[k]; break; }
+    }
+    var cx = centerNode ? centerNode.baseX : 375;
+    var cy = centerNode ? centerNode.baseY : 667;
+    var nodeDists = [];
+    for (var li = 0; li < 8; li++) {
+      var node = null;
+      for (var j = 0; j < nodes.length; j++) {
+        if (nodes[j].nodeId === 'node_' + (li + 1)) { node = nodes[j]; break; }
+      }
+      if (!node) continue;
+      nodeDists.push(Math.sqrt(
+        (node.baseX - cx) * (node.baseX - cx) +
+        (node.baseY - cy) * (node.baseY - cy)
+      ));
+    }
+    nodeDists.sort(function (a, b) { return a - b; });
+    var avgDist = nodeDists.length > 0 ? nodeDists[Math.floor(nodeDists.length / 2)] : 300;
+
+    var particles = [];
+    var ringRadiiRpx = [avgDist * 0.2, avgDist * 0.4, avgDist * 0.62, avgDist * 0.84];
+    for (var ri = 0; ri < 4; ri++) {
+      var ringR = ringRadiiRpx[ri];
+      for (var oi = 0; oi < 26; oi++) {
+        particles.push({
+          angle: (oi / 35) * Math.PI * 2 + Math.random() * 0.3,
+          dist: ringR + (Math.random() - 0.5) * 25,
+          orbitRadius: ringR,
+          alpha: 0,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.004 + ri * 0.005 + Math.random() * 0.006,
+          size: 0.4 + Math.random() * 2.0,
+          baseAlpha: 0.18 + Math.random() * 0.4,
+        });
+      }
+    }
+    this._orbitalParticles = particles;
+  },
+
+  _updateOrbitalParticles() {
+    var pts = this._orbitalParticles;
+    if (!pts) return;
+    var boost = this.data.zoomState >= 7 ? 2.5 : 1.0;
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      p.phase += p.speed * boost;
+      var wave = 0.5 + 0.5 * Math.sin(p.phase);
+      p.alpha = p.baseAlpha * (0.35 + 0.65 * wave);
+      p.angle += p.speed * 0.45 * boost;
+      p.dist = p.orbitRadius + Math.sin(p.phase * 2.3) * 7 * boost;
+    }
+  },
+
+  drawOrbitalParticles(ctx) {
+    var pts = this._orbitalParticles;
+    if (!pts || pts.length === 0) return;
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var scx = cw / 2;
+    var scy = ch / 2;
+    var cx = this._clockCenterRpxX || 375;
+    var cy = this._clockCenterRpxY || 667;
+    var scCx = scx + (cx * r - scx + ox) * scale;
+    var scCy = scy + (cy * r - scy + oy) * scale;
+
+    ctx.save();
+    ctx.shadowBlur = 7 * scale;
+    ctx.shadowColor = 'rgba(255, 210, 80, 0.55)';
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      if (p.alpha < 0.02) continue;
+      var px = scCx + Math.cos(p.angle) * p.dist * r * scale;
+      var py = scCy + Math.sin(p.angle) * p.dist * r * scale;
+      ctx.beginPath();
+      ctx.arc(px, py, p.size * 0.85 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 235, 150, ' + (p.alpha * 0.85) + ')';
+      ctx.fill();
+    }
+    ctx.restore();
+  },
+
+  // ─── 检查所有 radial 连线 + 中心节点是否已全部点亮 ───
+  _allRadialLit() {
+    var pairs = this._cloudConnPairs;
+    var connUnlocked = this._connUnlocked;
+    if (!pairs || !connUnlocked || pairs.length === 0) return false;
+    // 中心节点 node_0 必须已点亮
+    var nodes = this.data.nodes;
+    var centerNode = nodes ? nodes.find(function (n) { return n.nodeId === 'node_0'; }) : null;
+    if (!centerNode || !centerNode.unlocked) return false;
+    // 所有 radial 连线必须已点亮
+    var radialCount = 0;
+    var radialLit = 0;
+    for (var i = 0; i < pairs.length; i++) {
+      if (pairs[i].style === 'radial') {
+        radialCount++;
+        if (connUnlocked[i]) radialLit++;
+      }
+    }
+    return radialCount > 0 && radialCount === radialLit;
   },
 
   drawFrame() {
@@ -404,9 +763,64 @@ Page({
     var w = this.data.canvasWidth;
     if (!ctx || !w) return;
     ctx.clearRect(0, 0, this.data.canvasWidth, this.data.canvasHeight);
+
+    // 补偿 canvas 与 zoom-container 之间的原点偏移
+    var dx = this._originDeltaX || 0;
+    var dy = this._originDeltaY || 0;
+    ctx.save();
+    ctx.translate(dx, dy);
+
     this.drawParticles(ctx);
-    this.drawConnections(ctx);
+    this.drawOrbitalParticles(ctx);
+
+    // ── 浮点缩放状态 + smoothstep：所有视觉切换连续渐变 ──
+    var s = this.data.mapScale;
+    var sf = 4 - Math.log(s) / Math.log(1.18);
+    if (sf < 0) sf = 0;
+    if (sf > 8) sf = 8;
+
+    function smoothstep(e0, e1, x) {
+      var t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0)));
+      return t * t * (3 - 2 * t);
+    }
+
+    var connAlpha = 1 - smoothstep(6.5, 7.5, sf);       // 连线 6.5→7.5 淡出
+    var centerRingA = 1 - smoothstep(6.8, 7.5, sf);     // 中心环 6.8→7.5 淡出
+    var yearsAlpha = 1 - smoothstep(5.2, 6.0, sf);      // 节点年份 5.2→6.0 淡出
+    var particleA = smoothstep(6.5, 7.5, sf);           // 粒子动效 6.5→7.5 淡入
+    var centerTextA = smoothstep(7.5, 8.0, sf);         // 中心文字 7.5→8.0 淡入
+
+    var allRadialLit = this._allRadialLit();
+
+    // 连线 + 中心环
+    if (connAlpha > 0.01) {
+      ctx.globalAlpha = connAlpha;
+      this.drawConnections(ctx);
+      if (centerRingA > 0.01) {
+        ctx.globalAlpha = Math.min(connAlpha, centerRingA);
+        this._drawCenterRingGlow(ctx);
+      }
+      if (yearsAlpha > 0.01) {
+        ctx.globalAlpha = Math.min(connAlpha, yearsAlpha);
+        this.drawNodeYears(ctx);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // 时钟粒子动效（仅全部 radial 点亮时）
+    if (allRadialLit && particleA > 0.01) {
+      ctx.globalAlpha = particleA;
+      if (!this._clockParticles) this._initClockParticles();
+      this.drawClockParticles(ctx);
+      if (centerTextA > 0.01) {
+        ctx.globalAlpha = Math.min(particleA, centerTextA);
+        this.drawCenterText(ctx);
+      }
+      ctx.globalAlpha = 1;
+    }
     this.drawHoverGlow(ctx);
+
+    ctx.restore();
   },
 
   // ─── 背景粒子 ───
@@ -415,7 +829,7 @@ Page({
       this._bgParticles = [];
       var pxW = this.data.canvasWidth;
       var pxH = this.data.canvasHeight;
-      for (var i = 0; i < 40; i++) {
+      for (var i = 0; i < 28; i++) {
         this._bgParticles.push({
           x: Math.random() * pxW,
           y: Math.random() * pxH,
@@ -443,7 +857,36 @@ Page({
     }
   },
 
-  // ─── 绘制连线（使用 CONNECTION_UNLOCK_RULES 判定点亮） ───
+  // ─── 计算连线端点裁剪到节点边缘（圆心→边界） ───
+  _clipLine(aNode, bNode, ax, ay, bx, by) {
+    var dx = bx - ax;
+    var dy = by - ay;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 0.5) return { ax: ax, ay: ay, bx: bx, by: by };
+    var rpxToPx = this._rpxToPx;
+    var scale = this.data.mapScale;
+    // 节点核心半径（rpx），与 WXSS star-core 尺寸一致 + 2rpx 重叠避免抗锯齿缝隙
+    // is-center lit: 15, dark: 10; 普通 lit: 9, dark: 7（clip 收紧让线伸入节点更多）
+    var getR = function (n) {
+      if (!n) return 8;
+      if (n.nodeId === 'node_0') return n.unlocked ? 15 : 10;
+      return n.unlocked ? 9 : 7;
+    };
+    var ra = getR(aNode) * rpxToPx * scale;
+    var rb = getR(bNode) * rpxToPx * scale;
+    if (ra >= dist * 0.5) ra = dist * 0.3;
+    if (rb >= dist * 0.5) rb = dist * 0.3;
+    var ux = dx / dist;
+    var uy = dy / dist;
+    return {
+      ax: ax + ux * ra,
+      ay: ay + uy * ra,
+      bx: bx - ux * rb,
+      by: by - uy * rb,
+    };
+  },
+
+  // ─── 绘制连线（三种样式：radial 放射线 / solid 时间线 / dashed 虚线） ───
   drawConnections(ctx) {
     var nodes = this.data.nodes;
     var r = this._rpxToPx || 0.5;
@@ -451,68 +894,424 @@ Page({
     var connUnlocked = this._connUnlocked || [];
     if (!pairs || pairs.length === 0) return;
 
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var cx = cw / 2;
+    var cy = ch / 2;
+
     for (var i = 0; i < pairs.length; i++) {
       var pair = pairs[i];
       var a = nodes[pair.from];
       var b = nodes[pair.to];
       if (!a || !b) continue;
 
-      var ax = (a.baseX + a.fx) * r;
-      var ay = (a.baseY + a.fy) * r;
-      var bx = (b.baseX + b.fx) * r;
-      var by = (b.baseY + b.fy) * r;
+      // 节点内部坐标（rpx → px）
+      var aix = (a.baseX + a.fx) * r;
+      var aiy = (a.baseY + a.fy) * r;
+      var bix = (b.baseX + b.fx) * r;
+      var biy = (b.baseY + b.fy) * r;
+
+      // 应用与 CSS transform 一致的缩放+平移
+      var ax = cx + (aix - cx + ox) * scale;
+      var ay = cy + (aiy - cy + oy) * scale;
+      var bx = cx + (bix - cx + ox) * scale;
+      var by = cy + (biy - cy + oy) * scale;
 
       var isLit = connUnlocked[i] === true;
-      var alpha = isLit ? 0.5 : 0.1;
-      var color = isLit
-        ? 'rgba(68, 170, 255, ' + alpha + ')'
-        : 'rgba(100, 140, 180, ' + alpha + ')';
+      var style = pair.style || 'solid';
+      // 裁剪端点至节点边缘
+      var clipped = this._clipLine(a, b, ax, ay, bx, by);
+      ax = clipped.ax; ay = clipped.ay; bx = clipped.bx; by = clipped.by;
+      var cpX = cx + ((aix + bix) / 2 - cx + ox) * scale;
+      var cpY = cy + (Math.min(aiy, biy) - 30 * r - cy + oy) * scale;
 
-      ctx.beginPath();
-      ctx.moveTo(ax, ay);
-
-      if (pair.style === 'dashed') {
-        // 虚线用分段绘制
+      if (style === 'dashed') {
+        // ── dashed：蓝色虚线，不变 ──
         var dx = bx - ax;
         var dy = by - ay;
         var dist = Math.sqrt(dx * dx + dy * dy);
-        var segs = Math.floor(dist / (8 * r));
+        var segs = Math.floor(dist / (8 * r * scale));
+        var dAlpha = isLit ? 0.5 : 0.1;
+        ctx.strokeStyle = isLit ? 'rgba(180, 205, 195, ' + dAlpha + ')' : 'rgba(150, 155, 140, ' + dAlpha + ')';
+        ctx.lineWidth = (isLit ? 1.5 : 0.8) * Math.min((pair.weight || 1) / 2, 1.5);
+        ctx.beginPath();
         for (var s = 0; s < segs; s += 2) {
           var t0 = s / segs;
           var t1 = Math.min((s + 1) / segs, 1);
           ctx.moveTo(ax + dx * t0, ay + dy * t0);
           ctx.lineTo(ax + dx * t1, ay + dy * t1);
         }
-      } else {
-        var cpX = (ax + bx) / 2;
-        var cpY = Math.min(ay, by) - 30 * r;
-        ctx.quadraticCurveTo(cpX, cpY, bx, by);
-      }
+        ctx.stroke();
 
-      ctx.strokeStyle = color;
-      ctx.lineWidth = (isLit ? 1.5 : 0.8) * Math.min((pair.weight || 1) / 2, 1.5);
-      ctx.stroke();
+      } else if (style === 'radial') {
+        // ── radial：金色放射线，双层渲染 → 空灵立体感 ──
+        if (isLit) {
+          // ① 外层空灵光晕
+          ctx.save();
+          ctx.shadowBlur = 22 * scale;
+          ctx.shadowColor = 'rgba(255, 180, 50, 0.45)';
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.quadraticCurveTo(cpX, cpY, bx, by);
+          ctx.strokeStyle = 'rgba(255, 200, 80, 0.45)';
+          ctx.lineWidth = 2.6 * scale;
+          ctx.stroke();
+          ctx.restore();
+
+          // ② 内层高光亮脊（细，白金色，立体感）
+          ctx.save();
+          ctx.shadowBlur = 5 * scale;
+          ctx.shadowColor = 'rgba(255, 240, 180, 0.65)';
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.quadraticCurveTo(cpX, cpY, bx, by);
+          ctx.strokeStyle = 'rgba(255, 250, 225, 0.9)';
+          ctx.lineWidth = 0.6 * scale;
+          ctx.stroke();
+          ctx.restore();
+
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.quadraticCurveTo(cpX, cpY, bx, by);
+          ctx.strokeStyle = 'rgba(120, 100, 60, 0.12)';
+          ctx.lineWidth = 1.2 * scale;
+          ctx.stroke();
+        }
+
+      } else {
+        // ── solid：时间线，小刻度仅在状态 0~3 显示 ──
+        var zs = this.data.zoomState;
+        if (isLit) {
+          // 主时间轴线
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.quadraticCurveTo(cpX, cpY, bx, by);
+          ctx.strokeStyle = 'rgba(210, 210, 195, 0.65)';
+          ctx.lineWidth = 2.2 * Math.min((pair.weight || 1) / 2, 1.5);
+          ctx.stroke();
+          // 刻度点仅在状态 0~3 显示
+          if (zs <= 3) {
+            var dotCount = 4;
+            var dotYears = TIMELINE_DOT_YEARS[pair.fromNodeId + '->' + pair.toNodeId] || [];
+            for (var d = 1; d < dotCount; d++) {
+              var tt = d / dotCount;
+              var u = 1 - tt;
+              var dotX = u * u * ax + 2 * u * tt * cpX + tt * tt * bx;
+              var dotY = u * u * ay + 2 * u * tt * cpY + tt * tt * by;
+              ctx.beginPath();
+              ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
+              ctx.fillStyle = 'rgba(225, 220, 200, 0.85)';
+              ctx.fill();
+              // 刻度年份仅在状态 0~1 显示
+              if (zs <= 1) {
+                var dotYear = dotYears[d - 1];
+                if (dotYear) {
+                  var dotFontSize = Math.round(9 * scale);
+                  if (dotFontSize < 7) dotFontSize = 7;
+                  ctx.font = dotFontSize + 'px sans-serif';
+                  ctx.textAlign = 'left';
+                  ctx.textBaseline = 'top';
+                  ctx.fillStyle = 'rgba(225, 220, 200, 0.5)';
+                  ctx.fillText(dotYear, dotX + 6 * scale, dotY + 4 * scale);
+                }
+              }
+            }
+          }
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(ax, ay);
+          ctx.quadraticCurveTo(cpX, cpY, bx, by);
+          ctx.strokeStyle = 'rgba(145, 140, 125, 0.12)';
+          ctx.lineWidth = 1.0;
+          ctx.stroke();
+        }
+      }
     }
   },
 
   // ─── 悬停发光 ───
   drawHoverGlow(ctx) {
+    if (this.data.zoomState >= 8) return;
     var hoveredNode = this.data.hoveredNode;
     if (hoveredNode === null || hoveredNode === undefined || hoveredNode < 0) return;
     var node = this.data.nodes.find(function (n) { return n.id === hoveredNode; });
     if (!node) return;
 
     var r = this._rpxToPx || 0.5;
-    var x = (node.baseX + node.fx) * r;
-    var y = (node.baseY + node.fy) * r;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var cx = cw / 2;
+    var cy = ch / 2;
 
-    var gradient = ctx.createRadialGradient(x, y, 0, x, y, 40 * r);
+    var ix = (node.baseX + node.fx) * r;
+    var iy = (node.baseY + node.fy) * r;
+    var x = cx + (ix - cx + ox) * scale;
+    var y = cy + (iy - cy + oy) * scale;
+    var glowR = 40 * r * scale;
+
+    var gradient = ctx.createRadialGradient(x, y, 0, x, y, glowR);
     gradient.addColorStop(0, node.unlocked ? 'rgba(68, 170, 255, 0.6)' : 'rgba(255, 255, 255, 0.2)');
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
     ctx.beginPath();
-    ctx.arc(x, y, 40 * r, 0, Math.PI * 2);
+    ctx.arc(x, y, glowR, 0, Math.PI * 2);
     ctx.fillStyle = gradient;
     ctx.fill();
+  },
+
+  // ─── 节点年份标签（空灵半透明） ───
+  drawNodeYears(ctx) {
+    var nodes = this.data.nodes;
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var cx = cw / 2;
+    var cy = ch / 2;
+
+    for (var i = 0; i < nodes.length; i++) {
+      var node = nodes[i];
+      if (!node.year) continue;
+      var isLit = node.unlocked;
+
+      var ix = (node.baseX + node.fx) * r;
+      var iy = (node.baseY + node.fy) * r;
+      var x = cx + (ix - cx + ox) * scale;
+      var y = cy + (iy - cy + oy) * scale;
+
+      var fontSize = Math.round(12 * scale);
+      if (fontSize < 9) fontSize = 9;
+      ctx.font = fontSize + 'px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'bottom';
+
+      // 空灵光晕
+      ctx.save();
+      ctx.shadowBlur = 6 * scale;
+      ctx.shadowColor = isLit ? 'rgba(180, 210, 255, 0.5)' : 'rgba(255, 255, 255, 0.15)';
+      ctx.fillStyle = isLit ? 'rgba(220, 235, 255, 0.65)' : 'rgba(255, 255, 255, 0.22)';
+      ctx.fillText(node.year, x + 28 * r * scale, y + 8 * r * scale);
+      ctx.restore();
+    }
+  },
+
+  // ─── 中心节点连接区辉光（大面积圆形金色柔光 + 微动效） ───
+  _drawCenterRingGlow(ctx) {
+    var nodes = this.data.nodes;
+    var centerNode = nodes ? nodes.find(function (n) { return n.nodeId === 'node_0'; }) : null;
+    if (!centerNode || !centerNode.unlocked) return;
+
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var scx = cw / 2;
+    var scy = ch / 2;
+
+    var ix = (centerNode.baseX + centerNode.fx) * r;
+    var iy = (centerNode.baseY + centerNode.fy) * r;
+    var cx = scx + (ix - scx + ox) * scale;
+    var cy = scy + (iy - scy + oy) * scale;
+
+    var frame = this._frameCount || 0;
+    var breathe = 1 + Math.sin(frame * 0.025) * 0.12;
+
+    // 大面积圆形金色柔光，从中心向外渐变淡出
+    var outerR = 72 * r * scale * breathe;
+
+    var glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerR);
+    glowGrad.addColorStop(0, 'rgba(255, 215, 100, 0.4)');
+    glowGrad.addColorStop(0.2, 'rgba(255, 195, 65, 0.32)');
+    glowGrad.addColorStop(0.4, 'rgba(255, 175, 45, 0.2)');
+    glowGrad.addColorStop(0.65, 'rgba(255, 155, 30, 0.08)');
+    glowGrad.addColorStop(1, 'rgba(255, 130, 20, 0)');
+
+    ctx.save();
+    ctx.shadowBlur = 25 * scale * breathe;
+    ctx.shadowColor = 'rgba(255, 180, 50, 0.3)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+    ctx.fillStyle = glowGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // ── 内圈微粒子：懒初始化，在金色区域内缓慢旋转 ──
+    if (!this._centerRingParts) {
+      this._centerRingParts = [];
+      for (var i = 0; i < 22; i++) {
+        this._centerRingParts.push({
+          angle: Math.random() * Math.PI * 2,
+          distRatio: Math.random() * 0.8, // 0~0.8 倍外半径
+          size: Math.random() * 1.4 + 0.5,
+          alphaBase: Math.random() * 0.35 + 0.12,
+          twinkleSpeed: Math.random() * 0.03 + 0.01,
+          twinklePhase: Math.random() * Math.PI * 2,
+          orbitSpeed: (Math.random() - 0.5) * 0.006,
+        });
+      }
+    }
+
+    // 所有环粒子共享一次 save/restore，减少 GPU 状态切换
+    ctx.save();
+    ctx.shadowBlur = 2.5 * scale;
+    ctx.shadowColor = 'rgba(255, 245, 180, 0.5)';
+    var parts = this._centerRingParts;
+    for (var pi = 0; pi < parts.length; pi++) {
+      var p = parts[pi];
+      var angle = p.angle + frame * p.orbitSpeed;
+      var dist = outerR * p.distRatio;
+      var alpha = p.alphaBase + Math.sin(frame * p.twinkleSpeed + p.twinklePhase) * 0.08;
+      if (alpha < 0.02) continue;
+      var px = cx + Math.cos(angle) * dist;
+      var py = cy + Math.sin(angle) * dist;
+      ctx.beginPath();
+      ctx.arc(px, py, p.size * scale * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 230, ' + alpha + ')';
+      ctx.fill();
+    }
+    ctx.restore();
+  },
+
+  // ─── 时钟粒子渲染 ───
+  drawClockParticles(ctx) {
+    var pts = this._clockParticles;
+    if (!pts || pts.length === 0) return;
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var scx = cw / 2;
+    var scy = ch / 2;
+
+    var centerRpxX = this._clockCenterRpxX || 375;
+    var centerRpxY = this._clockCenterRpxY || 667;
+    var cx = scx + (centerRpxX * r - scx + ox) * scale;
+    var cy = scy + (centerRpxY * r - scy + oy) * scale;
+
+    // ── 外层大光晕（琥珀色） ──
+    var outerGlowR = 55 * r * scale;
+    var outerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, outerGlowR);
+    outerGrad.addColorStop(0, 'rgba(255, 210, 70, 0.5)');
+    outerGrad.addColorStop(0.35, 'rgba(255, 170, 40, 0.2)');
+    outerGrad.addColorStop(1, 'rgba(255, 130, 15, 0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerGlowR, 0, Math.PI * 2);
+    ctx.fillStyle = outerGrad;
+    ctx.fill();
+
+    // ── 中层光晕（金色） ──
+    var midGlowR = 28 * r * scale;
+    var midGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, midGlowR);
+    midGrad.addColorStop(0, 'rgba(255, 240, 140, 0.8)');
+    midGrad.addColorStop(0.4, 'rgba(255, 200, 70, 0.35)');
+    midGrad.addColorStop(1, 'rgba(255, 155, 35, 0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, midGlowR, 0, Math.PI * 2);
+    ctx.fillStyle = midGrad;
+    ctx.fill();
+
+    // ── 中心亮核（白金色） ──
+    var coreR = 12 * r * scale;
+    var coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+    coreGrad.addColorStop(0, 'rgba(255, 255, 230, 1)');
+    coreGrad.addColorStop(0.2, 'rgba(255, 235, 140, 0.8)');
+    coreGrad.addColorStop(0.6, 'rgba(255, 200, 60, 0.3)');
+    coreGrad.addColorStop(1, 'rgba(255, 170, 30, 0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, coreR, 0, Math.PI * 2);
+    ctx.fillStyle = coreGrad;
+    ctx.fill();
+
+    // 分离流束和火星
+    var streams = [];
+    var sparks = [];
+    for (var i = 0; i < pts.length; i++) {
+      if (pts[i].type === 'stream') streams.push(pts[i]);
+      else sparks.push(pts[i]);
+    }
+
+    // ── 放射流束粒子（外层辉光 + 内核） ──
+    ctx.save();
+    ctx.shadowBlur = 9 * scale;
+    ctx.shadowColor = 'rgba(255, 190, 50, 0.6)';
+    for (var si = 0; si < streams.length; si++) {
+      var sp = streams[si];
+      if (sp.alpha < 0.02) continue;
+      var spx = cx + Math.cos(sp.angle) * sp.dist * r * scale;
+      var spy = cy + Math.sin(sp.angle) * sp.dist * r * scale;
+      ctx.beginPath();
+      ctx.arc(spx, spy, sp.size * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 215, 85, ' + (sp.alpha * 0.75) + ')';
+      ctx.fill();
+    }
+    ctx.restore();
+    // 流束亮核
+    for (var si2 = 0; si2 < streams.length; si2++) {
+      var sp2 = streams[si2];
+      if (sp2.alpha < 0.04) continue;
+      var spx2 = cx + Math.cos(sp2.angle) * sp2.dist * r * scale;
+      var spy2 = cy + Math.sin(sp2.angle) * sp2.dist * r * scale;
+      ctx.beginPath();
+      ctx.arc(spx2, spy2, sp2.size * 0.4 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 250, 220, ' + (sp2.alpha * 0.95) + ')';
+      ctx.fill();
+    }
+
+    // ── 核火星点（高亮闪烁） ──
+    for (var ki = 0; ki < sparks.length; ki++) {
+      var kp = sparks[ki];
+      if (kp.alpha < 0.03) continue;
+      var kpx = cx + Math.cos(kp.angle) * kp.dist * r * scale;
+      var kpy = cy + Math.sin(kp.angle) * kp.dist * r * scale;
+      ctx.save();
+      ctx.shadowBlur = 6 * scale;
+      ctx.shadowColor = 'rgba(255, 245, 180, 0.85)';
+      ctx.beginPath();
+      ctx.arc(kpx, kpy, kp.size * 0.6 * scale, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 235, ' + kp.alpha + ')';
+      ctx.fill();
+      ctx.restore();
+    }
+  },
+
+  // ─── 中心文字（状态 8） ───
+  drawCenterText(ctx) {
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var scx = cw / 2;
+    var scy = ch / 2;
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var centerRpxX = this._clockCenterRpxX || 375;
+    var centerRpxY = (this._clockCenterRpxY || 667) - 47;
+    var cx = scx + (centerRpxX * r - scx + ox) * scale;
+    var cy = scy + (centerRpxY * r - scy + oy) * scale;
+
+    var fontSize = Math.round(38 * scale);
+    ctx.font = fontSize + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.save();
+    ctx.shadowBlur = 22 * scale;
+    ctx.shadowColor = 'rgba(255, 190, 60, 0.55)';
+    ctx.fillStyle = 'rgba(255, 220, 120, 0.8)';
+    ctx.fillText('生平事迹', cx, cy);
+    ctx.restore();
   },
 
   // ─── 触摸交互 ───
@@ -524,8 +1323,18 @@ Page({
         lastTouchY: touches[0].clientY,
       });
       var r = this._rpxToPx || 0.5;
-      var touchX = touches[0].clientX / r;
-      var touchY = touches[0].clientY / r;
+      var scale = this.data.mapScale;
+      var ox = this.data.offsetX;
+      var oy = this.data.offsetY;
+      var cw = this.data.canvasWidth;
+      var ch = this.data.canvasHeight;
+      var cx = cw / 2;
+      var cy = ch / 2;
+      // 将屏幕触摸坐标逆变换为内部 rpx 坐标，以匹配 CSS transform 后的节点位置
+      var touchScreenX = touches[0].clientX;
+      var touchScreenY = touches[0].clientY;
+      var touchX = ((touchScreenX - cx) / scale + cx - ox) / r;
+      var touchY = ((touchScreenY - cy) / scale + cy - oy) / r;
       var closest = null;
       var minDist = 80;
       var nodes = this.data.nodes;
@@ -556,21 +1365,35 @@ Page({
       if (this.data.lastDistance > 0) {
         var scale = this.data.mapScale + (distance - this.data.lastDistance) * 0.005;
         var newScale = Math.min(Math.max(scale, this.data.scaleMin), this.data.scaleMax);
-        this.setData({ mapScale: newScale, lastDistance: distance });
+        // 触摸直接设值，不走插值（保持跟手）
+        this._interpTarget = undefined;
+        this.data.mapScale = newScale;
+        var self = this;
+        this.setData({ mapScale: newScale, lastDistance: distance }, function () {
+          self._updateZoomState();
+          self.drawFrame();
+        });
       }
     } else if (touches.length === 1) {
+      // 手指平移时取消缩放插值
+      this._interpTarget = undefined;
       var deltaX = touches[0].clientX - this.data.lastTouchX;
       var deltaY = touches[0].clientY - this.data.lastTouchY;
+      var self = this;
       this.setData({
         offsetX: this.data.offsetX + deltaX,
         offsetY: this.data.offsetY + deltaY,
         lastTouchX: touches[0].clientX,
         lastTouchY: touches[0].clientY,
+      }, function () {
+        self._updateZoomState();
+        self.drawFrame();
       });
     }
   },
 
   handleTouchEnd() {
+    this._flushZoomState(this._getZoomState());
     this.setData({ lastDistance: 0, hoveredNode: null });
   },
 
@@ -607,15 +1430,29 @@ Page({
     this.refreshUnlockedStatus();
   },
 
-  // ─── 缩放控制 ───
+  // ─── 缩放控制（目标值交由动画循环平滑插值） ───
   zoomIn() {
-    var newScale = Math.min(this.data.mapScale * 1.2, this.data.scaleMax);
-    this.setData({ mapScale: newScale });
+    var baseScale = this._interpTarget !== undefined ? this._interpTarget : this.data.mapScale;
+    var target = Math.min(baseScale * 1.18, this.data.scaleMax);
+    var start = this.data.mapScale + (target - this.data.mapScale) * 0.7;
+    this.data.mapScale = start;
+    this.setData({ mapScale: start });
+    this._interpStart = start;
+    this._interpTarget = target;
+    this._interpStartFrame = this._frameCount;
+    this._interpDuration = 15;
   },
 
   zoomOut() {
-    var newScale = Math.max(this.data.mapScale / 1.2, this.data.scaleMin);
-    this.setData({ mapScale: newScale });
+    var baseScale = this._interpTarget !== undefined ? this._interpTarget : this.data.mapScale;
+    var target = Math.max(baseScale / 1.18, this.data.scaleMin);
+    var start = this.data.mapScale + (target - this.data.mapScale) * 0.7;
+    this.data.mapScale = start;
+    this.setData({ mapScale: start });
+    this._interpStart = start;
+    this._interpTarget = target;
+    this._interpStartFrame = this._frameCount;
+    this._interpDuration = 15;
   },
 
   goBack() {
