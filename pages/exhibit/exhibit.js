@@ -988,6 +988,61 @@ Page({
     });
   },
 
+  // 重置所有徽章和进度
+  resetBadges() {
+    const self = this;
+    wx.showModal({
+      title: '重置进度',
+      content: '将清除所有徽章和故事进度，确定继续？',
+      success: function (modalRes) {
+        if (!modalRes.confirm) return;
+
+        wx.showLoading({ title: '重置中...', mask: true });
+
+        // 1. 清除本地缓存
+        try {
+          wx.removeStorageSync('exhibitProgress');
+        } catch (e) {
+          console.warn('清除本地缓存失败:', e);
+        }
+
+        // 2. 调用云函数清除云端数据
+        cloudUtil.resetProgress().then(function (res) {
+          wx.hideLoading();
+          if (res.code === 0) {
+            wx.showToast({ title: '已重置', icon: 'success', duration: 1500 });
+          } else {
+            wx.showToast({ title: '重置异常', icon: 'none', duration: 1500 });
+          }
+
+          // 3. 重置本地 UI 状态
+          const badges = self.data.badges.map(b => ({ ...b, unlocked: false }));
+          const eventClouds = self.data.eventClouds.map(c => ({ ...c, unlocked: false }));
+          self.setData({
+            badges,
+            eventClouds,
+            _badge07Granted: false,
+            badgeNotification: null,
+          });
+        }).catch(function (err) {
+          wx.hideLoading();
+          console.error('云端重置失败:', err);
+          wx.showToast({ title: '重置失败', icon: 'error', duration: 1500 });
+
+          // 本地仍然重置
+          const badges = self.data.badges.map(b => ({ ...b, unlocked: false }));
+          const eventClouds = self.data.eventClouds.map(c => ({ ...c, unlocked: false }));
+          self.setData({
+            badges,
+            eventClouds,
+            _badge07Granted: false,
+            badgeNotification: null,
+          });
+        });
+      },
+    });
+  },
+
   // ===== 阅读成果 =====
 
   loadWorks(isRefresh) {

@@ -502,25 +502,8 @@ Page({
   },
 
   goBack() {
-    const cloudId = (this.data.section - 1) * 6 + this.data.currentStoryIndex + 1;
-    const nodeId = 'n' + cloudId;
-
-    cloudUtil.updateProgress({
-      type: 'timeline',
-      nodeId: nodeId,
-      action: 'unlock',
-    }).catch(err => {
-      console.error('上报进度失败:', err);
-    });
-
-    const pages = getCurrentPages();
-    if (pages.length > 1) {
-      const prePage = pages[pages.length - 2];
-      if (prePage.unlockEventCloudByStory) {
-        prePage.unlockEventCloudByStory(this.data.section, this.data.currentStoryIndex);
-      }
-    }
-
+    // 只返回上一页，不自动上报进度
+    // 用户需要点击「✓ 已读」才会标记进度到云图和勋章
     wx.navigateBack({ delta: 1 });
   },
 

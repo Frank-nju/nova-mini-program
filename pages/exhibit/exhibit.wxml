@@ -294,6 +294,11 @@
         <text class="badge-name">{{item.name}}</text>
       </view>
     </view>
+    <view class="badge-reset-wrap">
+      <view class="badge-reset-btn" bindtap="resetBadges">
+        <text>重置进度</text>
+      </view>
+    </view>
   </view>
 
   <!-- 数字人面板（全屏） -->
