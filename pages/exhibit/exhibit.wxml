@@ -199,6 +199,78 @@
         </view>
       </view>
 
+      <!-- ===== 用户致敬留言区域 ===== -->
+      <view class="user-tribute-section {{activeStates[6] ? 'active' : ''}}">
+
+        <view class="user-tribute-header">
+          <text class="user-tribute-title">你的致敬</text>
+          <view class="user-tribute-header-line"></view>
+          <text class="user-tribute-sub">留下你对吴健雄先生的致敬与感言</text>
+        </view>
+
+        <view class="tribute-input-card {{tributeInputFocused ? 'input-focused' : ''}}">
+          <textarea
+            class="tribute-textarea"
+            value="{{tributeInputValue}}"
+            placeholder="写下你想对吴健雄先生说的话…"
+            placeholder-class="tribute-placeholder"
+            maxlength="500"
+            auto-height
+            bindinput="onTributeInput"
+            bindfocus="onTributeFocus"
+            bindblur="onTributeBlur"
+            disabled="{{tributeSubmitting}}"
+          />
+          <view class="tribute-input-footer">
+            <text class="tribute-char-count">{{tributeInputValue.length || 0}}/500</text>
+            <button
+              class="tribute-submit-btn {{tributeSubmitting ? 'btn-disabled' : ''}} {{tributeInputValue.trim().length > 0 ? 'btn-active' : ''}}"
+              bindtap="submitTribute"
+              disabled="{{tributeSubmitting || tributeInputValue.trim().length === 0}}"
+              loading="{{tributeSubmitting}}"
+            >
+              {{tributeSubmitting ? '提交中...' : '致敬'}}
+            </button>
+          </view>
+        </view>
+
+        <view wx:if="{{userTributes.length > 0}}" class="user-tribute-list">
+          <view
+            wx:for="{{userTributes}}"
+            wx:key="_id"
+            class="user-tribute-card {{activeStates[6] ? 'card-visible' : ''}}"
+            style="animation-delay: {{index * 0.08}}s"
+          >
+            <view class="user-tribute-card-body">
+              <view class="user-tribute-card-top">
+                <view class="user-tribute-avatar">
+                  <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" class="user-tribute-avatar-img" />
+                  <text wx:else class="user-tribute-avatar-text">👤</text>
+                </view>
+                <view class="user-tribute-meta">
+                  <text class="user-tribute-nickname">{{item.nickname}}</text>
+                  <text class="user-tribute-time">{{item.createdAt}}</text>
+                </view>
+              </view>
+              <text class="user-tribute-message">{{item.message}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{tributeHasMore}}" class="user-tribute-loadmore" bindtap="loadTributes">
+            <text>{{tributeLoading ? '加载中...' : '加载更多'}}</text>
+          </view>
+
+          <view wx:if="{{!tributeHasMore && userTributes.length > 0}}" class="user-tribute-end">
+            <text>—— 致敬不息，追光不止 ——</text>
+          </view>
+        </view>
+
+        <view wx:if="{{userTributes.length === 0 && !tributeLoading}}" class="user-tribute-empty">
+          <text>还没有人留言，成为第一个致敬的人吧</text>
+        </view>
+
+      </view>
+
       <!-- ===== 传承时间线区域 ===== -->
       <view class="legacy-section {{activeStates[6] ? 'active' : ''}}">
 

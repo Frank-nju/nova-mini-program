@@ -5441,3 +5441,224 @@
   color: #fff;
   font-weight: 500;
 }
+
+/* ====== 用户致敬留言区域 ====== */
+.user-tribute-section {
+  padding: 32rpx 32rpx 0;
+  opacity: 0;
+  transform: translateY(40rpx);
+  transition: all 0.8s ease 0.15s;
+}
+
+.user-tribute-section.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.user-tribute-header {
+  text-align: center;
+  margin-bottom: 32rpx;
+}
+
+.user-tribute-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 700;
+  color: rgba(232, 200, 140, 0.9);
+  letter-spacing: 8rpx;
+}
+
+.user-tribute-header-line {
+  width: 120rpx;
+  height: 2rpx;
+  background: linear-gradient(90deg, transparent, rgba(232, 200, 140, 0.55), transparent);
+  margin: 16rpx auto;
+}
+
+.user-tribute-sub {
+  display: block;
+  font-size: 22rpx;
+  color: rgba(232, 200, 140, 0.5);
+  letter-spacing: 4rpx;
+}
+
+.tribute-input-card {
+  background: rgba(30, 28, 20, 0.7);
+  border: 1rpx solid rgba(201, 169, 110, 0.28);
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 36rpx;
+  box-shadow: 0 0 20rpx rgba(201, 169, 110, 0.06);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tribute-input-card.input-focused {
+  border-color: rgba(232, 200, 140, 0.55);
+  box-shadow: 0 0 24rpx rgba(201, 169, 110, 0.12);
+}
+
+.tribute-textarea {
+  width: 100%;
+  min-height: 140rpx;
+  max-height: 300rpx;
+  font-size: 26rpx;
+  color: rgba(240, 237, 230, 0.9);
+  line-height: 1.8;
+  background: transparent;
+}
+
+.tribute-placeholder {
+  color: rgba(201, 169, 110, 0.38);
+  font-size: 26rpx;
+}
+
+.tribute-input-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(201, 169, 110, 0.13);
+}
+
+.tribute-char-count {
+  font-size: 20rpx;
+  color: rgba(201, 169, 110, 0.4);
+}
+
+.tribute-submit-btn {
+  padding: 12rpx 40rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: rgba(232, 200, 140, 0.6);
+  background: rgba(201, 169, 110, 0.12);
+  border: 1rpx solid rgba(201, 169, 110, 0.25);
+  transition: all 0.25s ease;
+}
+
+.tribute-submit-btn::after {
+  border: none;
+}
+
+.tribute-submit-btn.btn-active {
+  color: #2a1f00;
+  background: linear-gradient(135deg, #f0d66e, #d4a843);
+  border-color: rgba(240, 210, 100, 0.6);
+  box-shadow: 0 0 20rpx rgba(220, 170, 60, 0.35), 0 0 40rpx rgba(200, 150, 50, 0.15);
+}
+
+.tribute-submit-btn.btn-disabled {
+  opacity: 0.35;
+}
+
+.user-tribute-list {
+  margin-bottom: 16rpx;
+}
+
+.user-tribute-card {
+  background: rgba(26, 26, 40, 0.5);
+  border: 1rpx solid rgba(100, 200, 255, 0.08);
+  border-radius: 18rpx;
+  margin-bottom: 20rpx;
+  opacity: 0;
+  transform: translateY(24rpx);
+  transition: all 0.5s ease;
+}
+
+.user-tribute-card.card-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.user-tribute-card-body {
+  padding: 22rpx 24rpx 20rpx;
+}
+
+.user-tribute-card-top {
+  display: flex;
+  align-items: center;
+  margin-bottom: 14rpx;
+}
+
+.user-tribute-avatar {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: rgba(100, 200, 255, 0.08);
+  border: 1rpx solid rgba(100, 200, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.user-tribute-avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.user-tribute-avatar-text {
+  font-size: 22rpx;
+}
+
+.user-tribute-meta {
+  margin-left: 14rpx;
+  flex: 1;
+}
+
+.user-tribute-nickname {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: rgba(100, 200, 255, 0.6);
+}
+
+.user-tribute-time {
+  display: block;
+  font-size: 18rpx;
+  color: rgba(100, 200, 255, 0.25);
+  margin-top: 4rpx;
+}
+
+.user-tribute-message {
+  display: block;
+  font-size: 26rpx;
+  color: rgba(240, 237, 230, 0.7);
+  line-height: 1.85;
+  letter-spacing: 1rpx;
+  padding-left: 8rpx;
+  border-left: 3rpx solid rgba(100, 200, 255, 0.12);
+}
+
+.user-tribute-loadmore {
+  text-align: center;
+  padding: 20rpx 0;
+}
+
+.user-tribute-loadmore text {
+  font-size: 24rpx;
+  color: rgba(100, 200, 255, 0.35);
+}
+
+.user-tribute-end {
+  text-align: center;
+  padding: 24rpx 0;
+}
+
+.user-tribute-end text {
+  font-size: 22rpx;
+  color: rgba(100, 200, 255, 0.2);
+  letter-spacing: 4rpx;
+}
+
+.user-tribute-empty {
+  text-align: center;
+  padding: 40rpx 0 48rpx;
+}
+
+.user-tribute-empty text {
+  font-size: 24rpx;
+  color: rgba(201, 169, 110, 0.2);
+}
