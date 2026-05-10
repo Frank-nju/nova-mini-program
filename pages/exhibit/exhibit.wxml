@@ -14,7 +14,7 @@
     <!-- 第一部分：首页（追光封面） -->
     <view class="section section-1" id="section-0">
       <!-- 背景图片 -->
-      <image src="{{pageImages['首页'] || '/pages/image/首页.png'}}" class="section-bg-image {{activeStates[0] ? 'active' : ''}}" mode="aspectFill"></image>
+      <image wx:if="{{pageImages['首页']}}" src="{{pageImages['首页']}}" class="section-bg-image {{activeStates[0] ? 'active' : ''}}" mode="aspectFill"></image>
 
       <!-- 封面文字层 -->
       <view class="cover-text-layer">

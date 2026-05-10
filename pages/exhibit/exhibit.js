@@ -365,17 +365,24 @@ Page({
   onScroll(e) {
     const scrollTop = e.detail.scrollTop;
     const screenHeight = this.data.screenHeight || 812;
-    const index = Math.round(scrollTop / screenHeight);
+    const sectionHeight = screenHeight;
+    // 计算当前主要可见的 section 索引（0-based）
+    const index = Math.floor(scrollTop / sectionHeight);
 
-    // 节流：只在实际跨越 section 时才 setData
+    // 节流：300ms 内不重复计算
     if (this._scrollTimer) return;
-    this._scrollTimer = setTimeout(() => { this._scrollTimer = null; }, 100);
+    this._scrollTimer = setTimeout(() => { this._scrollTimer = null; }, 300);
+
+    // 活跃规则：当前屏 + 上一屏 + 下一屏保持激活
+    // 已经激活的 section 不会因为轻微回弹而失活
+    const prevIndex = Math.max(0, index - 1);
+    const nextIndex = Math.min(7, index + 1);
 
     let newStates = this.data.activeStates.slice();
     let hasChanged = false;
 
     for (let i = 0; i < 8; i++) {
-      const shouldBeActive = (i <= index && i >= Math.max(0, index - 1));
+      const shouldBeActive = (i >= prevIndex && i <= nextIndex);
       if (newStates[i] !== shouldBeActive) {
         newStates[i] = shouldBeActive;
         hasChanged = true;
