@@ -23,7 +23,11 @@
       "Bash(xxd \"D:/nova-mini-program/subpkg/pages/manga-viewer/manga-viewer.js\")",
       "Bash(npm install *)",
       "Bash(mkdir -p \"D:/nova-mini-program/cloudfunctions/submitRating\")",
-      "Bash(mkdir -p \"D:/nova-mini-program/cloudfunctions/getWorkRatings\")"
+      "Bash(mkdir -p \"D:/nova-mini-program/cloudfunctions/getWorkRatings\")",
+      "Bash(node -e \"require\\('D:/nova-mini-program/pages/exhibit/exhibit.js'\\)\")",
+      "Bash(node --check \"D:/nova-mini-program/pages/exhibit/exhibit.js\")",
+      "Bash(node -e ' *)",
+      "Bash(node *)"
     ]
   }
 }

@@ -293,6 +293,21 @@ function getTributes(params) {
   });
 }
 
+function deleteTribute(params) {
+  if (!params || !params.tributeId) {
+    return Promise.resolve({ code: 1001, message: '参数缺失：tributeId 必填', data: null });
+  }
+  return call('deleteTribute', { tributeId: params.tributeId }, 5000).then(res => {
+    if (!res || res.code !== 0) {
+      return res || { code: 9999, message: '响应异常', data: null };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] deleteTribute 失败:', err.message);
+    return { code: 1, message: err.message, data: null };
+  });
+}
+
 function submitRating(params) {
   if (!params || !params.workId || !params.score) {
     return Promise.resolve({ code: 1001, message: '参数缺失：workId 和 score 必填', data: null });
@@ -343,6 +358,7 @@ module.exports = {
   resetProgress,
   submitTribute,
   getTributes,
+  deleteTribute,
   submitRating,
   getWorkRatings,
 };

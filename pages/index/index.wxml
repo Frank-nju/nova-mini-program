@@ -135,11 +135,11 @@
       </view>
     </swiper-item>
 
-    <!-- ===== 第3页：五大功能 ===== -->
+    <!-- ===== 第3页：六大功能 ===== -->
     <swiper-item class="guide-item">
       <view class="page-container page3-container">
         <view class="page-icon">✦</view>
-        <text class="page-title page3-title">五大功能</text>
+        <text class="page-title page3-title">六大功能</text>
 
         <view class="divider-line"></view>
 
@@ -199,6 +199,17 @@
             <view class="feature-info">
               <text class="feature-name">知识问答</text>
               <text class="feature-desc">关于吴健雄的知识问答挑战</text>
+            </view>
+          </view>
+          <view class="feature-row feature-row-6 feature-row-stagger-right">
+            <view class="row-corner tl"></view>
+            <view class="row-corner tr"></view>
+            <view class="row-corner bl"></view>
+            <view class="row-corner br"></view>
+            <view class="feature-icon-wrap">⚛</view>
+            <view class="feature-info">
+              <text class="feature-name">镜像实验室</text>
+              <text class="feature-desc">重现宇称不守恒实验，探索物理奥秘</text>
             </view>
           </view>
         </view>

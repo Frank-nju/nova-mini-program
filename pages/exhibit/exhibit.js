@@ -81,7 +81,6 @@ Page({
     aiMsgCounter: 0,
     innerAudioContext: null,
     currentAiMsgId: null,
-    _badge07Granted: false,
     newBadges: false,
     badgeNotification: null,
     eventClouds: [],
@@ -92,7 +91,9 @@ Page({
       { id: 'badge_04', icon: '🔬', name: '科研专家', condition: '阅读完科研丰碑的全部6个故事', section: 4, unlocked: false },
       { id: 'badge_05', icon: '🕊️', name: '追光行者', condition: '阅读完尾声的全部6个故事', section: 5, unlocked: false },
       { id: 'badge_06', icon: '👑', name: '知识王者', condition: '答题挑战5题全对', section: null, unlocked: false },
-      { id: 'badge_07', icon: '🌠', name: '追光终章', condition: '阅读完致敬墙与传承纪念', section: null, unlocked: false },
+      { id: 'badge_08', icon: '⚛️', name: '实验探索者', condition: '完成吴健雄的镜像实验室实验', section: null, unlocked: false },
+      { id: 'badge_09', icon: '💌', name: '致敬传声', condition: '在致敬墙留下第一次留言', section: null, unlocked: false },
+      { id: 'badge_10', icon: '💬', name: '对话健雄', condition: '向数字人提出第一个问题', section: null, unlocked: false },
     ],
     selectedBadge: null,
 
@@ -199,6 +200,7 @@ Page({
     worksHasMore: true,
     worksPage: 1,
     worksTab: 'all',
+    worksSort: 'default', // 排序方式: default | rating | score
 
     // 漫画分组数据
     mangaGroups: [],
@@ -213,6 +215,25 @@ Page({
     // 致敬墙面板
     showTributePanel: false,
     tributePreviewList: [],
+
+    // 镜像实验室
+    showLabPanel: false,
+    labStep: 0,          // 0=介绍, 1=认识, 2=冷却, 3=磁场, 4=观察, 5=镜像, 6=揭示, 7=完成
+    labTemperature: 300, // 当前温度(K)
+    labFieldStrength: 0, // 磁场强度(%)
+    labDragging: false,  // 是否在拖动滑块
+    labCanvasReady: false,
+    labCompleted: false,
+    labParticles: [],
+    labCanvasWidth: 0,
+    labCanvasHeight: 0,
+    labCanvasNode: null,
+    labCtx: null,
+    labAnimFrameId: null,
+    _labBadgeGranted: false,
+    labCanAdvance: false, // 当前步骤是否可进入下一步
+    _tributeBadgeGranted: false,
+    _digitalHumanBadgeGranted: false,
   },
 
   onLoad() {
@@ -417,14 +438,6 @@ Page({
       const sectionId = `section-${Math.min(index, 5)}`;
       if (this.data.currentSection !== sectionId) {
         this.updateSectionPresets(sectionId);
-      }
-      // 首次滚动到第7部分（致敬墙·传承），自动发放 badge_07
-      if (newStates[6] && !this.data._badge07Granted) {
-        this.setData({ _badge07Granted: true });
-        const badge = this.data.badges.find(b => b.id === 'badge_07');
-        if (badge && !badge.unlocked) {
-          this.unlockBadgeByBadge(badge);
-        }
       }
     }
     this.data.scrollY = scrollTop;
@@ -657,6 +670,32 @@ Page({
     });
   },
 
+  // 通过 badgeId 和标记字段发放徽章（用于致敬、数字人、评分等新徽章）
+  _unlockBadgeById(badgeId, flagKey) {
+    if (this.data[flagKey]) return;
+    const badge = this.data.badges.find(b => b.id === badgeId);
+    if (!badge || badge.unlocked) {
+      this.setData({ [flagKey]: true });
+      return;
+    }
+    this.setData({ [flagKey]: true });
+    const badges = this.data.badges.map(item => {
+      if (item.id === badgeId) return { ...item, unlocked: true };
+      return item;
+    });
+    this.setData({ badges, newBadges: true, badgeNotification: badge });
+    this.saveProgressCache(this.data.eventClouds, badges);
+
+    if (this._badgeNotificationTimer) {
+      clearTimeout(this._badgeNotificationTimer);
+    }
+    this._badgeNotificationTimer = setTimeout(() => {
+      this.setData({ badgeNotification: null });
+    }, 3000);
+
+    cloudUtil.grantBadge({ badgeId }).catch(() => {});
+  },
+
   toggleClouds() {
     wx.navigateTo({
       url: '/subpkg/pages/cloud/cloud',
@@ -706,6 +745,9 @@ Page({
       aiChatting: true,
       aiScrollId: `ai-msg-${msgId}`,
     });
+
+    // 首次提问发放徽章
+    this._unlockBadgeById('badge_10', '_digitalHumanBadgeGranted');
 
     // 添加 loading 消息
     const loadingId = ++this.data.aiMsgCounter;
@@ -768,6 +810,9 @@ Page({
       aiChatting: true,
       aiScrollId: `ai-msg-${msgId}`,
     });
+
+    // 首次提问发放徽章
+    this._unlockBadgeById('badge_10', '_digitalHumanBadgeGranted');
 
     const loadingId = ++this.data.aiMsgCounter;
     this.setData({
@@ -1038,7 +1083,6 @@ Page({
         const badges = self.data.badges.map(b => ({ ...b, unlocked: false }));
         self.setData({
           badges,
-          _badge07Granted: false,
           badgeNotification: null,
         });
 
@@ -1122,8 +1166,9 @@ Page({
       // 给每个作品设置评分默认值
       list = list.map(item => ({ ...item, avgScore: 0, ratingCount: 0, avgStars: [], displayScore: '0.0', hasRated: false }));
 
+      const finalList = isRefresh ? list : [...this.data.worksList, ...list];
       this.setData({
-        worksList: isRefresh ? list : [...this.data.worksList, ...list],
+        worksList: this._applySortToList(finalList),
         worksPage: page + 1,
         worksHasMore: res.data.hasMore,
         worksLoading: false,
@@ -1155,7 +1200,7 @@ Page({
           if (found) return { ...w, fileUrl: found.fileUrl };
           return w;
         });
-        this.setData({ worksList: updated });
+        this.setData({ worksList: this._applySortToList(updated) });
 
         // 同时更新 mangaGroups（如果在漫画 tab）
         if (this.data.worksTab === '漫画' && this.data.mangaGroups.length > 0) {
@@ -1193,7 +1238,7 @@ Page({
           if (found) return { ...w, coverUrl: found.coverUrl };
           return w;
         });
-        this.setData({ worksList: updated });
+        this.setData({ worksList: this._applySortToList(updated) });
       });
     }
   },
@@ -1218,7 +1263,7 @@ Page({
         }
         return w;
       });
-      this.setData({ worksList: updated });
+      this.setData({ worksList: this._applySortToList(updated) });
     });
   },
 
@@ -1273,8 +1318,43 @@ Page({
 
   switchWorksTab(e) {
     const tab = e.currentTarget.dataset.tab;
-    this.setData({ worksTab: tab, worksList: [], worksPage: 1, worksHasMore: true, mangaGroups: [] });
+    this.setData({ worksTab: tab, worksList: [], worksPage: 1, worksHasMore: true, mangaGroups: [], worksSort: 'default' });
     this.loadWorks(true);
+  },
+
+  // 切换排序
+  switchWorksSort(e) {
+    const sort = e.currentTarget.dataset.sort;
+    if (!sort || sort === this.data.worksSort) return;
+    this.setData({ worksSort: sort });
+    // 对当前已加载的列表重新排序
+    this._applySort();
+  },
+
+  _applySort() {
+    const sort = this.data.worksSort;
+    if (sort === 'default') {
+      // 恢复默认：全部 tab 下图片排前面
+      this.loadWorks(true);
+      return;
+    }
+
+    const sortFn = sort === 'score'
+      ? (a, b) => (b.avgScore || 0) - (a.avgScore || 0)
+      : (a, b) => (b.ratingCount || 0) - (a.ratingCount || 0);
+
+    const updated = this.data.worksList.slice().sort(sortFn);
+    this.setData({ worksList: updated });
+  },
+
+  // 加载数据时自动应用当前排序
+  _applySortToList(list) {
+    const sort = this.data.worksSort;
+    if (sort === 'default') return list;
+    const sortFn = sort === 'score'
+      ? (a, b) => (b.avgScore || 0) - (a.avgScore || 0)
+      : (a, b) => (b.ratingCount || 0) - (a.ratingCount || 0);
+    return list.slice().sort(sortFn);
   },
 
   // 解析作品标题 "作品名-by: 作者" 或 "作品名_XX-by: 作者"
@@ -1739,6 +1819,7 @@ Page({
           nickname: res.data.nickname,
           avatarUrl: res.data.avatarUrl,
           createdAt: res.data.createdAt,
+          isMine: true,
         };
         this.setData({
           tributeInputValue: '',
@@ -1746,6 +1827,8 @@ Page({
           userTributes: [newItem].concat(this.data.userTributes),
           tributePreviewList: [newItem].concat(this.data.userTributes).slice(0, 3),
         });
+        // 首次留言发放徽章
+        this._unlockBadgeById('badge_09', '_tributeBadgeGranted');
       } else {
         wx.showToast({ title: res.message || '提交失败', icon: 'none' });
         this.setData({ tributeSubmitting: false });
@@ -1755,5 +1838,551 @@ Page({
       wx.showToast({ title: '网络异常，请重试', icon: 'none' });
       this.setData({ tributeSubmitting: false });
     });
+  },
+
+  // 删除自己的致敬留言
+  deleteTribute(e) {
+    const tributeId = e.currentTarget.dataset.tributeid;
+    const nickname = e.currentTarget.dataset.nickname;
+    if (!tributeId) return;
+
+    const self = this;
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除这条致敬留言吗？删除后无法恢复。',
+      success(res) {
+        if (!res.confirm) return;
+
+        cloudUtil.deleteTribute({ tributeId }).then(result => {
+          if (result.code === 0) {
+            // 从本地列表中移除
+            const userTributes = self.data.userTributes.filter(t => t._id !== tributeId);
+            self.setData({
+              userTributes,
+              tributePreviewList: userTributes.slice(0, 3),
+            });
+            wx.showToast({ title: '已删除', icon: 'success', duration: 1500 });
+          } else {
+            wx.showToast({ title: result.message || '删除失败', icon: 'none' });
+          }
+        }).catch(err => {
+          console.error('[deleteTribute] 异常:', err);
+          wx.showToast({ title: '网络异常', icon: 'none' });
+        });
+      },
+    });
+  },
+
+  // ========== 镜像实验室 ==========
+
+  toggleLab() {
+    const willShow = !this.data.showLabPanel;
+    this.setData({
+      showLabPanel: willShow,
+      showBadgePanel: false,
+      showAIPanel: false,
+      showQuizPanel: false,
+      showMaterialsPanel: false,
+    });
+    if (willShow) {
+      this._labSliderRect = null;
+      setTimeout(() => this._initCanvasAfterDelay(), 300);
+    } else {
+      this._stopLabAnim();
+      // 关闭面板时判定徽章
+      this._grantLabBadgeIfNeeded();
+    }
+  },
+
+  // 开始实验
+  _startLab() {
+    this._labSliderRect = null;
+    this.setData({
+      labStep: 1,
+      labTemperature: 0,
+      labFieldStrength: 0,
+      labParticles: [],
+      labCanAdvance: true, // 第一步无条件可前进
+    });
+    this._stopLabAnim();
+    setTimeout(() => this._initCanvasAfterDelay(), 300);
+  },
+
+  // 下一步（受 labCanAdvance 限制）
+  _nextLabStep() {
+    if (!this.data.labCanAdvance) return;
+    const next = this.data.labStep + 1;
+    const isCompleted = next === 7;
+    this.setData({
+      labStep: next,
+      labParticles: [],
+      labCanAdvance: this._getCanAdvanceForStep(next),
+      labCompleted: isCompleted,
+    });
+    this._stopLabAnim();
+    if (next <= 7) {
+      setTimeout(() => this._initCanvasAfterDelay(), 300);
+    }
+  },
+
+  // 某步骤的初始可前进条件
+  _getCanAdvanceForStep(step) {
+    if (step === 1) return true;
+    if (step === 2) return this.data.labTemperature >= 280; // 接近 300（0K）
+    if (step === 3) return this.data.labFieldStrength >= 80;
+    // 4/5/6 需要答对，7 是完成页
+    return false;
+  },
+
+  // 上一步
+  _prevLabStep() {
+    if (this.data.labStep <= 1) return;
+    const prev = this.data.labStep - 1;
+    this.setData({ labStep: prev, labParticles: [], labCanAdvance: this._getCanAdvanceForStep(prev) });
+    this._stopLabAnim();
+    setTimeout(() => this._initCanvasAfterDelay(), 300);
+  },
+
+  // 返回展馆（判定徽章）
+  backToExhibit() {
+    this._grantLabBadgeIfNeeded();
+    this.setData({ showLabPanel: false, labStep: 0, labCompleted: false });
+    this._stopLabAnim();
+  },
+
+  // 按需发放徽章
+  _grantLabBadgeIfNeeded() {
+    // 进入过第 7 步（完成页）或已标记完成，就发放
+    if (this.data._labBadgeGranted) return;
+    if (this.data.labStep >= 7 || this.data.labCompleted) {
+      this._doGrantBadge();
+    }
+  },
+
+  _doGrantBadge() {
+    if (this.data._labBadgeGranted) return;
+    this.setData({ _labBadgeGranted: true, labCompleted: true });
+    const badge = this.data.badges.find(b => b.id === 'badge_08');
+    if (badge && !badge.unlocked) {
+      const badges = this.data.badges.map(item => {
+        if (item.id === 'badge_08') return { ...item, unlocked: true };
+        return item;
+      });
+      this.setData({ badges, newBadges: true, badgeNotification: badge });
+      this.saveProgressCache(this.data.eventClouds, badges);
+      cloudUtil.grantBadge({ badgeId: 'badge_08' }).catch(() => {});
+      if (this._badgeNotificationTimer) clearTimeout(this._badgeNotificationTimer);
+      this._badgeNotificationTimer = setTimeout(() => {
+        this.setData({ badgeNotification: null });
+      }, 3000);
+    }
+  },
+
+  // Canvas 初始化（统一入口，重试机制）
+  _initCanvasAfterDelay() {
+    const self = this;
+    if (this.data.showLabPanel && this.data.labStep > 0) {
+      setTimeout(() => self._initCanvas(), 200);
+    }
+  },
+
+  _initCanvas() {
+    const query = wx.createSelectorQuery();
+    query.select('.lab-canvas')
+      .fields({ node: true, size: true })
+      .exec((res) => {
+        if (!res[0] || !res[0].node) {
+          console.warn('[lab] Canvas not ready, retry...');
+          setTimeout(() => this._initCanvas(), 200);
+          return;
+        }
+        const canvas = res[0].node;
+        const ctx = canvas.getContext('2d');
+        const dpr = wx.getSystemInfoSync().pixelRatio;
+        canvas.width = res[0].width * dpr;
+        canvas.height = res[0].height * dpr;
+        ctx.scale(dpr, dpr);
+        this.setData({
+          labCanvasNode: canvas,
+          labCtx: ctx,
+          labCanvasWidth: res[0].width,
+          labCanvasHeight: res[0].height,
+          labCanvasReady: true,
+          labParticles: [],
+        });
+        this._drawScene();
+      });
+  },
+
+  // 绘制场景（根据 labStep 分发）
+  _drawScene() {
+    const { labCtx, labCanvasWidth, labCanvasHeight, labStep } = this.data;
+    if (!labCtx) return;
+    const ctx = labCtx;
+    const w = labCanvasWidth;
+    const h = labCanvasHeight;
+    ctx.clearRect(0, 0, w, h);
+
+    const cx = w / 2;
+    const cy = h * 0.48;
+
+    if (labStep === 1) {
+      this._drawNucleusSimple(ctx, cx, cy, 45);
+      this._drawLabel(ctx, w, h, '钴-60原子核', '放射性同位素，β衰变中释放电子');
+    } else if (labStep === 2) {
+      const actualTemp = 300 - this.data.labTemperature;
+      this._drawNucleusWithSpins(ctx, cx, cy, 40, actualTemp);
+      this._drawLabel(ctx, w, h, '温度: ' + Math.round(actualTemp) + 'K',
+        actualTemp < 100 ? '原子核自旋已对齐（极化）！' : '降温使原子核排列整齐');
+    } else if (labStep === 3) {
+      this._drawNucleusWithField(ctx, cx, cy, 40, this.data.labFieldStrength);
+      this._drawLabel(ctx, w, h, '磁场强度: ' + Math.round(this.data.labFieldStrength) + '%',
+        '磁场帮助极化原子核，让自旋方向一致');
+    } else if (labStep === 4) {
+      this._drawNucleusWithSpins(ctx, cx, cy, 30, 0);
+      this._spawnElectrons(ctx, w, h, true);
+      this._drawLabel(ctx, w, h, '观察电子发射方向', '注意粒子主要从哪边飞出？');
+    } else if (labStep === 5) {
+      this._drawMirrorScene(ctx, w, h);
+    } else if (labStep === 6) {
+      this._drawRevealScene(ctx, w, h);
+    } else if (labStep === 7) {
+      this._drawCompletion(ctx, w, h);
+    }
+
+    if (labStep >= 2 && labStep <= 6) {
+      this.data.labAnimFrameId = setTimeout(() => this._drawScene(), 50);
+    }
+  },
+
+  // 钴-60 简单展示
+  _drawNucleusSimple(ctx, cx, cy, r) {
+    const glow = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, r * 3);
+    glow.addColorStop(0, 'rgba(100, 200, 255, 0.3)');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 3, 0, Math.PI * 2);
+    ctx.fill();
+    const g = ctx.createRadialGradient(cx - 8, cy - 8, 0, cx, cy, r);
+    g.addColorStop(0, '#5a9ae5');
+    g.addColorStop(0.7, '#2a5a8a');
+    g.addColorStop(1, '#1a3a5a');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255, 200, 100, 0.4)';
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(cx + Math.cos(a) * r * 0.5, cy + Math.sin(a) * r * 0.5, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#f0ede6';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Co-60', cx, cy + 6);
+  },
+
+  // 带自旋箭头的原子核
+  _drawNucleusWithSpins(ctx, cx, cy, r, temperature) {
+    this._drawNucleusSimple(ctx, cx, cy, r);
+    const align = 1 - temperature / 300;
+    const n = 10;
+    for (let i = 0; i < n; i++) {
+      let a;
+      if (align > 0.7) {
+        a = -Math.PI / 2 + (Math.random() - 0.5) * (1 - align) * Math.PI * 1.5;
+      } else {
+        a = (i / n) * Math.PI * 2;
+      }
+      const sx = cx + Math.cos(a) * (r + 8);
+      const sy = cy + Math.sin(a) * (r + 8);
+      const ex = cx + Math.cos(a) * (r + 22);
+      const ey = cy + Math.sin(a) * (r + 22);
+      ctx.strokeStyle = `rgba(255, 215, 0, ${0.4 + align * 0.6})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(255, 215, 0, ${0.4 + align * 0.6})`;
+      ctx.beginPath();
+      ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+
+  // 带磁场的原子核
+  _drawNucleusWithField(ctx, cx, cy, r, fieldStrength) {
+    this._drawNucleusSimple(ctx, cx, cy, r);
+    const n = 5;
+    for (let i = 0; i < n; i++) {
+      const offset = (i - (n - 1) / 2) * 18;
+      ctx.strokeStyle = `rgba(100, 200, 255, ${0.15 + fieldStrength / 300 * 0.5})`;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(cx - 80, cy + offset);
+      ctx.lineTo(cx + 80, cy + offset);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      const arrowX = cx + 80;
+      ctx.fillStyle = `rgba(100, 200, 255, ${0.3 + fieldStrength / 300 * 0.5})`;
+      ctx.beginPath();
+      ctx.moveTo(arrowX, cy + offset - 5);
+      ctx.lineTo(arrowX + 8, cy + offset);
+      ctx.lineTo(arrowX, cy + offset + 5);
+      ctx.fill();
+    }
+    const align = fieldStrength / 100;
+    const spinN = 8;
+    for (let i = 0; i < spinN; i++) {
+      let a = -Math.PI / 2 + (Math.random() - 0.5) * (1 - align) * Math.PI * 1.5;
+      const sx = cx + Math.cos(a) * (r + 8);
+      const sy = cy + Math.sin(a) * (r + 8);
+      const ex = cx + Math.cos(a) * (r + 22);
+      const ey = cy + Math.sin(a) * (r + 22);
+      ctx.strokeStyle = `rgba(255, 215, 0, ${0.3 + align * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sx, sy);
+      ctx.lineTo(ex, ey);
+      ctx.stroke();
+      ctx.fillStyle = `rgba(255, 215, 0, ${0.3 + align * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+
+  // 电子粒子系统
+  _spawnElectrons(ctx, w, h, polarized) {
+    let particles = this.data.labParticles || [];
+    if (particles.length < 50) {
+      const angle = polarized
+        ? (-Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 0.5)
+        : Math.random() * Math.PI * 2;
+      const speed = 1.5 + Math.random() * 2.5;
+      particles.push({
+        x: w / 2,
+        y: h * 0.48,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        size: 2 + Math.random() * 2.5,
+      });
+    }
+    particles = particles.filter(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 0.012;
+      if (p.life <= 0) return false;
+      return true;
+    });
+    for (const p of particles) {
+      ctx.fillStyle = `rgba(100, 255, 180, ${p.life * 0.9})`;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(100, 255, 180, ${p.life * 0.3})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
+      ctx.lineTo(p.x - p.vx * 4, p.y - p.vy * 4);
+      ctx.stroke();
+    }
+    this.setData({ labParticles: particles });
+  },
+
+  // 镜像对比场景
+  _drawMirrorScene(ctx, w, h) {
+    const midX = w / 2;
+    const centerY = h * 0.45;
+
+    ctx.strokeStyle = 'rgba(201, 169, 110, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(midX, h * 0.1);
+    ctx.lineTo(midX, h * 0.8);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#64c8ff';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('真实实验', w / 4, h * 0.15);
+    ctx.fillText('镜像世界', w * 3 / 4, h * 0.15);
+
+    this._drawNucleusSimple(ctx, w / 4, centerY, 30);
+    this._drawFixedElectrons(ctx, w / 4, centerY, 'up', w / 4);
+
+    this._drawNucleusSimple(ctx, w * 3 / 4, centerY, 30);
+    this._drawFixedElectrons(ctx, w * 3 / 4, centerY, 'down', w / 4);
+
+    ctx.fillStyle = '#ff6347';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('镜像中的电子方向应该反转！', midX, h * 0.76);
+  },
+
+  // 固定方向的电子发射
+  _drawFixedElectrons(ctx, cx, cy, dir, halfW) {
+    const time = Date.now() / 1000;
+    const n = 20;
+    for (let i = 0; i < n; i++) {
+      const seed = (i * 7.3 + time * 2) % 1;
+      const progress = seed;
+      const spread = (Math.sin(i * 3.7 + time * 3) * 0.4);
+      const dist = progress * halfW * 0.8;
+
+      let ex, ey;
+      if (dir === 'up') {
+        ex = cx + spread * dist * 0.4;
+        ey = cy - dist;
+      } else {
+        ex = cx + spread * dist * 0.4;
+        ey = cy + dist;
+      }
+      const alpha = 1 - progress;
+      ctx.fillStyle = `rgba(100, 255, 180, ${alpha * 0.8})`;
+      ctx.beginPath();
+      ctx.arc(ex, ey, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+
+  // 揭示结果场景
+  _drawRevealScene(ctx, w, h) {
+    const midX = w / 2;
+    const centerY = h * 0.42;
+
+    ctx.strokeStyle = 'rgba(201, 169, 110, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(midX, h * 0.1);
+    ctx.lineTo(midX, h * 0.75);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#64c8ff';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('真实', w / 4, h * 0.15);
+    ctx.fillText('镜像', w * 3 / 4, h * 0.15);
+
+    this._drawNucleusSimple(ctx, w / 4, centerY, 30);
+    this._drawFixedElectrons(ctx, w / 4, centerY, 'up', w / 4);
+
+    this._drawNucleusSimple(ctx, w * 3 / 4, centerY, 30);
+    this._drawFixedElectrons(ctx, w * 3 / 4, centerY, 'up', w / 4);
+
+    const pulse = 0.6 + Math.sin(Date.now() / 400) * 0.4;
+    ctx.fillStyle = `rgba(255, 99, 71, ${pulse})`;
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText('两边都向上！这不可能！', midX, h * 0.73);
+    ctx.fillStyle = '#c9a96e';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('宇称不守恒被证实！', midX, h * 0.84);
+  },
+
+  // 完成页场景
+  _drawCompletion(ctx, w, h) {
+    const time = Date.now() / 1000;
+    for (let i = 0; i < 40; i++) {
+      const angle = (i / 40) * Math.PI * 2 + time * 0.5;
+      const r = 60 + Math.sin(time * 2 + i * 0.5) * 25;
+      const x = w / 2 + Math.cos(angle) * r;
+      const y = h / 2 + Math.sin(angle) * r;
+      const alpha = 0.3 + Math.sin(time * 3 + i) * 0.2;
+      ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(x, y, 2 + Math.random() * 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+
+  // 统一标签绘制
+  _drawLabel(ctx, w, h, main, sub) {
+    ctx.fillStyle = '#64c8ff';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(main, w / 2, h * 0.65);
+    ctx.fillText(sub, w / 2, h * 0.85);
+  },
+
+  // 停止动画
+  _stopLabAnim() {
+    if (this.data.labAnimFrameId) {
+      clearTimeout(this.data.labAnimFrameId);
+      this.data.labAnimFrameId = null;
+    }
+    this.setData({ labParticles: [] });
+  },
+
+  // 温度滑块
+  onSliderChanging(e) {
+    const value = Number(e.detail.value);
+    if (!isNaN(value)) {
+      const canAdvance = value >= 280; // 接近绝对零度（300 = 0K）
+      this.setData({ labTemperature: value, labCanAdvance: canAdvance });
+    }
+  },
+  onSliderChange(e) {
+    const value = Number(e.detail.value);
+    if (!isNaN(value)) {
+      const canAdvance = value >= 280;
+      this.setData({ labTemperature: value, labCanAdvance: canAdvance });
+    }
+  },
+
+  // 磁场滑块
+  onFieldChanging(e) {
+    const value = Number(e.detail.value);
+    if (!isNaN(value)) {
+      const canAdvance = value >= 80;
+      this.setData({ labFieldStrength: value, labCanAdvance: canAdvance });
+    }
+  },
+  onFieldChange(e) {
+    const value = Number(e.detail.value);
+    if (!isNaN(value)) {
+      const canAdvance = value >= 80;
+      this.setData({ labFieldStrength: value, labCanAdvance: canAdvance });
+    }
+  },
+
+  // 选择
+  onLabChoice(e) {
+    const choice = e.currentTarget.dataset.choice;
+    const step = this.data.labStep;
+
+    if (step === 4) {
+      if (choice === 'up') {
+        this.setData({ labCanAdvance: true });
+        wx.showToast({ title: '正确！', icon: 'success', duration: 1500 });
+      } else {
+        this.setData({ labCanAdvance: false });
+        wx.showToast({ title: '再观察一下粒子的方向', icon: 'none', duration: 2000 });
+      }
+    } else if (step === 5) {
+      if (choice === 'different') {
+        this.setData({ labCanAdvance: true });
+        wx.showToast({ title: '正确！', icon: 'success', duration: 1500 });
+      } else {
+        this.setData({ labCanAdvance: false });
+        wx.showToast({ title: '注意看两边电子的方向是否一致', icon: 'none', duration: 2000 });
+      }
+    } else if (step === 6) {
+      if (choice === 'violation') {
+        this.setData({ labCanAdvance: true });
+        wx.showToast({ title: '正确！', icon: 'success', duration: 1500 });
+      } else {
+        this.setData({ labCanAdvance: false });
+        wx.showToast({ title: '再想想，两边的结果一样吗？', icon: 'none', duration: 2000 });
+      }
+    }
   },
 });

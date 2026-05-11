@@ -8,6 +8,9 @@ const DEFAULT_PAGE_SIZE = 20
 const MAX_PAGE_SIZE = 50
 
 exports.main = async (event, context) => {
+  const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+
   try {
     const page = Math.max(1, parseInt(event.page) || 1)
     const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(event.pageSize) || DEFAULT_PAGE_SIZE))
@@ -25,6 +28,7 @@ exports.main = async (event, context) => {
       .limit(pageSize)
       .field({
         _id: true,
+        _openid: true,
         message: true,
         nickname: true,
         avatarUrl: true,
@@ -32,13 +36,23 @@ exports.main = async (event, context) => {
       })
       .get()
 
+    // 标记哪些是"我的"
+    const list = listRes.data.map(item => {
+      const isMine = item._openid === openid;
+      console.log(`[getTributes] 检查归属: ${item._id}, openid=${item._openid}, current=${openid}, isMine=${isMine}`);
+      return {
+        ...item,
+        isMine,
+      };
+    });
+
     const hasMore = (page * pageSize) < total
 
     return {
       code: 0,
       message: 'ok',
       data: {
-        list: listRes.data,
+        list,
         total,
         page,
         pageSize,

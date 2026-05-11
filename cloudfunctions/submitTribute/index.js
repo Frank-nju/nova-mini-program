@@ -58,6 +58,7 @@ exports.main = async (event, context) => {
         nickname,
         avatarUrl,
         createdAt: now,
+        isMine: true,
       }
     }
   } catch (error) {
