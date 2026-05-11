@@ -502,8 +502,6 @@ Page({
   },
 
   goBack() {
-    // 只返回上一页，不自动上报进度
-    // 用户需要点击「✓ 已读」才会标记进度到云图和勋章
     wx.navigateBack({ delta: 1 });
   },
 
@@ -552,6 +550,9 @@ Page({
 
   nextStory() {
     if (this.data.currentStoryIndex < this.data.totalStories - 1) {
+      // 点击下一个 = 标记当前故事已读完成
+      this.markStoryComplete();
+
       const newIndex = this.data.currentStoryIndex + 1;
       const sectionIndex = this.data.section - 1;
       const stories = this.data.storiesData[sectionIndex].stories;
@@ -589,6 +590,20 @@ Page({
       // 时间线滚动到对应节点
       if (this.data.chapterType === 'timeline') {
         this.setData({ scrollIntoView: 'tl-node-' + newIndex });
+      }
+    }
+  },
+
+  // 最后一个故事：标记完成，检查徽章
+  completeChapter() {
+    this.markStoryComplete();
+
+    // 只有最后一个故事的完成才检查徽章发放
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      const prePage = pages[pages.length - 2];
+      if (prePage.checkAndGrantBadge) {
+        prePage.checkAndGrantBadge(this.data.section);
       }
     }
   },
@@ -1120,6 +1135,8 @@ Page({
   markStoryComplete() {
     const cloudId = (this.data.section - 1) * 6 + this.data.currentStoryIndex + 1;
     const nodeId = 'n' + cloudId;
+    const section = this.data.section;
+    const storyIdx = this.data.currentStoryIndex;
 
     cloudUtil.updateProgress({
       type: 'timeline',
@@ -1133,16 +1150,15 @@ Page({
     if (pages.length > 1) {
       const prePage = pages[pages.length - 2];
       if (prePage.unlockEventCloudByStory) {
-        prePage.unlockEventCloudByStory(this.data.section, this.data.currentStoryIndex);
+        prePage.unlockEventCloudByStory(section, storyIdx);
       }
     }
 
     // 标记当前故事为已完成
     const completedStories = { ...this.data.completedStories };
-    const section = this.data.section;
     if (completedStories[section]) {
       completedStories[section] = [...completedStories[section]];
-      completedStories[section][this.data.currentStoryIndex] = true;
+      completedStories[section][storyIdx] = true;
     }
 
     this.setData({

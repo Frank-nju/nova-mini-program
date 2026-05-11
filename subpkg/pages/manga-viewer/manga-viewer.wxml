@@ -1,8 +1,13 @@
 <view class="manga-viewer-page">
   <!-- 顶部信息栏 -->
-  <view class="manga-info-bar">
-    <text class="manga-title">{{title}}</text>
-    <text class="manga-author">{{author}}</text>
+  <view class="manga-header">
+    <view class="header-back" bindtap="goBack">
+      <text class="back-arrow">‹</text>
+    </view>
+    <view class="header-info">
+      <text class="manga-title">{{title}}</text>
+      <text wx:if="{{author}}" class="manga-author">{{author}}</text>
+    </view>
   </view>
 
   <!-- 漫画浏览区 -->

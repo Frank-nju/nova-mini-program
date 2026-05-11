@@ -505,7 +505,8 @@
           </view>
           <!-- 视频卡片 -->
           <view wx:elif="{{item.category === '视频'}}" class="works-card-video-wrap">
-            <view class="works-card-video-bg"></view>
+            <image wx:if="{{item.coverUrl}}" class="works-card-video-cover-img" src="{{item.coverUrl}}" mode="aspectFill" />
+            <view wx:else class="works-card-video-bg"></view>
             <view class="works-card-video-play">▶</view>
           </view>
           <!-- 文档卡片 -->
@@ -528,7 +529,7 @@
       </view>
     </scroll-view>
 
-    <!-- 视频列表视图 -->
+    <!-- 视频列表视图 — 网格布局（与"全部"一致） -->
     <scroll-view class="works-scroll" scroll-y="{{true}}" bindscrolltolower="loadMoreWorks" wx:elif="{{worksTab === '视频'}}">
       <view wx:if="{{worksLoading}}" class="material-loading">
         <text>加载中...</text>
@@ -537,16 +538,17 @@
         <text class="material-empty-icon">📺</text>
         <text class="material-empty-text">暂无视频成果</text>
       </view>
-      <view class="works-list" wx:if="{{worksList.length > 0}}">
-        <view wx:for="{{worksList}}" wx:key="fileId" class="works-list-card" bindtap="previewWork" data-item="{{item}}">
-          <view class="works-list-video-thumb">
-            <view class="works-list-video-glow"></view>
-            <view class="works-list-play-btn">▶</view>
+      <view class="works-grid" wx:if="{{worksList.length > 0}}">
+        <view wx:for="{{worksList}}" wx:key="fileId" class="works-card" bindtap="previewWork" data-item="{{item}}">
+          <view class="works-card-video-wrap">
+            <image wx:if="{{item.coverUrl}}" class="works-card-video-cover-img" src="{{item.coverUrl}}" mode="aspectFill" />
+            <view wx:else class="works-card-video-bg"></view>
+            <view class="works-card-video-play">▶</view>
           </view>
-          <view class="works-list-info">
-            <text class="works-list-title">{{item.displayName}}</text>
-            <view class="works-list-author-row" wx:if="{{item.displayAuthor}}">
-              <view class="works-list-author-dot"></view>
+          <view class="works-card-info">
+            <text class="works-card-title">{{item.displayName}}</text>
+            <view class="works-card-author-row" wx:if="{{item.displayAuthor}}">
+              <view class="works-card-author-dot"></view>
               <text class="works-card-author">{{item.displayAuthor}}</text>
             </view>
           </view>

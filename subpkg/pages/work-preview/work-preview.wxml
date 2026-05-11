@@ -1,0 +1,38 @@
+<view class="preview-page">
+  <!-- 顶部标题栏 -->
+  <view class="preview-header">
+    <view class="header-back" bindtap="goBack">
+      <text class="back-arrow">‹</text>
+    </view>
+    <view class="header-info">
+      <text class="work-title">{{title}}</text>
+      <text wx:if="{{author}}" class="work-author">{{author}}</text>
+    </view>
+  </view>
+
+  <!-- 内容区 -->
+  <view class="preview-body">
+    <view wx:if="{{loading}}" class="loading-area">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{!mediaUrl}}" class="error-area">
+      <text class="error-icon">⚠</text>
+      <text>暂无文件内容</text>
+    </view>
+
+    <!-- 图片：居中显示，点击全屏预览 -->
+    <view wx:elif="{{category === '图片'}}" class="media-center" bindtap="previewImage">
+      <scroll-view wx:if="{{imageOrientation === 'portrait'}}" class="image-scroll" scroll-y="{{true}}" enhanced show-scrollbar="{{false}}">
+        <image class="media-image {{imageOrientation}}" src="{{mediaUrl}}" mode="widthFix" bindload="onImageLoad" binderror="onImageError" />
+      </scroll-view>
+      <image wx:else class="media-image {{imageOrientation}}" src="{{mediaUrl}}" mode="aspectFit" bindload="onImageLoad" binderror="onImageError" />
+    </view>
+
+    <!-- 视频：内嵌播放器 -->
+    <view wx:elif="{{category === '视频'}}" class="video-wrap">
+      <video class="media-video" src="{{mediaUrl}}" controls="{{true}}" object-fit="contain" show-center-play-btn="{{true}}" enable-progress-gesture="{{true}}" autoplay="{{false}}" show-fullscreen-btn="{{false}}" />
+    </view>
+  </view>
+</view>

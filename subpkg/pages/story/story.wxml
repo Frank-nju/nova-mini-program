@@ -288,11 +288,11 @@
     <button class="btn-story btn-prev" bindtap="prevStory" disabled="{{currentStoryIndex === 0}}">
       <text>← 上一个</text>
     </button>
-    <button class="btn-story btn-complete" bindtap="markStoryComplete">
-      <text>✓ 已读</text>
-    </button>
-    <button class="btn-story btn-next" bindtap="nextStory" disabled="{{currentStoryIndex === totalStories - 1}}">
+    <button wx:if="{{currentStoryIndex < totalStories - 1}}" class="btn-story btn-next" bindtap="nextStory">
       <text>下一个 →</text>
+    </button>
+    <button wx:else class="btn-story btn-complete" bindtap="completeChapter">
+      <text>✓ 完成</text>
     </button>
   </view>
 

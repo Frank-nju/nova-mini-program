@@ -10,7 +10,8 @@
       "pages": [
         "pages/story/story",
         "pages/cloud/cloud",
-        "pages/manga-viewer/manga-viewer"
+        "pages/manga-viewer/manga-viewer",
+        "pages/work-preview/work-preview"
       ]
     }
   ],

@@ -26,7 +26,6 @@ Page({
     }
   },
 
-  // 批量加载页面 URL（通过云函数）
   loadPageUrls(pageList) {
     const batchSize = 5;
     const loadBatch = (index) => {
@@ -56,5 +55,9 @@ Page({
 
   onSwiperChange(e) {
     this.setData({ current: e.detail.current });
+  },
+
+  goBack() {
+    wx.navigateBack();
   },
 });

@@ -6,27 +6,57 @@
   flex-direction: column;
 }
 
-.manga-info-bar {
+/* 顶部信息栏 */
+.manga-header {
+  display: flex;
+  align-items: center;
   padding: 20rpx 32rpx;
   background: rgba(10, 10, 15, 0.95);
   border-bottom: 1rpx solid rgba(201, 169, 110, 0.2);
   flex-shrink: 0;
 }
 
+.header-back {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 169, 110, 0.1);
+  border-radius: 50%;
+  border: 1rpx solid rgba(201, 169, 110, 0.3);
+  margin-right: 20rpx;
+}
+
+.back-arrow {
+  font-size: 40rpx;
+  color: #c9a96e;
+  line-height: 1;
+}
+
+.header-info {
+  flex: 1;
+  overflow: hidden;
+}
+
 .manga-title {
   display: block;
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 700;
   color: rgba(240, 230, 210, 0.95);
-  margin-bottom: 6rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .manga-author {
   display: block;
-  font-size: 22rpx;
-  color: rgba(201, 169, 110, 0.6);
+  font-size: 26rpx;
+  color: rgba(201, 169, 110, 0.75);
+  margin-top: 4rpx;
 }
 
+/* 漫画浏览区 */
 .manga-swiper {
   flex: 1;
   background: #12121e;
@@ -38,13 +68,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20rpx;
+  padding: 16rpx;
 }
 
 .manga-page-img {
   max-width: 100%;
   max-height: 100%;
   border-radius: 8rpx;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.5);
 }
 
 .manga-page-placeholder {
@@ -72,7 +103,7 @@
 .manga-page-indicator {
   text-align: center;
   padding: 16rpx 0;
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: rgba(201, 169, 110, 0.6);
   background: rgba(10, 10, 15, 0.95);
   flex-shrink: 0;

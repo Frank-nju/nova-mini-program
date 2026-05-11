@@ -1459,43 +1459,29 @@ Page({
     wx.navigateBack({ delta: 1 });
   },
 
-  // 调试：重置所有进度（清除本地缓存 + 云端数据）
+  // 调试：只重置云图进度（不影响徽章）
   debugReset() {
     var self = this;
     wx.showModal({
-      title: '重置进度',
-      content: '将清除本地和云端所有进度，节点全部变暗。确定继续？',
+      title: '重置云图',
+      content: '将清除云图节点进度，徽章和故事进度不受影响。确定继续？',
       success: function (modalRes) {
         if (!modalRes.confirm) return;
-        wx.showLoading({ title: '重置中...', mask: true });
 
-        // 1. 清除本地缓存
+        // 只清除本地缓存中的云图进度（保留徽章数据）
         try {
-          wx.removeStorageSync('exhibitProgress');
-          console.log('[cloud] 调试：已清除本地缓存');
+          var existing = wx.getStorageSync('exhibitProgress') || {};
+          existing.timelineNodes = [];
+          wx.setStorageSync('exhibitProgress', existing);
+          console.log('[cloud] 调试：已清除本地云图缓存');
         } catch (e) {
           console.warn('[cloud] 清除本地缓存失败:', e);
         }
 
-        // 2. 调用云函数清除云端数据
-        cloudUtil.resetProgress().then(function (res) {
-          wx.hideLoading();
-          if (res.code === 0) {
-            console.log('[cloud] 调试：已重置云端进度');
-            wx.showToast({ title: '已重置', icon: 'success', duration: 1500 });
-          } else {
-            console.warn('[cloud] 云端重置返回非0:', res);
-            wx.showToast({ title: '云端重置异常', icon: 'none', duration: 1500 });
-          }
-          // 3. 无论云端是否成功，本地立即将全部节点设为暗
-          self._applyUnlockFromCache();
-        }).catch(function (err) {
-          wx.hideLoading();
-          console.error('[cloud] 云端重置失败:', err);
-          wx.showToast({ title: '云端重置失败', icon: 'none', duration: 1500 });
-          // 本地仍然重置
-          self._applyUnlockFromCache();
-        });
+        // 立即将全部节点设为暗
+        self._applyUnlockFromCache();
+
+        wx.showToast({ title: '云图已重置', icon: 'success', duration: 1500 });
       },
     });
   },

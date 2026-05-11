@@ -4906,11 +4906,18 @@
   width: 100%;
   height: 200rpx;
   background: linear-gradient(135deg, #141428, #1e2840);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   position: relative;
   overflow: hidden;
+}
+
+.works-card-video-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .works-card-video-bg {
@@ -4921,19 +4928,22 @@
 }
 
 .works-card-video-play {
-  width: 80rpx;
-  height: 80rpx;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
-  background: rgba(100, 200, 255, 0.15);
-  border: 2rpx solid rgba(100, 200, 255, 0.3);
+  background: rgba(0, 0, 0, 0.5);
+  border: 3rpx solid rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
-  color: rgba(100, 200, 255, 0.7);
-  position: relative;
-  z-index: 1;
-  margin-left: 4rpx;
+  font-size: 36rpx;
+  color: #fff;
+  z-index: 2;
+  box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.6);
 }
 
 /* 文档卡片预览区 */

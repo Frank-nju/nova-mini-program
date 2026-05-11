@@ -87,7 +87,7 @@ Page({
     eventClouds: [],
     badges: [
       { id: 'badge_01', icon: '🌟', name: '序章探索', condition: '阅读完序章的全部6个故事', section: 1, unlocked: false },
-      { id: 'badge_02', icon: '📖', name: '生平完成', condition: '阅读完生平履历的全部6个故事', section: 2, unlocked: false },
+      { id: 'badge_02', icon: '📖', name: '履迹寻光', condition: '阅读完生平履历的全部6个故事', section: 2, unlocked: false },
       { id: 'badge_03', icon: '✍️', name: '治学达人', condition: '阅读完治学风骨的全部6个故事', section: 3, unlocked: false },
       { id: 'badge_04', icon: '🔬', name: '科研专家', condition: '阅读完科研丰碑的全部6个故事', section: 4, unlocked: false },
       { id: 'badge_05', icon: '🕊️', name: '追光行者', condition: '阅读完尾声的全部6个故事', section: 5, unlocked: false },
@@ -457,42 +457,48 @@ Page({
     if (cloudIndex === -1) return;
 
     const cloud = this.data.eventClouds[cloudIndex];
-    if (cloud.unlocked) return;
+    if (!cloud.unlocked) {
+      // 显示故事完成通知
+      const sectionNames = ['序章', '生平履历', '治学风骨', '科研丰碑', '尾声'];
+      const sectionName = sectionNames[section - 1] || '';
+      this.setData({
+        storyCompleteNotification: {
+          title: sectionName + ' · 故事' + (storyIndex + 1),
+          text: '已读完成',
+        },
+      });
+      setTimeout(() => {
+        this.setData({ storyCompleteNotification: null });
+      }, 2000);
 
-    // 显示故事完成通知
-    const sectionNames = ['序章', '生平履历', '治学风骨', '科研丰碑', '尾声'];
-    const sectionName = sectionNames[section - 1] || '';
-    this.setData({
-      storyCompleteNotification: {
-        title: `${sectionName} · 故事${storyIndex + 1}`,
-        text: '已读完成',
-      },
-    });
-    setTimeout(() => {
-      this.setData({ storyCompleteNotification: null });
-    }, 2000);
+      // 乐观更新UI
+      const eventClouds = [...this.data.eventClouds];
+      eventClouds[cloudIndex] = { ...cloud, unlocked: true };
+      this.setData({ eventClouds });
+      this.createParticleExplosion(cloud);
 
-    // 乐观更新UI
-    const eventClouds = [...this.data.eventClouds];
-    eventClouds[cloudIndex] = { ...cloud, unlocked: true };
-    this.setData({ eventClouds });
-    this.createParticleExplosion(cloud);
+      // 立即保存缓存
+      this.saveProgressCache(eventClouds, this.data.badges);
+    }
 
-    // 立即保存缓存（不等 setData 回调）
-    this.saveProgressCache(eventClouds, this.data.badges);
+    // 乐观更新已完成，缓存已保存，无需额外云同步（后端云函数开发中）
+  },
 
-    // 检查是否完成整个章节
+  // 检查某章节是否全部解锁，是则发放徽章（仅由最后一个故事的"完成"按钮调用）
+  checkAndGrantBadge(section) {
+    const eventClouds = this.data.eventClouds;
     const sectionCloudCount = eventClouds.filter(c => c.section === section).length;
     const unlockedCount = eventClouds.filter(
       c => c.section === section && c.unlocked
     ).length;
 
     if (unlockedCount === sectionCloudCount) {
-      this.unlockBadge(section);
-      wx.showToast({ title: `${this.getBadgeName(section)} 已获得！`, icon: 'success', duration: 2000 });
+      const badge = this.data.badges.find(b => b.section === section);
+      if (badge && !badge.unlocked) {
+        this.unlockBadge(section);
+        wx.showToast({ title: this.getBadgeName(section) + ' 已获得！', icon: 'success', duration: 2000 });
+      }
     }
-
-    // 乐观更新已完成，缓存已保存，无需额外云同步（后端云函数开发中）
   },
 
   getBadgeName(section) {
@@ -999,57 +1005,33 @@ Page({
     });
   },
 
-  // 重置所有徽章和进度
+  // 只重置徽章（不影响云图/故事进度）
   resetBadges() {
     const self = this;
     wx.showModal({
-      title: '重置进度',
-      content: '将清除所有徽章和故事进度，确定继续？',
+      title: '重置徽章',
+      content: '将清除所有徽章进度，故事和云图进度不受影响。确定继续？',
       success: function (modalRes) {
         if (!modalRes.confirm) return;
 
-        wx.showLoading({ title: '重置中...', mask: true });
-
-        // 1. 清除本地缓存
+        // 只清除本地缓存中的徽章数据，不调用 resetProgress（避免误删 timelineNodes）
         try {
-          wx.removeStorageSync('exhibitProgress');
+          const existing = wx.getStorageSync('exhibitProgress') || {};
+          existing.badges = [];
+          wx.setStorageSync('exhibitProgress', existing);
         } catch (e) {
-          console.warn('清除本地缓存失败:', e);
+          console.warn('清除本地徽章缓存失败:', e);
         }
 
-        // 2. 调用云函数清除云端数据
-        cloudUtil.resetProgress().then(function (res) {
-          wx.hideLoading();
-          if (res.code === 0) {
-            wx.showToast({ title: '已重置', icon: 'success', duration: 1500 });
-          } else {
-            wx.showToast({ title: '重置异常', icon: 'none', duration: 1500 });
-          }
-
-          // 3. 重置本地 UI 状态
-          const badges = self.data.badges.map(b => ({ ...b, unlocked: false }));
-          const eventClouds = self.data.eventClouds.map(c => ({ ...c, unlocked: false }));
-          self.setData({
-            badges,
-            eventClouds,
-            _badge07Granted: false,
-            badgeNotification: null,
-          });
-        }).catch(function (err) {
-          wx.hideLoading();
-          console.error('云端重置失败:', err);
-          wx.showToast({ title: '重置失败', icon: 'error', duration: 1500 });
-
-          // 本地仍然重置
-          const badges = self.data.badges.map(b => ({ ...b, unlocked: false }));
-          const eventClouds = self.data.eventClouds.map(c => ({ ...c, unlocked: false }));
-          self.setData({
-            badges,
-            eventClouds,
-            _badge07Granted: false,
-            badgeNotification: null,
-          });
+        // 重置本地 UI 徽章状态
+        const badges = self.data.badges.map(b => ({ ...b, unlocked: false }));
+        self.setData({
+          badges,
+          _badge07Granted: false,
+          badgeNotification: null,
         });
+
+        wx.showToast({ title: '徽章已重置', icon: 'success', duration: 1500 });
       },
     });
   },
@@ -1065,15 +1047,12 @@ Page({
     this.setData({ worksLoading: true });
 
     cloudUtil.getWorks({ page, pageSize: 20, category }).then(res => {
-      console.log('[loadWorks] 响应:', JSON.stringify(res));
       if (!res || res.code !== 0) {
-        console.error('[loadWorks] 请求失败:', res);
         this.setData({ worksLoading: false });
         return;
       }
 
       let list = res.data.list || [];
-      console.log('[loadWorks] 数据条数:', list.length);
 
       // "其他" tab 严格过滤：只有 category 为 "其他" 的才能显示
       if (this.data.worksTab === '其他') {
@@ -1101,10 +1080,16 @@ Page({
         this.setData({ mangaGroups });
       }
 
-      // 预加载有 fileId 的项目（"其他"类别不需要预加载，fileId 就是直链；漫画需要预加载图片URL）
+      // 预加载有 fileId 的项目（"其他"类别不需要预加载，fileId 就是直链；漫画和视频需要预加载封面URL）
       const needUrlItems = list.filter(item => item.fileId && !item.fileUrl && item.category !== '其他');
       if (needUrlItems.length > 0) {
         this.preloadWorkUrls(needUrlItems, list);
+      }
+
+      // 视频封面：预加载 coverFileId 为临时 URL
+      const videoWithCover = list.filter(item => item.category === '视频' && item.coverFileId && !item.coverUrl);
+      if (videoWithCover.length > 0) {
+        this.preloadVideoCovers(videoWithCover, list);
       }
 
       this.setData({
@@ -1114,7 +1099,6 @@ Page({
         worksLoading: false,
       });
     }).catch(err => {
-      console.error('[loadWorks] 异常:', err);
       wx.showToast({ title: '加载失败', icon: 'error' });
       this.setData({ worksLoading: false });
     });
@@ -1155,6 +1139,31 @@ Page({
           });
           this.setData({ mangaGroups: updatedGroups });
         }
+      });
+    }
+  },
+
+  // 预加载视频封面临时链接
+  preloadVideoCovers(videoItems, fullList) {
+    const batchSize = 5;
+    for (let i = 0; i < videoItems.length; i += batchSize) {
+      const batch = videoItems.slice(i, i + batchSize);
+      Promise.all(batch.map(item =>
+        cloudUtil.getFilePreviewUrl({ fileID: item.coverFileId })
+          .then(res => {
+            if (res.code === 0 && res.data && res.data.fileUrl) {
+              return { workId: item.workId, coverUrl: res.data.fileUrl };
+            }
+            return null;
+          })
+          .catch(() => null)
+      )).then(results => {
+        const updated = this.data.worksList.map(w => {
+          const found = results.find(r => r && r.workId === w.workId);
+          if (found) return { ...w, coverUrl: found.coverUrl };
+          return w;
+        });
+        this.setData({ worksList: updated });
       });
     }
   },
@@ -1246,6 +1255,21 @@ Page({
     const item = e.currentTarget.dataset.item;
     if (!item) return;
 
+    if (item.category === '图片' || item.category === '视频') {
+      const params = [
+        `title=${encodeURIComponent(item.displayName || '')}`,
+        `author=${encodeURIComponent(item.displayAuthor || '')}`,
+        `category=${item.category}`,
+      ];
+      if (item.workId) params.push(`workId=${item.workId}`);
+      if (item.fileUrl) params.push(`fileUrl=${encodeURIComponent(item.fileUrl)}`);
+      wx.navigateTo({
+        url: `/subpkg/pages/work-preview/work-preview?${params.join('&')}`,
+      });
+      return;
+    }
+
+    // 文档 — 在小程序内部预览，不跳转外部编辑器
     const getPreviewUrl = (workId) => {
       return cloudUtil.getWorkDetail({ workId }).then(res => {
         if (res.code === 0 && res.data.fileUrl) return res.data.fileUrl;
@@ -1253,87 +1277,46 @@ Page({
       });
     };
 
-    if (item.category === '图片') {
-      if (item.fileUrl) {
-        wx.previewImage({ urls: [item.fileUrl] });
-      } else if (item.workId) {
-        wx.showLoading({ title: '获取链接中' });
-        getPreviewUrl(item.workId).then(url => {
+    const openDoc = (url) => {
+      wx.showLoading({ title: '加载中' });
+      const ext = this._extractExt(item.fileId || url || '');
+      const fileType = this._docType(ext);
+      wx.downloadFile({
+        url,
+        success: (dlRes) => {
           wx.hideLoading();
-          if (url) {
-            wx.previewImage({ urls: [url] });
-          } else {
-            wx.showToast({ title: '暂无图片文件', icon: 'none' });
-          }
-        }).catch(() => {
+          wx.openDocument({
+            filePath: dlRes.tempFilePath,
+            fileType: fileType || undefined,
+            showMenu: true,
+            useDocViewAnywhere: false,
+            fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
+          });
+        },
+        fail: () => {
           wx.hideLoading();
-          wx.showToast({ title: '获取失败', icon: 'error' });
-        });
-      } else {
-        wx.showToast({ title: '暂无图片文件', icon: 'none' });
-      }
-    } else if (item.category === '视频') {
-      if (item.fileUrl) {
-        wx.previewMedia({ sources: [{ url: item.fileUrl, type: 'video' }] });
-      } else if (item.workId) {
-        wx.showLoading({ title: '获取链接中' });
-        getPreviewUrl(item.workId).then(url => {
-          wx.hideLoading();
-          if (url) {
-            wx.previewMedia({ sources: [{ url, type: 'video' }] });
-          } else {
-            wx.showToast({ title: '暂无视频文件', icon: 'none' });
-          }
-        }).catch(() => {
-          wx.hideLoading();
-          wx.showToast({ title: '获取失败', icon: 'error' });
-        });
-      } else {
-        wx.showToast({ title: '暂无视频文件', icon: 'none' });
-      }
-    } else {
-      // 文档 — 在小程序内部预览，不跳转外部编辑器
-      const openDoc = (url) => {
-        wx.showLoading({ title: '加载中' });
-        const ext = this._extractExt(item.fileId || url || '');
-        const fileType = this._docType(ext);
-        wx.downloadFile({
-          url,
-          success: (dlRes) => {
-            wx.hideLoading();
-            wx.openDocument({
-              filePath: dlRes.tempFilePath,
-              fileType: fileType || undefined,
-              showMenu: true,
-              useDocViewAnywhere: false,
-              fail: () => wx.showToast({ title: '无法打开此文件', icon: 'error' }),
-            });
-          },
-          fail: () => {
-            wx.hideLoading();
-            wx.showToast({ title: '文件加载失败', icon: 'error' });
-          },
-        });
-      };
+          wx.showToast({ title: '文件加载失败', icon: 'error' });
+        },
+      });
+    };
 
-      if (item.fileUrl) {
-        openDoc(item.fileUrl);
-      } else if (item.workId) {
-        wx.showLoading({ title: '获取链接中' });
-        getPreviewUrl(item.workId).then(url => {
-          wx.hideLoading();
-          if (url) {
-            openDoc(url);
-          } else {
-            wx.showToast({ title: '暂无文件内容', icon: 'none' });
-          }
-        }).catch(() => {
-          wx.hideLoading();
-          wx.showToast({ title: '获取失败', icon: 'error' });
-        });
-      } else {
-        wx.showToast({ title: '暂无文件内容', icon: 'none' });
-      }
+    if (item.fileUrl) {
+      openDoc(item.fileUrl);
+    } else if (item.workId) {
+      wx.showLoading({ title: '获取链接中' });
+      getPreviewUrl(item.workId).then(url => {
+        wx.hideLoading();
+        if (url) {
+          openDoc(url);
+        } else {
+          wx.showToast({ title: '暂无文件内容', icon: 'none' });
+        }
+      }).catch(() => {
+        wx.hideLoading();
+        wx.showToast({ title: '获取失败', icon: 'error' });
+      });
+    } else {
+      wx.showToast({ title: '暂无文件内容', icon: 'none' });
     }
   },
 

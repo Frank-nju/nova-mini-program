@@ -33,7 +33,29 @@ exports.main = async (event, context) => {
       .field({ workId: true, title: true, category: true, fileId: true })
       .get();
 
-    const list = result.data;
+    let list = result.data;
+
+    // 视频类：批量查询 mov_cover 封面图，通过 workId 关联
+    const videoItems = list.filter(item => item.category === '视频');
+    if (videoItems.length > 0) {
+      const workIds = videoItems.map(item => item.workId);
+      const coverRes = await db.collection('mov_cover')
+        .where({ workId: db.command.in(workIds) })
+        .get();
+
+      // workId → fileId 映射
+      const coverMap = {};
+      coverRes.data.forEach(c => { coverMap[c.workId] = c.fileId; });
+
+      // 把封面 fileId 注入到视频项
+      list = list.map(item => {
+        if (item.category === '视频' && coverMap[item.workId]) {
+          return { ...item, coverFileId: coverMap[item.workId] };
+        }
+        return item;
+      });
+    }
+
     const hasMore = (page - 1) * pageSize + list.length < total;
 
     return success({ list, total, page, pageSize, hasMore });
