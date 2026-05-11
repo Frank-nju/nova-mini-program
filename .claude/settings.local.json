@@ -21,7 +21,9 @@
       "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('app.json','utf8'\\)\\); console.log\\('valid'\\)\")",
       "Bash(git ls-tree *)",
       "Bash(xxd \"D:/nova-mini-program/subpkg/pages/manga-viewer/manga-viewer.js\")",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(mkdir -p \"D:/nova-mini-program/cloudfunctions/submitRating\")",
+      "Bash(mkdir -p \"D:/nova-mini-program/cloudfunctions/getWorkRatings\")"
     ]
   }
 }

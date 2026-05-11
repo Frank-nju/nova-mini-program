@@ -57,6 +57,13 @@
 }
 
 /* 漫画浏览区 */
+.manga-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .manga-swiper {
   flex: 1;
   background: #12121e;
@@ -108,4 +115,129 @@
   background: rgba(10, 10, 15, 0.95);
   flex-shrink: 0;
   border-top: 1rpx solid rgba(201, 169, 110, 0.15);
+}
+
+/* ========== 底部评分区（与work-preview完全一致） ========== */
+.rating-section {
+  flex-shrink: 0;
+  padding: 24rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(10, 10, 18, 0.98) 0%, rgba(15, 15, 25, 0.98) 100%);
+  border-top: 1rpx solid rgba(201, 169, 110, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+/* 第一行：五颗可点击星星 */
+.rating-stars-row {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+}
+
+.rating-star-btn {
+  display: flex;
+  width: 64rpx;
+  height: 64rpx;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-star-btn.full {
+  color: #ffd700;
+}
+
+.rating-star-btn.empty {
+  color: rgba(200, 200, 220, 0.25);
+}
+
+.rating-star-btn:active {
+  transform: scale(1.2);
+  transition: transform 0.15s ease;
+}
+
+.rating-star {
+  font-size: 60rpx;
+  line-height: 60rpx;
+}
+
+/* 第二行：左边评分信息 + 右边状态 */
+.rating-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rating-info-left {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.rating-score-num {
+  font-size: 40rpx;
+  font-weight: 800;
+  color: #ffd700;
+  line-height: 1;
+}
+
+.rating-mini-stars {
+  display: flex;
+  gap: 2rpx;
+}
+
+.rating-mini-star-wrapper {
+  display: flex;
+  width: 20rpx;
+  height: 20rpx;
+  overflow: hidden;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-mini-star-wrapper.full {
+  color: #ffd700;
+}
+
+.rating-mini-star-wrapper.half .rating-mini-star {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #ffd700;
+  width: 50%;
+  overflow: hidden;
+}
+
+.rating-mini-star-wrapper.empty {
+  color: rgba(200, 200, 220, 0.25);
+}
+
+.rating-mini-star {
+  font-size: 20rpx;
+  line-height: 20rpx;
+}
+
+.rating-count-text {
+  font-size: 20rpx;
+  color: rgba(200, 200, 220, 0.5);
+}
+
+.rating-none {
+  color: rgba(201, 169, 110, 0.5);
+}
+
+.rating-status-badge {
+  flex-shrink: 0;
+  padding: 10rpx 36rpx;
+  background: rgba(201, 169, 110, 0.08);
+  border: 1rpx solid rgba(201, 169, 110, 0.25);
+  border-radius: 36rpx;
+}
+
+.rating-status-badge text {
+  font-size: 24rpx;
+  color: rgba(201, 169, 110, 0.75);
+  white-space: nowrap;
 }

@@ -202,6 +202,17 @@ Page({
 
     // 漫画分组数据
     mangaGroups: [],
+
+    // 评分弹窗
+    showRatingModal: false,
+    ratingItem: {},
+    modalUserStars: ['empty', 'empty', 'empty', 'empty', 'empty'],
+    modalUserScore: 0,
+    modalHasRated: false,
+
+    // 致敬墙面板
+    showTributePanel: false,
+    tributePreviewList: [],
   },
 
   onLoad() {
@@ -1078,6 +1089,16 @@ Page({
       if (this.data.worksTab === '漫画') {
         const mangaGroups = this.groupMangaByTitle(list);
         this.setData({ mangaGroups });
+
+        // 给每个漫画分组设置评分默认值
+        const mangaGroupsInit = mangaGroups.map(g => ({ ...g, avgScore: 0, ratingCount: 0, avgStars: [], displayScore: '0.0', hasRated: false }));
+        this.setData({ mangaGroups: mangaGroupsInit });
+
+        // 加载漫画评分数据
+        const mangaWorkIds = list.map(item => item.workId).filter(Boolean);
+        if (mangaWorkIds.length > 0) {
+          this.preloadMangaRatings(mangaWorkIds);
+        }
       }
 
       // 预加载有 fileId 的项目（"其他"类别不需要预加载，fileId 就是直链；漫画和视频需要预加载封面URL）
@@ -1091,6 +1112,15 @@ Page({
       if (videoWithCover.length > 0) {
         this.preloadVideoCovers(videoWithCover, list);
       }
+
+      // 加载评分数据
+      const workIds = list.map(item => item.workId).filter(Boolean);
+      if (workIds.length > 0) {
+        this.preloadWorkRatings(workIds, list);
+      }
+
+      // 给每个作品设置评分默认值
+      list = list.map(item => ({ ...item, avgScore: 0, ratingCount: 0, avgStars: [], displayScore: '0.0', hasRated: false }));
 
       this.setData({
         worksList: isRefresh ? list : [...this.data.worksList, ...list],
@@ -1166,6 +1196,73 @@ Page({
         this.setData({ worksList: updated });
       });
     }
+  },
+
+  // 预加载作品评分数据
+  preloadWorkRatings(workIds, list) {
+    cloudUtil.getWorkRatings({ workIds }).then(res => {
+      if (res.code !== 0 || !Array.isArray(res.data)) return;
+      const ratingMap = {};
+      res.data.forEach(r => { ratingMap[r.workId] = r; });
+      const updated = this.data.worksList.map(w => {
+        const rating = ratingMap[w.workId];
+        if (rating && rating.ratingCount > 0) {
+          return {
+            ...w,
+            avgScore: rating.avgScore,
+            ratingCount: rating.ratingCount,
+            avgStars: this.calcStars(rating.avgScore),
+            displayScore: rating.avgScore.toFixed(1),
+            hasRated: rating.userScore > 0,
+          };
+        }
+        return w;
+      });
+      this.setData({ worksList: updated });
+    });
+  },
+
+  // 预加载漫画作品评分数据（聚合所有页面的评分）
+  preloadMangaRatings(workIds) {
+    cloudUtil.getWorkRatings({ workIds }).then(res => {
+      if (res.code !== 0 || !Array.isArray(res.data)) return;
+      // 更新漫画分组的评分
+      const updated = this.data.mangaGroups.map(g => {
+        // 找到该分组所有页面对应的评分记录
+        let totalSum = 0;
+        let totalCount = 0;
+        g.pages.forEach(page => {
+          const found = res.data.find(r => r.workId === page.workId);
+          if (found && found.ratingCount > 0) {
+            totalSum += found.avgScore * found.ratingCount;
+            totalCount += found.ratingCount;
+          }
+        });
+        if (totalCount > 0) {
+          const avgScore = Math.round(totalSum / totalCount * 10) / 10;
+          return {
+            ...g,
+            avgScore,
+            ratingCount: totalCount,
+            avgStars: this.calcStars(avgScore),
+            displayScore: avgScore.toFixed(1),
+          };
+        }
+        return g;
+      });
+      this.setData({ mangaGroups: updated });
+    });
+  },
+
+  calcStars(avgScore) {
+    const stars = [];
+    for (let i = 0; i < 5; i++) {
+      const val = avgScore - i;
+      if (val >= 0.75) stars.push('full');
+      else if (val >= 0.25) stars.push('half');
+      else stars.push('empty');
+    }
+    return stars;
   },
 
   loadMoreWorks() {
@@ -1246,9 +1343,92 @@ Page({
   openMangaViewer(e) {
     const group = e.currentTarget.dataset.group;
     const pagesData = group.pages.map(p => ({ workId: p.workId, fileId: p.fileId, title: p.title }));
+    const ratingWorkId = group.pages[0] ? group.pages[0].workId : '';
     wx.navigateTo({
-      url: `/subpkg/pages/manga-viewer/manga-viewer?title=${encodeURIComponent(group.title)}&author=${encodeURIComponent(group.author)}&pages=${encodeURIComponent(JSON.stringify(pagesData))}`,
+      url: `/subpkg/pages/manga-viewer/manga-viewer?title=${encodeURIComponent(group.title)}&author=${encodeURIComponent(group.author)}&pages=${encodeURIComponent(JSON.stringify(pagesData))}&ratingWorkId=${ratingWorkId}`,
     });
+  },
+
+  // 打开评分弹窗
+  openRatingModal(e) {
+    const item = e.currentTarget.dataset.item;
+    if (!item) return;
+    this.setData({
+      showRatingModal: true,
+      ratingItem: item,
+      modalUserScore: item.hasRated ? (item.userScore || 0) : 0,
+      modalUserStars: this.calcUserStars(item.hasRated ? (item.userScore || 0) : 0),
+      modalHasRated: item.hasRated || false,
+    });
+  },
+
+  closeRatingModal() {
+    this.setData({ showRatingModal: false });
+  },
+
+  // 打开致敬墙全部面板
+  openTributePanel() {
+    this.setData({ showTributePanel: true });
+  },
+
+  closeTributePanel() {
+    this.setData({ showTributePanel: false });
+  },
+
+  stopTap() {
+    // 阻止弹窗内容区域冒泡
+  },
+
+  // 弹窗内点击星星评分
+  onModalStarTap(e) {
+    const score = parseInt(e.currentTarget.dataset.score);
+    if (!score || !this.data.ratingItem.workId) return;
+    const item = this.data.ratingItem;
+
+    cloudUtil.submitRating({ workId: item.workId, score }).then(res => {
+      if (res.code === 0 && res.data) {
+        const avgScore = res.data.avgScore;
+        const ratingCount = res.data.ratingCount;
+        const userStars = this.calcUserStars(score);
+        const wasRated = this.data.modalHasRated;
+
+        this.setData({
+          modalUserScore: score,
+          modalUserStars: userStars,
+          modalHasRated: true,
+        });
+
+        // 同步更新列表中该作品的评分显示
+        const updated = this.data.worksList.map(w => {
+          if (w.workId === item.workId) {
+            return {
+              ...w,
+              avgScore,
+              ratingCount,
+              avgStars: this.calcStars(avgScore),
+              displayScore: avgScore.toFixed(1),
+              hasRated: true,
+              userScore: score,
+            };
+          }
+          return w;
+        });
+        this.setData({ worksList: updated });
+
+        const tip = wasRated ? '评分已更新' : '评分成功';
+        wx.showToast({ title: tip, icon: 'success', duration: 1500 });
+      } else {
+        wx.showToast({ title: '评分失败', icon: 'none' });
+      }
+    });
+  },
+
+  calcUserStars(score) {
+    const stars = [];
+    for (let i = 0; i < 5; i++) {
+      stars.push(i < score ? 'full' : 'empty');
+    }
+    return stars;
   },
 
   previewWork(e) {
@@ -1510,8 +1690,10 @@ Page({
         return;
       }
       const list = res.data.list || [];
+      const allTributes = isRefresh ? list : this.data.userTributes.concat(list);
       this.setData({
-        userTributes: isRefresh ? list : this.data.userTributes.concat(list),
+        userTributes: allTributes,
+        tributePreviewList: allTributes.slice(0, 3),
         tributePage: page + 1,
         tributeHasMore: res.data.hasMore,
         tributeLoading: false,
@@ -1562,6 +1744,7 @@ Page({
           tributeInputValue: '',
           tributeSubmitting: false,
           userTributes: [newItem].concat(this.data.userTributes),
+          tributePreviewList: [newItem].concat(this.data.userTributes).slice(0, 3),
         });
       } else {
         wx.showToast({ title: res.message || '提交失败', icon: 'none' });

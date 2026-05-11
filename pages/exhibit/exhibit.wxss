@@ -4158,12 +4158,13 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
+  align-items: stretch;
 }
 
 /* ====== 致敬墙区域 ====== */
 .tribute-section {
   flex: 1;
-  padding: 48rpx 32rpx 0;
+  padding: 48rpx 24rpx 0;
   opacity: 0;
   transform: translateY(40rpx);
   transition: all 0.8s ease;
@@ -4271,7 +4272,7 @@
 }
 
 .tribute-card-body {
-  padding: 28rpx 28rpx 24rpx 36rpx;
+  padding: 28rpx 12rpx 24rpx;
 }
 
 /* 引用主体 */
@@ -5035,6 +5036,397 @@
   white-space: nowrap;
 }
 
+/* 作品评分 */
+.works-card-rating {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-top: 6rpx;
+}
+
+.works-card-rating-stars {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.works-card-star-wrapper {
+  display: flex;
+  width: 18rpx;
+  height: 18rpx;
+  overflow: hidden;
+  position: relative;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: center;
+}
+
+.works-card-star-wrapper.full {
+  color: #ffd700;
+}
+
+.works-card-star-wrapper.half {
+  color: #ffd700;
+}
+
+.works-card-star-wrapper.half .works-card-star {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  overflow: hidden;
+}
+
+.works-card-star-wrapper.empty {
+  color: rgba(200, 200, 220, 0.3);
+}
+
+.works-card-star {
+  font-size: 18rpx;
+  line-height: 18rpx;
+}
+
+.works-card-rating-text {
+  font-size: 18rpx;
+  color: rgba(200, 200, 220, 0.5);
+  line-height: 1;
+}
+
+.works-card-rating-none {
+  font-size: 18rpx;
+  color: rgba(200, 200, 220, 0.35);
+  line-height: 1;
+}
+
+/* 致敬墙面板（底部弹出） */
+.tribute-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+  background: rgba(0, 0, 0, 0);
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transition: background 0.35s ease;
+}
+
+.tribute-panel-overlay.visible {
+  background: rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+}
+
+.tribute-panel {
+  width: 100%;
+  max-width: 100%;
+  max-height: 70vh;
+  background: linear-gradient(180deg, #16162e 0%, #0f0f1a 50%, #0a0a12 100%);
+  border: 1rpx solid rgba(201, 169, 110, 0.15);
+  border-bottom: none;
+  border-radius: 32rpx 32rpx 0 0;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tribute-panel-overlay.visible .tribute-panel {
+  transform: translateY(0);
+}
+
+/* 顶部拖拽条 */
+.tribute-panel-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx 32rpx 16rpx;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.tribute-panel-indicator {
+  width: 72rpx;
+  height: 6rpx;
+  background: rgba(201, 169, 110, 0.3);
+  border-radius: 3rpx;
+  position: absolute;
+  top: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tribute-panel-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f0ede6 0%, #c9a96e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2rpx;
+}
+
+.tribute-panel-close {
+  position: absolute;
+  right: 32rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(201, 169, 110, 0.08);
+  border: 1rpx solid rgba(201, 169, 110, 0.2);
+  border-radius: 50%;
+  font-size: 24rpx;
+  color: rgba(201, 169, 110, 0.6);
+}
+
+.tribute-panel-close:active {
+  background: rgba(201, 169, 110, 0.15);
+}
+
+/* 致敬列表 */
+.tribute-panel-list {
+  flex: 1;
+  min-height: 0;
+  padding: 8rpx 24rpx 32rpx;
+}
+
+.tribute-panel-card {
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  background: rgba(201, 169, 110, 0.04);
+  border: 1rpx solid rgba(201, 169, 110, 0.1);
+  border-left: 4rpx solid rgba(201, 169, 110, 0.3);
+  border-radius: 16rpx;
+}
+
+.tribute-panel-card-top {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.tribute-panel-avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(201, 169, 110, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.tribute-panel-avatar-img {
+  width: 100%;
+  height: 100%;
+}
+
+.tribute-panel-avatar-text {
+  font-size: 28rpx;
+}
+
+.tribute-panel-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.tribute-panel-nickname {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: rgba(240, 230, 210, 0.85);
+}
+
+.tribute-panel-time {
+  font-size: 18rpx;
+  color: rgba(201, 169, 110, 0.5);
+}
+
+.tribute-panel-message {
+  display: block;
+  font-size: 26rpx;
+  color: rgba(240, 230, 210, 0.75);
+  line-height: 1.7;
+  padding-left: 8rpx;
+  border-left: 2rpx solid rgba(201, 169, 110, 0.15);
+}
+
+.tribute-panel-end {
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.4);
+}
+
+.tribute-panel-end text {
+  display: block;
+}
+
+.tribute-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60rpx 0;
+  color: rgba(200, 200, 220, 0.4);
+  font-size: 26rpx;
+  gap: 16rpx;
+}
+
+.tribute-panel-empty-icon {
+  font-size: 64rpx;
+  color: rgba(201, 169, 110, 0.3);
+}
+
+/* 查看全部按钮 */
+.user-tribute-view-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 20rpx;
+  margin-top: 8rpx;
+  background: rgba(201, 169, 110, 0.06);
+  border: 1rpx solid rgba(201, 169, 110, 0.15);
+  border-radius: 16rpx;
+}
+
+.user-tribute-view-all text:first-child {
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.65);
+}
+
+.user-tribute-view-all-arrow {
+  font-size: 28rpx;
+  color: rgba(201, 169, 110, 0.5);
+}
+
+.user-tribute-view-all:active {
+  background: rgba(201, 169, 110, 0.12);
+}
+
+/* 列表卡片评分按钮 */
+.works-list-rating-btn {
+  position: absolute;
+  right: 16rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6rpx 20rpx;
+  background: rgba(201, 169, 110, 0.12);
+  border: 1rpx solid rgba(201, 169, 110, 0.3);
+  border-radius: 20rpx;
+}
+
+.works-list-rating-btn text {
+  font-size: 18rpx;
+  color: rgba(201, 169, 110, 0.8);
+}
+
+.works-list-rating-btn:active {
+  background: rgba(201, 169, 110, 0.2);
+}
+
+/* 评分弹窗 */
+.rating-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.rating-modal-content {
+  width: 100%;
+  max-width: 600rpx;
+  background: linear-gradient(180deg, #14142a, #0f0f1a);
+  border: 1rpx solid rgba(201, 169, 110, 0.2);
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 40rpx 32rpx;
+  padding-bottom: calc(40rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.rating-modal-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: rgba(240, 230, 210, 0.95);
+  text-align: center;
+}
+
+.rating-modal-author {
+  font-size: 24rpx;
+  color: rgba(201, 169, 110, 0.7);
+}
+
+.rating-modal-stars {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 8rpx;
+}
+
+.rating-modal-star-btn {
+  display: flex;
+  width: 80rpx;
+  height: 80rpx;
+  align-items: center;
+  justify-content: center;
+}
+
+.rating-modal-star-btn.full {
+  color: #ffd700;
+}
+
+.rating-modal-star-btn.empty {
+  color: rgba(200, 200, 220, 0.25);
+}
+
+.rating-modal-star-btn:active {
+  transform: scale(1.2);
+  transition: transform 0.15s ease;
+}
+
+.rating-modal-star {
+  font-size: 72rpx;
+  line-height: 72rpx;
+}
+
+.rating-modal-hint {
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.6);
+  margin-top: 4rpx;
+}
+
+.rating-modal-close {
+  margin-top: 12rpx;
+  padding: 10rpx 32rpx;
+  background: rgba(201, 169, 110, 0.1);
+  border: 1rpx solid rgba(201, 169, 110, 0.25);
+  border-radius: 24rpx;
+  font-size: 22rpx;
+  color: rgba(201, 169, 110, 0.7);
+}
+
+.rating-modal-close:active {
+  background: rgba(201, 169, 110, 0.2);
+}
+
 /* 列表视图（视频/文档） */
 .works-list {
   display: flex;
@@ -5132,6 +5524,7 @@
   flex-direction: column;
   gap: 6rpx;
   min-width: 0;
+  position: relative;
 }
 
 .works-list-title {
@@ -5169,6 +5562,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* 其他卡片链接行：URL+评分按钮同行 */
+.works-other-link-row {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.works-other-info .works-list-rating-btn {
+  position: static;
+  flex-shrink: 0;
+  transform: none;
+  top: auto;
+  right: auto;
 }
 
 .works-link-arrow {
@@ -5454,7 +5864,7 @@
 
 /* ====== 用户致敬留言区域 ====== */
 .user-tribute-section {
-  padding: 32rpx 32rpx 0;
+  padding: 32rpx 24rpx 0;
   opacity: 0;
   transform: translateY(40rpx);
   transition: all 0.8s ease 0.15s;
@@ -5496,7 +5906,7 @@
   background: rgba(30, 28, 20, 0.7);
   border: 1rpx solid rgba(201, 169, 110, 0.28);
   border-radius: 20rpx;
-  padding: 24rpx;
+  padding: 24rpx 28rpx;
   margin-bottom: 36rpx;
   box-shadow: 0 0 20rpx rgba(201, 169, 110, 0.06);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
@@ -5582,7 +5992,7 @@
 }
 
 .user-tribute-card-body {
-  padding: 22rpx 24rpx 20rpx;
+  padding: 22rpx 20rpx 20rpx;
 }
 
 .user-tribute-card-top {

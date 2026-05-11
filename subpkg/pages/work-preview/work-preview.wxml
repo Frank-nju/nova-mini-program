@@ -35,4 +35,46 @@
       <video class="media-video" src="{{mediaUrl}}" controls="{{true}}" object-fit="contain" show-center-play-btn="{{true}}" enable-progress-gesture="{{true}}" autoplay="{{false}}" show-fullscreen-btn="{{false}}" />
     </view>
   </view>
+
+  <!-- 底部评分区 -->
+  <view class="rating-section">
+    <!-- 第一行：用户自己的评分（可点击） -->
+    <view class="rating-stars-row">
+      <view class="rating-star-btn {{userStars[0]}}" data-score="1" catchtap="onStarTap">
+        <text class="rating-star">★</text>
+      </view>
+      <view class="rating-star-btn {{userStars[1]}}" data-score="2" catchtap="onStarTap">
+        <text class="rating-star">★</text>
+      </view>
+      <view class="rating-star-btn {{userStars[2]}}" data-score="3" catchtap="onStarTap">
+        <text class="rating-star">★</text>
+      </view>
+      <view class="rating-star-btn {{userStars[3]}}" data-score="4" catchtap="onStarTap">
+        <text class="rating-star">★</text>
+      </view>
+      <view class="rating-star-btn {{userStars[4]}}" data-score="5" catchtap="onStarTap">
+        <text class="rating-star">★</text>
+      </view>
+    </view>
+
+    <!-- 第二行：左边总评分信息，右边状态 -->
+    <view class="rating-info-row">
+      <view class="rating-info-left">
+        <text class="rating-score-num">{{displayScore}}</text>
+        <view class="rating-mini-stars">
+          <view class="rating-mini-star-wrapper {{avgStars[0]}}"><text class="rating-mini-star">★</text></view>
+          <view class="rating-mini-star-wrapper {{avgStars[1]}}"><text class="rating-mini-star">★</text></view>
+          <view class="rating-mini-star-wrapper {{avgStars[2]}}"><text class="rating-mini-star">★</text></view>
+          <view class="rating-mini-star-wrapper {{avgStars[3]}}"><text class="rating-mini-star">★</text></view>
+          <view class="rating-mini-star-wrapper {{avgStars[4]}}"><text class="rating-mini-star">★</text></view>
+        </view>
+        <text wx:if="{{ratingCount > 0}}" class="rating-count-text">{{ratingCount}}人评分</text>
+        <text wx:else class="rating-count-text rating-none">暂无评分</text>
+      </view>
+      <view class="rating-status-badge">
+        <text wx:if="{{hasRated}}">已评价，点击星星可重新评分</text>
+        <text wx:else>请进行评价</text>
+      </view>
+    </view>
+  </view>
 </view>

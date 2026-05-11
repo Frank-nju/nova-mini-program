@@ -293,6 +293,37 @@ function getTributes(params) {
   });
 }
 
+function submitRating(params) {
+  if (!params || !params.workId || !params.score) {
+    return Promise.resolve({ code: 1001, message: '参数缺失：workId 和 score 必填', data: null });
+  }
+  return call('submitRating', { workId: params.workId, score: params.score }, 5000).then(res => {
+    const valid = validateResponse('submitRating', res, ['avgScore', 'ratingCount']);
+    if (!valid) {
+      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: null };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] submitRating 失败:', err.message);
+    return { code: 1, message: err.message, data: null };
+  });
+}
+
+function getWorkRatings(params) {
+  if (!params || !params.workIds || params.workIds.length === 0) {
+    return Promise.resolve({ code: 1001, message: '参数缺失：workIds 必填', data: null });
+  }
+  return call('getWorkRatings', { workIds: params.workIds }, 8000).then(res => {
+    if (!res || res.code !== 0 || !Array.isArray(res.data)) {
+      return { code: res && res.code ? res.code : 9999, message: res && res.message || '数据异常', data: [] };
+    }
+    return res;
+  }).catch(err => {
+    console.warn('[cloudUtil] getWorkRatings 失败:', err.message);
+    return { code: 1, message: err.message, data: [] };
+  });
+}
+
 module.exports = {
   call,
   isCloudAvailable,
@@ -312,4 +343,6 @@ module.exports = {
   resetProgress,
   submitTribute,
   getTributes,
+  submitRating,
+  getWorkRatings,
 };

@@ -236,7 +236,7 @@
 
         <view wx:if="{{userTributes.length > 0}}" class="user-tribute-list">
           <view
-            wx:for="{{userTributes}}"
+            wx:for="{{tributePreviewList}}"
             wx:key="_id"
             class="user-tribute-card {{activeStates[6] ? 'card-visible' : ''}}"
             style="animation-delay: {{index * 0.08}}s"
@@ -256,12 +256,9 @@
             </view>
           </view>
 
-          <view wx:if="{{tributeHasMore}}" class="user-tribute-loadmore" bindtap="loadTributes">
-            <text>{{tributeLoading ? '加载中...' : '加载更多'}}</text>
-          </view>
-
-          <view wx:if="{{!tributeHasMore && userTributes.length > 0}}" class="user-tribute-end">
-            <text>—— 致敬不息，追光不止 ——</text>
+          <view wx:if="{{userTributes.length > 3}}" class="user-tribute-view-all" bindtap="openTributePanel">
+            <text>查看全部 {{userTributes.length}} 条致敬</text>
+            <text class="user-tribute-view-all-arrow">›</text>
           </view>
         </view>
 
@@ -468,13 +465,13 @@
         <text class="works-tab-icon">▶</text>
         <text>视频</text>
       </view>
-      <view class="works-tab {{worksTab === '文档' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="文档">
-        <text class="works-tab-icon">📄</text>
-        <text>文档</text>
-      </view>
       <view class="works-tab {{worksTab === '漫画' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="漫画">
         <text class="works-tab-icon">📖</text>
         <text>漫画</text>
+      </view>
+      <view class="works-tab {{worksTab === '文档' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="文档">
+        <text class="works-tab-icon">📄</text>
+        <text>文档</text>
       </view>
       <view class="works-tab {{worksTab === '其他' ? 'active' : ''}}" bindtap="switchWorksTab" data-tab="其他">
         <text class="works-tab-icon">🔗</text>
@@ -524,6 +521,15 @@
               <view class="works-card-author-dot"></view>
               <text class="works-card-author">{{item.displayAuthor}}</text>
             </view>
+            <view class="works-card-rating">
+              <view wx:if="{{item.ratingCount > 0}}" class="works-card-rating-stars">
+                <view wx:for="{{item.avgStars}}" wx:for-item="starType" wx:for-index="si" wx:key="si" class="works-card-star-wrapper {{starType}}">
+                  <text class="works-card-star">★</text>
+                </view>
+                <text class="works-card-rating-text">{{item.displayScore}}({{item.ratingCount}}人评分)</text>
+              </view>
+              <text wx:else class="works-card-rating-none">暂无评分</text>
+            </view>
           </view>
         </view>
       </view>
@@ -551,6 +557,15 @@
               <view class="works-card-author-dot"></view>
               <text class="works-card-author">{{item.displayAuthor}}</text>
             </view>
+            <view class="works-card-rating">
+              <view wx:if="{{item.ratingCount > 0}}" class="works-card-rating-stars">
+                <view wx:for="{{item.avgStars}}" wx:for-item="starType" wx:for-index="si" wx:key="si" class="works-card-star-wrapper {{starType}}">
+                  <text class="works-card-star">★</text>
+                </view>
+                <text class="works-card-rating-text">{{item.displayScore}}({{item.ratingCount}}人评分)</text>
+              </view>
+              <text wx:else class="works-card-rating-none">暂无评分</text>
+            </view>
           </view>
         </view>
       </view>
@@ -576,6 +591,19 @@
               <view class="works-list-author-dot"></view>
               <text class="works-card-author">{{item.displayAuthor}}</text>
             </view>
+            <view class="works-card-rating">
+              <view wx:if="{{item.ratingCount > 0}}" class="works-card-rating-stars">
+                <view wx:for="{{item.avgStars}}" wx:for-item="starType" wx:for-index="si" wx:key="si" class="works-card-star-wrapper {{starType}}">
+                  <text class="works-card-star">★</text>
+                </view>
+                <text class="works-card-rating-text">{{item.displayScore}}({{item.ratingCount}}人评分)</text>
+              </view>
+              <text wx:else class="works-card-rating-none">暂无评分</text>
+            </view>
+            <view class="works-list-rating-btn" catchtap="openRatingModal" data-item="{{item}}">
+              <text wx:if="{{item.hasRated}}">已评</text>
+              <text wx:else>评分</text>
+            </view>
           </view>
         </view>
       </view>
@@ -595,13 +623,28 @@
           <view class="works-list-link-thumb">
             <text>🔗</text>
           </view>
-          <view class="works-list-info">
+          <view class="works-list-info works-other-info">
             <text class="works-list-title">{{item.displayName}}</text>
             <view class="works-list-author-row" wx:if="{{item.displayAuthor}}">
               <view class="works-list-author-dot"></view>
               <text class="works-card-author">{{item.displayAuthor}}</text>
             </view>
-            <text class="works-link-url">{{item.fileId}}</text>
+            <view class="works-other-link-row">
+              <text class="works-link-url">{{item.fileId}}</text>
+              <view class="works-list-rating-btn" catchtap="openRatingModal" data-item="{{item}}">
+                <text wx:if="{{item.hasRated}}">已评</text>
+                <text wx:else>评分</text>
+              </view>
+            </view>
+            <view class="works-card-rating">
+              <view wx:if="{{item.ratingCount > 0}}" class="works-card-rating-stars">
+                <view wx:for="{{item.avgStars}}" wx:for-item="starType" wx:for-index="si" wx:key="si" class="works-card-star-wrapper {{starType}}">
+                  <text class="works-card-star">★</text>
+                </view>
+                <text class="works-card-rating-text">{{item.displayScore}}({{item.ratingCount}}人评分)</text>
+              </view>
+              <text wx:else class="works-card-rating-none">暂无评分</text>
+            </view>
           </view>
           <view class="works-link-arrow">›</view>
         </view>
@@ -633,10 +676,92 @@
               <view class="works-card-author-dot"></view>
               <text class="works-manga-author">{{item.author}}</text>
             </view>
+            <view class="works-card-rating">
+              <view wx:if="{{item.ratingCount > 0}}" class="works-card-rating-stars">
+                <view wx:for="{{item.avgStars}}" wx:for-item="starType" wx:for-index="si" wx:key="si" class="works-card-star-wrapper {{starType}}">
+                  <text class="works-card-star">★</text>
+                </view>
+                <text class="works-card-rating-text">{{item.displayScore}}({{item.ratingCount}}人评分)</text>
+              </view>
+              <text wx:else class="works-card-rating-none">暂无评分</text>
+            </view>
           </view>
         </view>
       </view>
     </scroll-view>
+  </view>
+
+  <!-- 评分弹窗 -->
+  <view class="rating-modal" wx:if="{{showRatingModal}}" catchtap="closeRatingModal">
+    <view class="rating-modal-content" catchtap="stopTap">
+      <text class="rating-modal-title">{{ratingItem.displayName}}</text>
+      <text wx:if="{{ratingItem.displayAuthor}}" class="rating-modal-author">{{ratingItem.displayAuthor}}</text>
+
+      <!-- 五颗大星星 -->
+      <view class="rating-modal-stars">
+        <view class="rating-modal-star-btn {{modalUserStars[0]}}" data-score="1" catchtap="onModalStarTap">
+          <text class="rating-modal-star">★</text>
+        </view>
+        <view class="rating-modal-star-btn {{modalUserStars[1]}}" data-score="2" catchtap="onModalStarTap">
+          <text class="rating-modal-star">★</text>
+        </view>
+        <view class="rating-modal-star-btn {{modalUserStars[2]}}" data-score="3" catchtap="onModalStarTap">
+          <text class="rating-modal-star">★</text>
+        </view>
+        <view class="rating-modal-star-btn {{modalUserStars[3]}}" data-score="4" catchtap="onModalStarTap">
+          <text class="rating-modal-star">★</text>
+        </view>
+        <view class="rating-modal-star-btn {{modalUserStars[4]}}" data-score="5" catchtap="onModalStarTap">
+          <text class="rating-modal-star">★</text>
+        </view>
+      </view>
+
+      <!-- 提示文字 -->
+      <text wx:if="{{modalHasRated}}" class="rating-modal-hint">已评价，点击星星可重新评分</text>
+      <text wx:else class="rating-modal-hint">请进行评价</text>
+
+      <view class="rating-modal-close" bindtap="closeRatingModal">关闭</view>
+    </view>
+  </view>
+
+  <!-- 致敬墙全部评论面板（底部弹出） -->
+  <view class="tribute-panel-overlay {{showTributePanel ? 'visible' : ''}}" catchtap="closeTributePanel">
+    <view class="tribute-panel" catchtap="stopTap">
+      <!-- 顶部拖拽条 -->
+      <view class="tribute-panel-handle">
+        <view class="tribute-panel-indicator"></view>
+        <text class="tribute-panel-title">全部致敬</text>
+        <view class="tribute-panel-close" bindtap="closeTributePanel">✕</view>
+      </view>
+
+      <!-- 致敬列表 -->
+      <scroll-view class="tribute-panel-list" scroll-y="{{true}}" enhanced show-scrollbar="{{false}}">
+        <view wx:if="{{userTributes.length > 0}}">
+          <view wx:for="{{userTributes}}" wx:key="_id" class="tribute-panel-card">
+            <view class="tribute-panel-card-top">
+              <view class="tribute-panel-avatar">
+                <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" class="tribute-panel-avatar-img" />
+                <text wx:else class="tribute-panel-avatar-text">👤</text>
+              </view>
+              <view class="tribute-panel-meta">
+                <text class="tribute-panel-nickname">{{item.nickname}}</text>
+                <text class="tribute-panel-time">{{item.createdAt}}</text>
+              </view>
+            </view>
+            <text class="tribute-panel-message">{{item.message}}</text>
+          </view>
+
+          <view class="tribute-panel-end">
+            <text>—— 致敬不息，追光不止 ——</text>
+          </view>
+        </view>
+
+        <view wx:else class="tribute-panel-empty">
+          <text class="tribute-panel-empty-icon">🕊</text>
+          <text>暂无致敬留言</text>
+        </view>
+      </scroll-view>
+    </view>
   </view>
 
   <!-- 知识问答面板 -->
