@@ -257,7 +257,9 @@ Page({
       });
     }
 
-    this.setData({ nodes: nodes });
+    // 物理数组独立于 data.nodes：每帧更新物理，每 4 帧快照到 data.nodes 供 WXML+Canvas 同步渲染
+    this._physicsNodes = nodes.map(function (n) { return Object.assign({}, n); });
+    this.setData({ nodes: nodes.map(function (n) { return Object.assign({}, n); }) });
     console.log('[cloud] buildFromCloud 完成, 节点:', nodes.length, '连线对:', connPairs.length);
   },
 
@@ -304,6 +306,7 @@ Page({
 
       // 用合并后的列表更新节点（只开不关：已解锁的保持解锁）
       var currentNodes = self.data.nodes;
+      var pNodes = self._physicsNodes;
       var syncChanged = false;
       for (var j = 0; j < currentNodes.length; j++) {
         var node = currentNodes[j];
@@ -312,6 +315,7 @@ Page({
         if (cloudUnlocked && !node.unlocked) {
           console.log('[cloud] 云端同步点亮节点:', node.title, '(', node.nodeId, ')');
           node.unlocked = true;
+          if (pNodes && pNodes[j]) pNodes[j].unlocked = true;
           syncChanged = true;
         }
       }
@@ -326,7 +330,7 @@ Page({
   },
 
   // ─── 从本地缓存立即应用解锁（节点+连线） ───
-  // 注意：直接修改节点对象属性（不创建新对象），避免与 updateNodes() 的 setData 产生竞态
+  // 同时更新 data.nodes（显示快照）和 _physicsNodes（物理数组），保持两者一致
   _applyUnlockFromCache() {
     try {
       var cache = wx.getStorageSync('exhibitProgress') || {};
@@ -334,6 +338,7 @@ Page({
       console.log('[cloud] 读取缓存 timelineNodes:', JSON.stringify(tl));
 
       var nodes = this.data.nodes;
+      var pNodes = this._physicsNodes;
       var changed = false;
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
@@ -344,11 +349,11 @@ Page({
             console.log('[cloud] 节点点亮:', node.title, '(', node.nodeId, ')');
           }
           node.unlocked = unlocked;
+          if (pNodes && pNodes[i]) pNodes[i].unlocked = unlocked;
           changed = true;
         }
       }
 
-      // 同步更新连线点亮状态
       this._evalConnUnlocked(tl);
 
       if (changed) {
@@ -380,10 +385,9 @@ Page({
   drawLines() {
     var query = wx.createSelectorQuery();
     var self = this;
-    query.select('#lineCanvas').fields({ node: true, size: true, rect: true });
-    query.select('.zoom-container').boundingClientRect();
+    query.select('#lineCanvas').fields({ node: true, size: true });
     query.exec(function (res) {
-      if (!res || !res[0] || !res[1]) {
+      if (!res || !res[0]) {
         console.error('[cloud] Canvas 获取失败');
         return;
       }
@@ -395,18 +399,10 @@ Page({
       canvas.width = width * dpr;
       canvas.height = height * dpr;
       ctx.scale(dpr, dpr);
+      self._dpr = dpr;
 
       var sys = wx.getSystemInfoSync();
       self._rpxToPx = sys.windowWidth / 750;
-
-      // 计算 canvas 原点与 zoom-container 原点之间的偏移（统一坐标系）
-      var canvasRect = res[0];
-      var zoomRect = res[1];
-      self._originDeltaX = zoomRect.left - canvasRect.left;
-      self._originDeltaY = zoomRect.top - canvasRect.top;
-      console.log('[cloud] 原点偏移:', self._originDeltaX, self._originDeltaY,
-        'canvas:', canvasRect.width, 'x', canvasRect.height,
-        'zoom:', zoomRect.width, 'x', zoomRect.height);
 
       self.setData({
         canvas: canvas,
@@ -437,6 +433,15 @@ Page({
 
   animateFrame() {
     if (!this.data.animating) return;
+    // 触摸期间暂停动画循环，由 touch handler 直接调用 drawFrame，
+    // 使 setData 与 Canvas 指令在同一 JS tick 排队，减少双线程延迟
+    if (this._isTouching) {
+      var self = this;
+      this._animFrameId = this.data.canvas.requestAnimationFrame(function () {
+        self.animateFrame();
+      });
+      return;
+    }
     this.updateNodes();
     this.drawFrame();
     var self = this;
@@ -446,7 +451,8 @@ Page({
   },
 
   updateNodes() {
-    var nodes = this.data.nodes;
+    var nodes = this._physicsNodes;
+    if (!nodes || nodes.length === 0) return;
     var w = 750;
     var h = 1334;
     var centerX = w / 2;
@@ -490,11 +496,12 @@ Page({
 
     this._frameCount++;
     if (scaleChanged) {
-      // 缩放时只传 mapScale，不传 nodes（减少 setData 数据量，消除延迟）
       this.setData({ mapScale: this.data.mapScale });
-    } else if (this._frameCount % 4 === 0) {
-      // 非缩放时每 4 帧更新节点浮动位置（浮动动画慢，4 帧仍流畅）
-      this.setData({ nodes: [...nodes] });
+    }
+    if (this._frameCount % 4 === 0) {
+      // 每 4 帧快照物理状态到 data.nodes，WXML 与 Canvas 同时使用同一份冻结位置，消除抖动
+      var snapshot = nodes.map(function (n) { return Object.assign({}, n); });
+      this.setData({ nodes: snapshot });
     }
     // 更新时钟/环中心为 node_0 实际动画位置
     for (var k = 0; k < nodes.length; k++) {
@@ -513,7 +520,7 @@ Page({
 
   // ─── 时钟粒子系统（三层：放射流束 + 轨道环 + 核火星点） ───
   _initClockParticles() {
-    var nodes = this.data.nodes;
+    var nodes = this._physicsNodes || this.data.nodes;
     var centerNode = null;
     for (var k = 0; k < nodes.length; k++) {
       if (nodes[k].nodeId === 'node_0') { centerNode = nodes[k]; break; }
@@ -649,7 +656,7 @@ Page({
 
   // ─── 轨道环粒子系统（全部状态可见，4层同心旋转环） ───
   _initOrbitalParticles() {
-    var nodes = this.data.nodes;
+    var nodes = this._physicsNodes || this.data.nodes;
     var centerNode = null;
     for (var k = 0; k < nodes.length; k++) {
       if (nodes[k].nodeId === 'node_0') { centerNode = nodes[k]; break; }
@@ -763,19 +770,14 @@ Page({
     var w = this.data.canvasWidth;
     if (!ctx || !w) return;
     ctx.clearRect(0, 0, this.data.canvasWidth, this.data.canvasHeight);
-
-    // 补偿 canvas 与 zoom-container 之间的原点偏移
-    var dx = this._originDeltaX || 0;
-    var dy = this._originDeltaY || 0;
     ctx.save();
-    ctx.translate(dx, dy);
 
     this.drawParticles(ctx);
     this.drawOrbitalParticles(ctx);
 
     // ── 浮点缩放状态 + smoothstep：所有视觉切换连续渐变 ──
-    var s = this.data.mapScale;
-    var sf = 4 - Math.log(s) / Math.log(1.18);
+    var rawScale = this.data.mapScale;
+    var sf = 4 - Math.log(rawScale) / Math.log(1.18);
     if (sf < 0) sf = 0;
     if (sf > 8) sf = 8;
 
@@ -784,11 +786,13 @@ Page({
       return t * t * (3 - 2 * t);
     }
 
-    var connAlpha = 1 - smoothstep(6.5, 7.5, sf);       // 连线 6.5→7.5 淡出
-    var centerRingA = 1 - smoothstep(6.8, 7.5, sf);     // 中心环 6.8→7.5 淡出
-    var yearsAlpha = 1 - smoothstep(5.2, 6.0, sf);      // 节点年份 5.2→6.0 淡出
-    var particleA = smoothstep(6.5, 7.5, sf);           // 粒子动效 6.5→7.5 淡入
-    var centerTextA = smoothstep(7.5, 8.0, sf);         // 中心文字 7.5→8.0 淡入
+    var connAlpha = 1 - smoothstep(6.5, 7.5, sf);
+    var centerRingA = 1 - smoothstep(6.8, 7.5, sf);
+    var yearsAlpha = 1 - smoothstep(5.2, 6.0, sf);
+    var particleA = smoothstep(6.5, 7.5, sf);
+    var centerTextA = smoothstep(7.5, 8.0, sf);
+    var nodeAlpha = 1 - smoothstep(7.6, 8.0, sf);
+    var labelAlpha = nodeAlpha;  // 标签跟随节点一并淡出
 
     var allRadialLit = this._allRadialLit();
 
@@ -819,6 +823,20 @@ Page({
       ctx.globalAlpha = 1;
     }
     this.drawHoverGlow(ctx);
+
+    // Canvas 节点圆点（替代 WXML star-core，与连线完美同步）
+    if (nodeAlpha > 0.01) {
+      ctx.globalAlpha = nodeAlpha;
+      this.drawNodes(ctx);
+      ctx.globalAlpha = 1;
+    }
+
+    // Canvas 节点标签（替代 WXML star-text）
+    if (labelAlpha > 0.01) {
+      ctx.globalAlpha = labelAlpha;
+      this.drawNodeLabels(ctx);
+      ctx.globalAlpha = 1;
+    }
 
     ctx.restore();
   },
@@ -884,6 +902,139 @@ Page({
       bx: bx - ux * rb,
       by: by - uy * rb,
     };
+  },
+
+  // ─── 绘制节点圆点（Canvas 替代 WXML star-core，与连线同坐标系完美同步） ───
+  drawNodes(ctx) {
+    var nodes = this.data.nodes;
+    if (!nodes || nodes.length === 0) return;
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var cx = cw / 2;
+    var cy = ch / 2;
+
+    // 呼吸动画相位
+    var breathe = 0.82 + 0.18 * Math.sin(this._frameCount * 0.07);
+
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var isLit = n.unlocked;
+      var isCenter = n.nodeId === 'node_0';
+
+      // 状态 7：隐藏中心节点，仅绘制外侧八节点
+      if (isCenter && this.data.zoomState >= 7) continue;
+
+      var px = (n.baseX + n.fx) * r;
+      var py = (n.baseY + n.fy) * r;
+      var sx = cx + (px - cx + ox) * scale;
+      var sy = cy + (py - cy + oy) * scale;
+
+      var radiusRpx, fillColor, glowColor, glowSize;
+
+      if (isCenter && isLit) {
+        // 中心点亮：微金柔光 35rpx
+        radiusRpx = 17.5;
+        fillColor = '#fffef7';
+        glowColor = 'rgba(255,180,50,' + (0.45 * breathe).toFixed(2) + ')';
+        glowSize = 60;
+      } else if (isCenter) {
+        // 中心暗态：22rpx 半透
+        radiusRpx = 11;
+        fillColor = 'rgba(255,255,255,0.25)';
+        glowColor = null;
+        glowSize = 0;
+      } else if (isLit) {
+        // 普通点亮：白色蓝光 18rpx
+        radiusRpx = 9;
+        fillColor = '#ffffff';
+        glowColor = 'rgba(68,170,255,' + (0.6 * breathe).toFixed(2) + ')';
+        glowSize = 20;
+      } else {
+        // 普通暗态：半透灰白 14rpx
+        radiusRpx = 7;
+        fillColor = 'rgba(255,255,255,0.15)';
+        glowColor = null;
+        glowSize = 0;
+      }
+
+      var radiusPx = radiusRpx * r * scale;
+
+      ctx.beginPath();
+      ctx.arc(sx, sy, radiusPx, 0, Math.PI * 2);
+
+      if (glowColor && glowSize > 0) {
+        ctx.save();
+        ctx.shadowBlur = glowSize * r * scale;
+        ctx.shadowColor = glowColor;
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.restore();
+        // 内层高亮（模拟 CSS box-shadow 多层）
+        ctx.beginPath();
+        ctx.arc(sx, sy, radiusPx * 0.55, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.9 * breathe).toFixed(2) + ')';
+        ctx.fill();
+      } else {
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+      }
+    }
+  },
+
+  // ─── 绘制节点文字标签（Canvas 替代 WXML star-text） ───
+  drawNodeLabels(ctx) {
+    var nodes = this.data.nodes;
+    if (!nodes || nodes.length === 0) return;
+    var zs = this.data.zoomState;
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var cx = cw / 2;
+    var cy = ch / 2;
+
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var isCenter = n.nodeId === 'node_0';
+
+      // 与原 WXML 规则一致：状态 7+ 全隐藏，状态 5-6 仅显中心
+      if (zs >= 7) continue;
+      if (zs >= 5 && !isCenter) continue;
+
+      var px = (n.baseX + n.fx) * r;
+      var py = (n.baseY + n.fy) * r;
+      var sx = cx + (px - cx + ox) * scale;
+      var sy = cy + (py - cy + oy) * scale;
+
+      var labelOffsetRpx = isCenter ? (n.unlocked ? 26 : 18) : (n.unlocked ? 16 : 14);
+      var labelY = sy + labelOffsetRpx * r * scale;
+      var fontSizeRpx = isCenter ? (n.unlocked ? 30 : 24) : (n.unlocked ? 22 : 20);
+      var fontSize = fontSizeRpx * r * scale;
+      if (fontSize < 6) fontSize = 6;
+      if (fontSize > 48) fontSize = 48;
+
+      ctx.save();
+      ctx.font = fontSize + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      if (n.unlocked) {
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowBlur = 10 * r * scale;
+        ctx.shadowColor = 'rgba(68, 170, 255, 0.6)';
+      } else {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      }
+
+      ctx.fillText(n.title || '', sx, labelY);
+      ctx.restore();
+    }
   },
 
   // ─── 绘制连线（三种样式：radial 放射线 / solid 时间线 / dashed 虚线） ───
@@ -1316,12 +1467,13 @@ Page({
 
   // ─── 触摸交互 ───
   handleTouchStart(e) {
+    this._isTouching = true;
+    this._tapStartX = (e.touches[0] || {}).clientX;
+    this._tapStartY = (e.touches[0] || {}).clientY;
     var touches = e.touches;
     if (touches.length === 1) {
-      this.setData({
-        lastTouchX: touches[0].clientX,
-        lastTouchY: touches[0].clientY,
-      });
+      this.data.lastTouchX = touches[0].clientX;
+      this.data.lastTouchY = touches[0].clientY;
       var r = this._rpxToPx || 0.5;
       var scale = this.data.mapScale;
       var ox = this.data.offsetX;
@@ -1330,12 +1482,9 @@ Page({
       var ch = this.data.canvasHeight;
       var cx = cw / 2;
       var cy = ch / 2;
-      // 将屏幕触摸坐标逆变换为内部 rpx 坐标，以匹配 CSS transform 后的节点位置
-      var touchScreenX = touches[0].clientX;
-      var touchScreenY = touches[0].clientY;
-      var touchX = ((touchScreenX - cx) / scale + cx - ox) / r;
-      var touchY = ((touchScreenY - cy) / scale + cy - oy) / r;
-      var closest = null;
+      var touchX = ((touches[0].clientX - cx) / scale + cx - ox) / r;
+      var touchY = ((touches[0].clientY - cy) / scale + cy - oy) / r;
+      var closest = -1;
       var minDist = 80;
       var nodes = this.data.nodes;
       for (var i = 0; i < nodes.length; i++) {
@@ -1343,16 +1492,14 @@ Page({
         var dx = n.x - touchX;
         var dy = n.y - touchY;
         var dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < minDist) {
-          minDist = dist;
-          closest = n.id;
-        }
+        if (dist < minDist) { minDist = dist; closest = n.id; }
       }
-      this.setData({ hoveredNode: closest });
+      this.data.hoveredNode = closest;
     } else if (touches.length === 2) {
       var dx = touches[0].clientX - touches[1].clientX;
       var dy = touches[0].clientY - touches[1].clientY;
-      this.setData({ lastDistance: Math.sqrt(dx * dx + dy * dy), hoveredNode: null });
+      this.data.lastDistance = Math.sqrt(dx * dx + dy * dy);
+      this.data.hoveredNode = -1;
     }
   },
 
@@ -1365,36 +1512,74 @@ Page({
       if (this.data.lastDistance > 0) {
         var scale = this.data.mapScale + (distance - this.data.lastDistance) * 0.005;
         var newScale = Math.min(Math.max(scale, this.data.scaleMin), this.data.scaleMax);
-        // 触摸直接设值，不走插值（保持跟手）
         this._interpTarget = undefined;
         this.data.mapScale = newScale;
-        var self = this;
-        this.setData({ mapScale: newScale, lastDistance: distance }, function () {
-          self._updateZoomState();
-          self.drawFrame();
-        });
+        this.data.lastDistance = distance;
+        this._updateZoomState();
+        this.drawFrame();
       }
     } else if (touches.length === 1) {
-      // 手指平移时取消缩放插值
       this._interpTarget = undefined;
       var deltaX = touches[0].clientX - this.data.lastTouchX;
       var deltaY = touches[0].clientY - this.data.lastTouchY;
-      var self = this;
-      this.setData({
-        offsetX: this.data.offsetX + deltaX,
-        offsetY: this.data.offsetY + deltaY,
-        lastTouchX: touches[0].clientX,
-        lastTouchY: touches[0].clientY,
-      }, function () {
-        self._updateZoomState();
-        self.drawFrame();
-      });
+      this.data.offsetX += deltaX;
+      this.data.offsetY += deltaY;
+      this.data.lastTouchX = touches[0].clientX;
+      this.data.lastTouchY = touches[0].clientY;
+      this.drawFrame();
     }
   },
 
-  handleTouchEnd() {
+  handleTouchEnd(e) {
+    this._isTouching = false;
     this._flushZoomState(this._getZoomState());
-    this.setData({ lastDistance: 0, hoveredNode: null });
+    this.data.lastDistance = 0;
+    this.data.hoveredNode = -1;
+
+    // tap 检测：几乎没有移动 → 判断是否点在节点上
+    var endX = (e.changedTouches[0] || {}).clientX;
+    var endY = (e.changedTouches[0] || {}).clientY;
+    if (Math.abs(endX - (this._tapStartX || 0)) < 10 && Math.abs(endY - (this._tapStartY || 0)) < 10) {
+      this._onCanvasTap(endX, endY);
+    }
+
+    this.drawFrame();
+  },
+
+  // Canvas 坐标检测节点点击 → 跳转章节
+  _onCanvasTap(touchX, touchY) {
+    var r = this._rpxToPx || 0.5;
+    var scale = this.data.mapScale;
+    var ox = this.data.offsetX;
+    var oy = this.data.offsetY;
+    var cw = this.data.canvasWidth;
+    var ch = this.data.canvasHeight;
+    var cx = cw / 2;
+    var cy = ch / 2;
+    var wx = ((touchX - cx) / scale + cx - ox) / r;
+    var wy = ((touchY - cy) / scale + cy - oy) / r;
+    var closest = null;
+    var minDist = 60;
+    var nodes = this.data.nodes;
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var dx = n.x - wx;
+      var dy = n.y - wy;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < minDist) { minDist = dist; closest = n; }
+    }
+    if (!closest) return;
+    if (!closest.unlocked) {
+      wx.showToast({ title: '尚未解锁', icon: 'none' });
+      return;
+    }
+    var section = closest.section || 1;
+    wx.navigateTo({
+      url: '/subpkg/pages/story/story?section=' + section + '&story=0',
+      fail: function () {
+        wx.showToast({ title: '页面跳转失败', icon: 'none' });
+      }
+    });
   },
 
   // ─── 节点点击 → 进入对应章节故事 ───
