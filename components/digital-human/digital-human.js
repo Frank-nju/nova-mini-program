@@ -21,6 +21,9 @@ Component({
     attached() {
       this._calcMouthPos();
       this._loadCloudImages();
+    },
+    detached() {
+      this._stopSpeaking();
     }
   },
 
@@ -86,30 +89,27 @@ Component({
 
     _playAudio(url) {
       this._stopSpeaking();
+      this._isPaused = false;
       const audio = wx.createInnerAudioContext();
       this.audioCtx = audio;
       audio.src = url;
 
-      let lipTimer;
-
       audio.onPlay(() => {
         this.setData({ isSpeaking: true, mouthIndex: 0 });
-
-        lipTimer = setInterval(() => {
-          const idx = Math.floor(Math.random() * 4);
-          this.setData({ mouthIndex: idx });
-        }, 150);
+        this._isPaused = false;
+        this._startLipTimer();
+        this.triggerEvent('speakStart');
       });
 
       audio.onEnded(() => {
-        clearInterval(lipTimer);
+        this._stopLipTimer();
         this.setData({ isSpeaking: false, mouthIndex: -1 });
         audio.destroy();
         this.triggerEvent('speakEnd');
       });
 
       audio.onError(() => {
-        clearInterval(lipTimer);
+        this._stopLipTimer();
         this.setData({ isSpeaking: false, mouthIndex: -1 });
         audio.destroy();
       });
@@ -117,11 +117,44 @@ Component({
       audio.play();
     },
 
+    _startLipTimer() {
+      if (this.lipTimer) clearInterval(this.lipTimer);
+      this.lipTimer = setInterval(() => {
+        const idx = Math.floor(Math.random() * 4);
+        this.setData({ mouthIndex: idx });
+      }, 150);
+    },
+
+    _stopLipTimer() {
+      if (this.lipTimer) {
+        clearInterval(this.lipTimer);
+        this.lipTimer = null;
+      }
+    },
+
     stopSpeaking() {
       this._stopSpeaking();
     },
 
+    pauseSpeaking() {
+      if (this.audioCtx && this.data.isSpeaking) {
+        try { this.audioCtx.pause(); } catch (e) { /* ignore */ }
+        this._stopLipTimer();
+        this._isPaused = true;
+        this.setData({ isSpeaking: false, mouthIndex: -1 });
+      }
+    },
+
+    resumeSpeaking() {
+      if (this.audioCtx && this._isPaused) {
+        try { this.audioCtx.play(); } catch (e) { /* ignore */ }
+        // play() 会触发 onPlay，里面会处理 timer 和 isSpeaking
+      }
+    },
+
     _stopSpeaking() {
+      this._stopLipTimer();
+      this._isPaused = false;
       if (this.audioCtx) {
         try {
           this.audioCtx.stop();

@@ -311,7 +311,7 @@
   <view wx:if="{{showDhPanel}}" class="story-dh-panel">
     <!-- 全屏数字人背景 -->
     <view class="story-dh-bg">
-      <digital-human id="digitalHumanStory" size="750" bind:message="onDhMessage" bind:speakEnd="onDhSpeakEnd" bind:error="onDhError" />
+      <digital-human id="digitalHumanStory" size="750" bind:message="onDhMessage" bind:speakStart="onDhSpeakStart" bind:speakEnd="onDhSpeakEnd" bind:error="onDhError" />
     </view>
 
     <!-- 顶部关闭 -->
@@ -339,7 +339,7 @@
             <text wx:else>{{item.text}}</text>
           </view>
           <view wx:if="{{item.audioUrl && !item.audioPlaying}}" class="story-dh-audio" bindtap="playDhAudio" data-audiourl="{{item.audioUrl}}" data-msgid="{{item.id}}"><text>▶</text></view>
-          <view wx:if="{{item.audioPlaying}}" class="story-dh-audio playing" bindtap="stopDhAudio"><text>⏸</text></view>
+          <view wx:if="{{item.audioPlaying}}" class="story-dh-audio playing" bindtap="toggleDhAudio"><text>{{dhAudioPaused ? '▶' : '⏸'}}</text></view>
         </view>
       </view>
       <view style="height: 40rpx;"></view>

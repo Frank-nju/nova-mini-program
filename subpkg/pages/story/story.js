@@ -26,6 +26,7 @@ Page({
     dhChatting: false,
     dhScrollId: '',
     dhMsgCounter: 0,
+    dhAudioPaused: false,
 
     // 各章节额外数据
     chapterSubtitles: [
@@ -445,6 +446,9 @@ Page({
   },
 
   onUnload() {
+    // 停止数字人组件音频
+    const dh = this.selectComponent('#digitalHumanStory');
+    if (dh) dh.stopSpeaking();
     if (this._expAnimFrameId) {
       clearTimeout(this._expAnimFrameId);
       this._expAnimFrameId = null;
@@ -1386,7 +1390,18 @@ Page({
     this.setData({ dhMessages: msgs, dhChatting: false });
   },
 
-  onDhSpeakEnd() {},
+  onDhSpeakStart() {
+    // 组件音频开始播放，设置当前消息为播放中
+    const msgs = this.data.dhMessages.map(m =>
+      m.loading === false && m.role === 'ai' && m.text ? { ...m, audioPlaying: true } : m
+    );
+    this.setData({ dhMessages: msgs, dhAudioPaused: false });
+  },
+
+  onDhSpeakEnd() {
+    const msgs = this.data.dhMessages.map(msg => ({ ...msg, audioPlaying: false }));
+    this.setData({ dhMessages: msgs, dhAudioPaused: false });
+  },
 
   onDhError(e) {
     console.error('[story-dh] 错误:', e.detail);
@@ -1409,13 +1424,28 @@ Page({
       if (msg.id === msgId) return { ...msg, audioPlaying: true };
       return { ...msg, audioPlaying: false };
     });
-    this.setData({ dhMessages: msgs });
+    this.setData({ dhMessages: msgs, dhAudioPaused: false });
+  },
+
+  toggleDhAudio() {
+    const dh = this.selectComponent('#digitalHumanStory');
+    const { dhAudioPaused } = this.data;
+
+    if (dhAudioPaused) {
+      // 恢复播放
+      if (dh) dh.resumeSpeaking();
+      this.setData({ dhAudioPaused: false });
+    } else {
+      // 暂停播放
+      if (dh) dh.pauseSpeaking();
+      this.setData({ dhAudioPaused: true });
+    }
   },
 
   stopDhAudio() {
     const dh = this.selectComponent('#digitalHumanStory');
     if (dh) dh.stopSpeaking();
     const msgs = this.data.dhMessages.map(msg => ({ ...msg, audioPlaying: false }));
-    this.setData({ dhMessages: msgs });
+    this.setData({ dhMessages: msgs, dhAudioPaused: false });
   },
 });

@@ -384,7 +384,7 @@
   <view wx:if="{{showAIPanel}}" class="ai-panel-fullscreen">
     <!-- 全屏数字人背景 -->
     <view class="ai-digital-human-bg">
-      <digital-human id="digitalHumanExhibit" size="750" bind:message="onDigitalHumanMessage" bind:speakEnd="onSpeakEnd" bind:error="onDigitalHumanError" />
+      <digital-human id="digitalHumanExhibit" size="750" bind:message="onDigitalHumanMessage" bind:speakStart="onSpeakStart" bind:speakEnd="onSpeakEnd" bind:error="onDigitalHumanError" />
     </view>
 
     <!-- 顶部关闭按钮 -->
@@ -420,8 +420,8 @@
           <view wx:if="{{item.audioUrl && !item.audioPlaying}}" class="ai-float-audio-btn" bindtap="playAudioUrl" data-audiourl="{{item.audioUrl}}" data-msgid="{{item.id}}">
             <text>▶</text>
           </view>
-          <view wx:if="{{item.audioPlaying}}" class="ai-float-audio-btn playing" bindtap="stopAudio">
-            <text>⏸</text>
+          <view wx:if="{{item.audioPlaying}}" class="ai-float-audio-btn playing" bindtap="toggleAudio">
+            <text>{{audioPaused ? '▶' : '⏸'}}</text>
           </view>
         </view>
       </view>

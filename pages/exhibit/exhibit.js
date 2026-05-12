@@ -81,6 +81,7 @@ Page({
     aiMsgCounter: 0,
     innerAudioContext: null,
     currentAiMsgId: null,
+    audioPaused: false,
     newBadges: false,
     badgeNotification: null,
     eventClouds: [],
@@ -1646,6 +1647,11 @@ Page({
   },
 
   onUnload() {
+    // 停止数字人组件音频
+    const dhComponent = this.selectComponent('#digitalHumanExhibit');
+    if (dhComponent) {
+      dhComponent.stopSpeaking();
+    }
     if (this.data.animationFrameId) {
       clearTimeout(this.data.animationFrameId);
     }
@@ -1708,24 +1714,54 @@ Page({
       if (msg.id === msgId) return { ...msg, audioPlaying: true };
       return { ...msg, audioPlaying: false };
     });
-    this.setData({ aiMessages: messages });
+    this.setData({ aiMessages: messages, audioPaused: false });
 
     innerAudioContext.onEnded(() => {
       const msgs = this.data.aiMessages.map(msg => {
         if (msg.id === msgId) return { ...msg, audioPlaying: false };
         return msg;
       });
-      this.setData({ aiMessages: msgs });
+      this.setData({ aiMessages: msgs, audioPaused: false });
     });
+  },
+
+  // 暂停/恢复切换
+  toggleAudio() {
+    const dhComponent = this.selectComponent('#digitalHumanExhibit');
+    const { audioPaused } = this.data;
+
+    if (audioPaused) {
+      // 恢复播放
+      if (dhComponent) {
+        dhComponent.resumeSpeaking();
+      }
+      if (this.data.innerAudioContext) {
+        this.data.innerAudioContext.play();
+      }
+      this.setData({ audioPaused: false });
+    } else {
+      // 暂停播放
+      if (dhComponent) {
+        dhComponent.pauseSpeaking();
+      }
+      if (this.data.innerAudioContext) {
+        this.data.innerAudioContext.pause();
+      }
+      this.setData({ audioPaused: true });
+    }
   },
 
   // 停止播放
   stopAudio() {
+    const dhComponent = this.selectComponent('#digitalHumanExhibit');
+    if (dhComponent) {
+      dhComponent.stopSpeaking();
+    }
     if (this.data.innerAudioContext) {
       this.data.innerAudioContext.stop();
     }
     const messages = this.data.aiMessages.map(msg => ({ ...msg, audioPlaying: false }));
-    this.setData({ aiMessages: messages });
+    this.setData({ aiMessages: messages, audioPaused: false });
   },
 
   // 更新AI消息
@@ -1744,11 +1780,20 @@ Page({
     const msgs = this.data.aiMessages.map(m =>
       m.loading ? { ...m, loading: false, text: answer, role: 'ai' } : m
     );
-    this.setData({ aiMessages: msgs, aiChatting: false, currentAiMsgId: null });
+    this.setData({ aiMessages: msgs, aiChatting: false });
+  },
+
+  onSpeakStart() {
+    // 组件音频开始播放，设置当前消息为播放中
+    const msgs = this.data.aiMessages.map(m =>
+      m.loading === false && m.role === 'ai' && m.text ? { ...m, audioPlaying: true } : m
+    );
+    this.setData({ aiMessages: msgs, audioPaused: false });
   },
 
   onSpeakEnd() {
-    console.log('[digital-human] 语音播放结束');
+    const messages = this.data.aiMessages.map(msg => ({ ...msg, audioPlaying: false }));
+    this.setData({ aiMessages: messages, audioPaused: false, currentAiMsgId: null });
   },
 
   onDigitalHumanError(e) {
