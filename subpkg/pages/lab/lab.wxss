@@ -293,7 +293,8 @@ page {
 }
 
 .lab-slider {
-  width: 100%;
+  width: 80%;
+  align-self: center;
 }
 
 .lab-slider-labels {

@@ -116,6 +116,7 @@
           backgroundColor="rgba(100, 200, 255, 0.15)"
           block-size="28"
           block-color="#64c8ff"
+          track-height="4"
           show-value="{{false}}"
           bindchange="onTempChange"
           bindchanging="onTempChanging"
