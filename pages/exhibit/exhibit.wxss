@@ -5003,6 +5003,79 @@
   box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.6);
 }
 
+/* 链接卡片预览区 — "其他"类别 */
+.works-card-link-wrap {
+  width: 100%;
+  height: 160rpx;
+  background: linear-gradient(135deg, rgba(100, 200, 255, 0.08), rgba(100, 200, 255, 0.02));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  position: relative;
+  overflow: hidden;
+}
+
+.works-card-link-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.works-card-link-icon-text {
+  font-size: 48rpx;
+  filter: drop-shadow(0 0 12rpx rgba(100, 200, 255, 0.4));
+}
+
+.works-card-link-label {
+  font-size: 22rpx;
+  color: rgba(100, 200, 255, 0.7);
+  letter-spacing: 2rpx;
+  font-weight: 500;
+}
+
+/* 漫画小卡片 — "全部"tab 中的单页漫画 */
+.works-card-manga-mini-wrap {
+  width: 100%;
+  height: 200rpx;
+  background: linear-gradient(135deg, rgba(255, 105, 180, 0.08), rgba(255, 105, 180, 0.02));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.works-card-manga-mini-img {
+  width: 100%;
+  height: 100%;
+}
+
+.works-card-manga-mini-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.works-card-manga-mini-icon {
+  font-size: 56rpx;
+  filter: drop-shadow(0 0 12rpx rgba(255, 105, 180, 0.4));
+}
+
+.works-card-manga-mini-badge {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  font-size: 16rpx;
+  font-weight: 700;
+  color: rgba(255, 105, 180, 0.7);
+  background: rgba(255, 105, 180, 0.15);
+  padding: 4rpx 10rpx;
+  border-radius: 6rpx;
+  letter-spacing: 1rpx;
+}
+
 /* 文档卡片预览区 */
 .works-card-doc-wrap {
   width: 100%;
@@ -5865,6 +5938,21 @@
   z-index: 100;
 }
 
+/* 语音加载提示 */
+.ai-voice-hint {
+  text-align: center;
+  margin-bottom: 16rpx;
+  padding: 16rpx 24rpx;
+  background: rgba(10, 10, 15, 0.85);
+  border-radius: 12rpx;
+  border: 1rpx solid rgba(201, 169, 110, 0.2);
+}
+
+.ai-voice-hint text {
+  font-size: 26rpx;
+  color: rgba(201, 169, 110, 0.9);
+}
+
 .ai-presets-float {
   margin-bottom: 16rpx;
 }
@@ -6177,454 +6265,5 @@
   color: #fff;
 }
 
-/* 实验室面板 */
-.lab-panel {
-  max-height: 85vh;
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(60, 20, 120, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(100, 40, 120, 0.2) 0%, transparent 50%),
-    linear-gradient(170deg, #0e0a1a 0%, #0c0e18 30%, #140e22 60%, #0e0e1a 100%);
-  overflow-y: auto;
-}
+/* 实验室面板已迁移至 subpkg/pages/lab/lab */
 
-.lab-panel::before {
-  content: '';
-  position: absolute;
-  top: -2rpx;
-  left: 0;
-  right: 0;
-  height: 6rpx;
-  background: linear-gradient(90deg, #9370db, #c9a96e, #64c8ff, #ff69b4, #9370db);
-  background-size: 200% 100%;
-  animation: quiz-gradient-move 4s linear infinite;
-  z-index: 10;
-  pointer-events: none;
-  border-radius: 40rpx 40rpx 0 0;
-  box-shadow: 0 2rpx 20rpx rgba(147, 112, 219, 0.4);
-}
-
-.lab-panel .panel-header {
-  position: relative;
-  z-index: 2;
-}
-
-.lab-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(ellipse at 10% 10%, rgba(147, 112, 219, 0.08) 0%, transparent 45%),
-    radial-gradient(ellipse at 90% 20%, rgba(100, 200, 255, 0.06) 0%, transparent 40%),
-    radial-gradient(ellipse at 30% 80%, rgba(201, 169, 110, 0.05) 0%, transparent 35%);
-  pointer-events: none;
-  z-index: 0;
-  animation: quiz-bg-breathe 8s ease-in-out infinite;
-}
-
-.lab-bg::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    linear-gradient(rgba(147, 112, 219, 0.03) 1rpx, transparent 1rpx),
-    linear-gradient(90deg, rgba(147, 112, 219, 0.03) 1rpx, transparent 1rpx);
-  background-size: 80rpx 80rpx;
-  mask-image: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
-}
-
-/* 实验介绍卡片 */
-.lab-intro-card {
-  position: relative;
-  z-index: 1;
-  background: linear-gradient(145deg, rgba(28, 18, 50, 0.95) 0%, rgba(16, 12, 30, 0.98) 100%);
-  border: 1rpx solid rgba(147, 112, 219, 0.2);
-  border-radius: 24rpx;
-  padding: 48rpx 32rpx 40rpx;
-  margin: 0 24rpx 24rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-shadow:
-    0 6rpx 30rpx rgba(0, 0, 0, 0.5),
-    inset 0 1rpx 0 rgba(147, 112, 219, 0.1);
-}
-
-.lab-icon-wrap {
-  font-size: 72rpx;
-  margin-bottom: 16rpx;
-  animation: lab-icon-float 3s ease-in-out infinite;
-}
-
-@keyframes lab-icon-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8rpx); }
-}
-
-.lab-intro-title {
-  font-size: 44rpx;
-  font-weight: 800;
-  color: #f0ede6;
-  text-shadow: 0 0 20rpx rgba(147, 112, 219, 0.4);
-  margin-bottom: 12rpx;
-}
-
-.lab-intro-line {
-  width: 120rpx;
-  height: 2rpx;
-  background: linear-gradient(90deg, transparent, rgba(147, 112, 219, 0.6), transparent);
-  margin-bottom: 20rpx;
-}
-
-.lab-intro-text {
-  font-size: 28rpx;
-  color: rgba(240, 237, 230, 0.7);
-  line-height: 1.8;
-  margin-bottom: 8rpx;
-}
-
-.lab-intro-highlight {
-  font-size: 30rpx;
-  font-weight: 700;
-  color: #c9a96e;
-  line-height: 1.8;
-  text-shadow: 0 0 10rpx rgba(201, 169, 110, 0.3);
-}
-
-.lab-intro-gap {
-  height: 16rpx;
-}
-
-/* 实验步骤卡片 */
-.lab-step-card {
-  position: relative;
-  z-index: 1;
-  background: linear-gradient(145deg, rgba(22, 18, 42, 0.95) 0%, rgba(16, 14, 36, 0.98) 100%);
-  border: 1rpx solid rgba(147, 112, 219, 0.15);
-  border-radius: 24rpx;
-  padding: 36rpx 28rpx 32rpx;
-  margin: 0 24rpx 24rpx;
-  box-shadow:
-    0 6rpx 30rpx rgba(0, 0, 0, 0.5),
-    inset 0 1rpx 0 rgba(147, 112, 219, 0.08);
-}
-
-.lab-step-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4rpx;
-  background: linear-gradient(90deg, #9370db, #64c8ff, #c9a96e);
-  border-radius: 24rpx 24rpx 0 0;
-}
-
-.lab-step-header {
-  display: flex;
-  align-items: center;
-  gap: 14rpx;
-  margin-bottom: 16rpx;
-}
-
-.lab-step-num {
-  font-size: 26rpx;
-  font-weight: 800;
-  color: #9370db;
-}
-
-.lab-step-tag {
-  font-size: 20rpx;
-  padding: 4rpx 16rpx;
-  border-radius: 12rpx;
-  background: rgba(147, 112, 219, 0.15);
-  border: 1rpx solid rgba(147, 112, 219, 0.3);
-  color: #9370db;
-  font-weight: 600;
-}
-
-.lab-step-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #f0ede6;
-  margin-bottom: 24rpx;
-}
-
-/* Canvas 画布 */
-.lab-canvas {
-  width: 100%;
-  height: 360rpx;
-  border-radius: 16rpx;
-  background: rgba(10, 8, 20, 0.8);
-  margin-bottom: 24rpx;
-}
-
-/* 温度滑块 */
-.lab-slider-container {
-  margin-bottom: 16rpx;
-  padding: 16rpx 0;
-}
-
-.lab-temp-display {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 16rpx;
-  min-height: 48rpx;
-}
-
-.lab-temp-value {
-  font-size: 40rpx;
-  font-weight: 800;
-  color: #64c8ff;
-  text-shadow: 0 0 12rpx rgba(100, 200, 255, 0.3);
-}
-
-.lab-slider-native {
-  width: 100%;
-  margin: 0;
-}
-
-.lab-slider-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 12rpx;
-}
-
-.lab-slider-labels text {
-  font-size: 20rpx;
-  color: rgba(201, 169, 110, 0.4);
-}
-
-.lab-hint {
-  font-size: 24rpx;
-  color: rgba(201, 169, 110, 0.5);
-  text-align: center;
-  display: block;
-  margin-top: 8rpx;
-}
-
-/* 实验选择按钮 */
-.lab-choices {
-  display: flex;
-  gap: 24rpx;
-  margin-top: 8rpx;
-}
-
-.lab-choice-btn {
-  flex: 1;
-  background: linear-gradient(145deg, rgba(28, 18, 50, 0.9), rgba(16, 12, 30, 0.95));
-  border: 1rpx solid rgba(147, 112, 219, 0.25);
-  border-radius: 20rpx;
-  padding: 28rpx 20rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12rpx;
-  transition: all 0.3s ease;
-}
-
-.lab-choice-btn:active {
-  transform: scale(0.95);
-  border-color: rgba(147, 112, 219, 0.6);
-  box-shadow: 0 0 30rpx rgba(147, 112, 219, 0.15);
-}
-
-.lab-choice-icon {
-  font-size: 52rpx;
-  color: #64c8ff;
-  font-weight: 800;
-  text-shadow: 0 0 16rpx rgba(100, 200, 255, 0.3);
-}
-
-.lab-choice-text {
-  font-size: 24rpx;
-  color: rgba(240, 237, 230, 0.8);
-  font-weight: 600;
-}
-
-/* 镜像对比提示 */
-.lab-mirror-hint {
-  margin-bottom: 24rpx;
-}
-
-.lab-mirror-row {
-  display: flex;
-  gap: 16rpx;
-  justify-content: center;
-}
-
-.lab-mirror-box {
-  background: rgba(14, 10, 28, 0.8);
-  border: 1rpx solid rgba(147, 112, 219, 0.15);
-  border-radius: 12rpx;
-  padding: 16rpx 24rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10rpx;
-}
-
-.lab-mirror-label {
-  font-size: 22rpx;
-  color: rgba(201, 169, 110, 0.6);
-}
-
-.lab-mirror-result {
-  font-size: 24rpx;
-  font-weight: 700;
-  color: #64c8ff;
-}
-
-/* 完成卡片 */
-.lab-complete-card {
-  text-align: center;
-}
-
-.lab-complete-icon {
-  font-size: 80rpx;
-  color: #64c8ff;
-  margin-bottom: 12rpx;
-  text-shadow: 0 0 30rpx rgba(100, 200, 255, 0.5);
-  animation: lab-complete-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes lab-complete-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-.lab-complete-title {
-  font-size: 44rpx;
-  font-weight: 800;
-  color: #f0ede6;
-  text-shadow: 0 0 20rpx rgba(100, 200, 255, 0.3);
-  margin-bottom: 8rpx;
-}
-
-.lab-complete-line {
-  width: 120rpx;
-  height: 2rpx;
-  background: linear-gradient(90deg, transparent, rgba(147, 112, 219, 0.6), transparent);
-  margin: 12rpx auto;
-}
-
-.lab-complete-text {
-  font-size: 28rpx;
-  color: rgba(240, 237, 230, 0.75);
-  line-height: 2.2;
-  display: block;
-}
-
-.lab-complete-text-bold {
-  font-size: 30rpx;
-  font-weight: 800;
-  color: #c9a96e;
-  line-height: 2.2;
-  display: block;
-  text-shadow: 0 0 10rpx rgba(201, 169, 110, 0.3);
-}
-
-.lab-complete-gap {
-  height: 16rpx;
-}
-
-/* 开始按钮 */
-.lab-start-btn {
-  background: linear-gradient(135deg, #9370db 0%, #6a4c93 100%);
-  border-radius: 40rpx;
-  padding: 24rpx 48rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 30rpx rgba(147, 112, 219, 0.3);
-  transition: all 0.3s ease;
-}
-
-.lab-start-btn:active {
-  transform: scale(0.95);
-  box-shadow: 0 0 40rpx rgba(147, 112, 219, 0.5);
-}
-
-.lab-start-btn text {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #f0ede6;
-}
-
-/* 导航按钮行 */
-.lab-nav-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 20rpx;
-  gap: 16rpx;
-}
-
-.lab-nav-row-center {
-  justify-content: center;
-}
-
-.lab-nav-btn {
-  border-radius: 30rpx;
-  padding: 16rpx 32rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  min-width: 160rpx;
-}
-
-.lab-nav-btn:active {
-  transform: scale(0.95);
-}
-
-.lab-nav-prev {
-  background: rgba(147, 112, 219, 0.12);
-  border: 1rpx solid rgba(147, 112, 219, 0.3);
-}
-
-.lab-nav-prev text {
-  font-size: 26rpx;
-  color: rgba(240, 237, 230, 0.7);
-  font-weight: 600;
-}
-
-.lab-nav-next {
-  background: linear-gradient(135deg, #9370db 0%, #6a4c93 100%);
-  border: 1rpx solid rgba(147, 112, 219, 0.6);
-  box-shadow: 0 0 20rpx rgba(147, 112, 219, 0.2);
-}
-
-.lab-nav-next text {
-  font-size: 26rpx;
-  color: #f0ede6;
-  font-weight: 700;
-}
-
-/* 未解锁的下一步按钮 */
-.lab-nav-disabled {
-  background: rgba(60, 60, 60, 0.9) !important;
-  border: 1rpx solid rgba(147, 112, 219, 0.25) !important;
-  box-shadow: none !important;
-  opacity: 0.6;
-}
-
-.lab-nav-disabled text {
-  color: rgba(200, 200, 200, 0.6) !important;
-}
-
-/* 揭示结果文字 */
-.lab-reveal-text {
-  font-size: 26rpx;
-  color: #ff6347;
-  font-weight: 700;
-  text-align: center;
-  display: block;
-  margin-bottom: 24rpx;
-  text-shadow: 0 0 10rpx rgba(255, 99, 71, 0.3);
-}

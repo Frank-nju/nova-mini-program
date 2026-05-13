@@ -430,6 +430,11 @@
 
     <!-- 底部区域 -->
     <view class="ai-bottom-float">
+      <!-- 语音加载提示 -->
+      <view class="ai-voice-hint">
+        <text>由于模型原因，语音播报根据文字量将加载5-15秒左右，请读者耐心等待</text>
+      </view>
+
       <!-- 预设问题（根据当前页面动态） -->
       <view wx:if="{{!aiChatting && presetQuestions.length > 0}}" class="ai-presets-float">
         <scroll-view scroll-x class="ai-presets-scroll">
@@ -528,6 +533,21 @@
             <image wx:if="{{item.coverUrl}}" class="works-card-video-cover-img" src="{{item.coverUrl}}" mode="aspectFill" />
             <view wx:else class="works-card-video-bg"></view>
             <view class="works-card-video-play">▶</view>
+          </view>
+          <!-- 其他卡片 — 明显的链接样式 -->
+          <view wx:elif="{{item.category === '其他'}}" class="works-card-link-wrap" catchtap="openLink" data-item="{{item}}">
+            <view class="works-card-link-icon">
+              <text class="works-card-link-icon-text">🔗</text>
+            </view>
+            <text class="works-card-link-label">外部链接</text>
+          </view>
+          <!-- 漫画卡片 — 明显的书本样式 -->
+          <view wx:elif="{{item.category === '漫画'}}" class="works-card-manga-mini-wrap">
+            <image wx:if="{{item.fileUrl}}" class="works-card-manga-mini-img" src="{{item.fileUrl}}" mode="aspectFill" />
+            <view wx:else class="works-card-manga-mini-placeholder">
+              <text class="works-card-manga-mini-icon">📖</text>
+            </view>
+            <view class="works-card-manga-mini-badge">漫画</view>
           </view>
           <!-- 文档卡片 -->
           <view wx:else class="works-card-doc-wrap">
@@ -912,267 +932,6 @@
       </view>
       <view style="height: 100rpx;"></view>
     </scroll-view>
-  </view>
-
-  <!-- 镜像实验室面板 -->
-  <view wx:if="{{showLabPanel}}" class="panel lab-panel">
-    <view class="lab-bg"></view>
-    <view class="panel-header">
-      <text class="panel-title">吴健雄的镜像实验室</text>
-      <view class="close-btn" bindtap="backToExhibit">✕</view>
-    </view>
-
-    <!-- Step 0: 实验介绍 -->
-    <view wx:if="{{labStep === 0}}" class="lab-intro-card">
-      <view class="lab-icon-wrap">🧪</view>
-      <text class="lab-intro-title">镜像实验室</text>
-      <view class="lab-intro-line"></view>
-      <text class="lab-intro-text">1956年，物理学界深信：</text>
-      <text class="lab-intro-highlight">自然规律在镜子里应该一样</text>
-      <text class="lab-intro-text">——这就是"宇称守恒"</text>
-      <view class="lab-intro-gap"></view>
-      <text class="lab-intro-text">但吴健雄设计了一个实验，</text>
-      <text class="lab-intro-text">来验证这个"常识"是否正确</text>
-      <view class="lab-intro-gap"></view>
-      <view class="lab-start-btn" bindtap="_startLab">
-        <text>开始实验 ▶</text>
-      </view>
-    </view>
-
-    <!-- Step 1: 认识钴-60 -->
-    <view wx:if="{{labStep === 1}}" class="lab-step-card">
-      <view class="lab-step-header">
-        <text class="lab-step-num">第一步</text>
-        <text class="lab-step-tag">认识</text>
-      </view>
-      <text class="lab-step-title">认识钴-60原子核</text>
-
-      <canvas type="2d" class="lab-canvas" id="labCanvas1"></canvas>
-
-      <view class="lab-nav-row lab-nav-row-center">
-        <view class="lab-nav-btn lab-nav-next" bindtap="_nextLabStep">
-          <text>下一步 ▶</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Step 2: 冷却钴-60 -->
-    <view wx:if="{{labStep === 2}}" class="lab-step-card">
-      <view class="lab-step-header">
-        <text class="lab-step-num">第二步</text>
-        <text class="lab-step-tag">冷却</text>
-      </view>
-      <text class="lab-step-title">将钴-60冷却到极低温</text>
-
-      <canvas type="2d" class="lab-canvas" id="labCanvas2"></canvas>
-
-      <!-- 温度滑块 -->
-      <view class="lab-slider-container">
-        <view class="lab-temp-display">
-          <text class="lab-temp-value">{{300 - labTemperature}}K</text>
-        </view>
-        <slider
-          class="lab-slider-native"
-          min="0"
-          max="300"
-          value="{{labTemperature}}"
-          activeColor="#64c8ff"
-          backgroundColor="rgba(147, 112, 219, 0.2)"
-          block-color="#9370db"
-          step="1"
-          bindchange="onSliderChange"
-          bindchanging="onSliderChanging"
-        />
-        <view class="lab-slider-labels">
-          <text>室温 300K →</text>
-          <text>← 绝对零度</text>
-        </view>
-      </view>
-
-      <text class="lab-hint">→ 向右拖动滑块到绝对零度</text>
-
-      <view class="lab-nav-row">
-        <view class="lab-nav-btn lab-nav-prev" bindtap="_prevLabStep">
-          <text>◀ 上一步</text>
-        </view>
-        <view class="lab-nav-btn lab-nav-next {{labCanAdvance ? '' : 'lab-nav-disabled'}}" bindtap="_nextLabStep">
-          <text>{{labCanAdvance ? '下一步 ▶' : '拖动滑块解锁 ▶'}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Step 3: 加磁场 -->
-    <view wx:if="{{labStep === 3}}" class="lab-step-card">
-      <view class="lab-step-header">
-        <text class="lab-step-num">第三步</text>
-        <text class="lab-step-tag">磁场</text>
-      </view>
-      <text class="lab-step-title">施加强磁场极化原子核</text>
-
-      <canvas type="2d" class="lab-canvas" id="labCanvas3"></canvas>
-
-      <!-- 磁场强度滑块 -->
-      <view class="lab-slider-container">
-        <view class="lab-temp-display">
-          <text class="lab-temp-value">{{labFieldStrength}}%</text>
-        </view>
-        <slider
-          class="lab-slider-native"
-          min="0"
-          max="100"
-          value="{{labFieldStrength}}"
-          activeColor="#ff69b4"
-          backgroundColor="rgba(147, 112, 219, 0.2)"
-          block-color="#ff69b4"
-          step="1"
-          bindchange="onFieldChange"
-          bindchanging="onFieldChanging"
-        />
-        <view class="lab-slider-labels">
-          <text>无磁场 →</text>
-          <text>← 强磁场</text>
-        </view>
-      </view>
-
-      <text class="lab-hint">→ 向右拖动滑块增强磁场</text>
-
-      <view class="lab-nav-row">
-        <view class="lab-nav-btn lab-nav-prev" bindtap="_prevLabStep">
-          <text>◀ 上一步</text>
-        </view>
-        <view class="lab-nav-btn lab-nav-next {{labCanAdvance ? '' : 'lab-nav-disabled'}}" bindtap="_nextLabStep">
-          <text>{{labCanAdvance ? '下一步 ▶' : '拖动滑块解锁 ▶'}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Step 4: 观察电子发射 -->
-    <view wx:if="{{labStep === 4}}" class="lab-step-card">
-      <view class="lab-step-header">
-        <text class="lab-step-num">第四步</text>
-        <text class="lab-step-tag">观察</text>
-      </view>
-      <text class="lab-step-title">观察电子从哪边飞出？</text>
-
-      <canvas type="2d" class="lab-canvas" id="labCanvas4"></canvas>
-
-      <view class="lab-choices">
-        <view class="lab-choice-btn" bindtap="onLabChoice" data-choice="up">
-          <view class="lab-choice-icon">↑</view>
-          <text class="lab-choice-text">主要向上发射</text>
-        </view>
-        <view class="lab-choice-btn" bindtap="onLabChoice" data-choice="random">
-          <view class="lab-choice-icon">↔</view>
-          <text class="lab-choice-text">各方向随机发射</text>
-        </view>
-      </view>
-
-      <view class="lab-nav-row">
-        <view class="lab-nav-btn lab-nav-prev" bindtap="_prevLabStep">
-          <text>◀ 上一步</text>
-        </view>
-        <view class="lab-nav-btn lab-nav-next {{labCanAdvance ? '' : 'lab-nav-disabled'}}" bindtap="_nextLabStep">
-          <text>{{labCanAdvance ? '下一步 ▶' : '选择正确答案解锁 ▶'}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Step 5: 镜像对比 -->
-    <view wx:if="{{labStep === 5}}" class="lab-step-card">
-      <view class="lab-step-header">
-        <text class="lab-step-num">第五步</text>
-        <text class="lab-step-tag">镜像</text>
-      </view>
-      <text class="lab-step-title">把实验放进镜子里</text>
-
-      <canvas type="2d" class="lab-canvas" id="labCanvas5"></canvas>
-
-      <view class="lab-mirror-hint">
-        <view class="lab-mirror-row">
-          <view class="lab-mirror-box">
-            <text class="lab-mirror-label">真实实验</text>
-            <text class="lab-mirror-result">电子 ↑ 向上</text>
-          </view>
-          <view class="lab-mirror-box">
-            <text class="lab-mirror-label">镜像世界</text>
-            <text class="lab-mirror-result">电子 ↓ 向下</text>
-          </view>
-        </view>
-      </view>
-
-      <view class="lab-choices">
-        <view class="lab-choice-btn" bindtap="onLabChoice" data-choice="different">
-          <view class="lab-choice-icon">✦</view>
-          <text class="lab-choice-text">不一样！宇称不守恒</text>
-        </view>
-        <view class="lab-choice-btn" bindtap="onLabChoice" data-choice="same">
-          <view class="lab-choice-icon">○</view>
-          <text class="lab-choice-text">一样，宇称守恒</text>
-        </view>
-      </view>
-
-      <view class="lab-nav-row">
-        <view class="lab-nav-btn lab-nav-prev" bindtap="_prevLabStep">
-          <text>◀ 上一步</text>
-        </view>
-        <view class="lab-nav-btn lab-nav-next {{labCanAdvance ? '' : 'lab-nav-disabled'}}" bindtap="_nextLabStep">
-          <text>{{labCanAdvance ? '下一步 ▶' : '选择正确答案解锁 ▶'}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Step 6: 揭示结果 -->
-    <view wx:if="{{labStep === 6}}" class="lab-step-card">
-      <view class="lab-step-header">
-        <text class="lab-step-num">第六步</text>
-        <text class="lab-step-tag">揭示</text>
-      </view>
-      <text class="lab-step-title">实际结果是什么？</text>
-
-      <canvas type="2d" class="lab-canvas" id="labCanvas6"></canvas>
-
-      <view class="lab-mirror-hint">
-        <text class="lab-reveal-text">镜子里外的电子都向同一个方向飞！</text>
-      </view>
-
-      <view class="lab-choices">
-        <view class="lab-choice-btn" bindtap="onLabChoice" data-choice="violation">
-          <view class="lab-choice-icon">✦</view>
-          <text class="lab-choice-text">宇称不守恒！</text>
-        </view>
-        <view class="lab-choice-btn" bindtap="onLabChoice" data-choice="conserved">
-          <view class="lab-choice-icon">○</view>
-          <text class="lab-choice-text">宇称守恒</text>
-        </view>
-      </view>
-
-      <view class="lab-nav-row">
-        <view class="lab-nav-btn lab-nav-prev" bindtap="_prevLabStep">
-          <text>◀ 上一步</text>
-        </view>
-        <view class="lab-nav-btn lab-nav-next {{labCanAdvance ? '' : 'lab-nav-disabled'}}" bindtap="_nextLabStep">
-          <text>{{labCanAdvance ? '下一步 ▶' : '选择正确答案解锁 ▶'}}</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- Step 7: 完成 -->
-    <view wx:if="{{labStep === 7}}" class="lab-step-card lab-complete-card">
-      <canvas type="2d" class="lab-canvas" id="labCanvas7"></canvas>
-      <view class="lab-complete-icon">✓</view>
-      <text class="lab-complete-title">实验完成</text>
-      <view class="lab-complete-line"></view>
-      <text class="lab-complete-text">1957年，吴健雄的实验证实了：</text>
-      <text class="lab-complete-text-bold">在弱相互作用中，宇称不守恒！</text>
-      <view class="lab-complete-gap"></view>
-      <text class="lab-complete-text">杨振宁和李政道因此获得</text>
-      <text class="lab-complete-text">1957年诺贝尔物理学奖</text>
-      <text class="lab-complete-text">（吴健雄遗憾错过诺贝尔奖）</text>
-      <view class="lab-complete-gap"></view>
-      <view class="lab-start-btn" bindtap="backToExhibit">
-        <text>返回展馆</text>
-      </view>
-    </view>
   </view>
 
 </view>

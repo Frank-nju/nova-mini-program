@@ -1,0 +1,394 @@
+<view class="lab-container">
+  <!-- Canvas 层（贯穿所有步骤） -->
+  <canvas type="2d" class="lab-canvas" wx:if="{{labStep !== 4}}" id="labCanvas" bindtouchstart="onCanvasTouchStart" bindtouchmove="onCanvasTouchMove" bindtouchend="onCanvasTouchEnd"></canvas>
+
+  <!-- 顶部步骤条 - 充能进度条样式 -->
+  <view class="lab-steps-bar">
+    <view class="lab-close-btn" bindtap="closeLab">
+      <text>✕</text>
+    </view>
+    <view class="lab-steps-progress">
+      <view class="lab-steps-track">
+        <view class="lab-steps-fill" style="width: {{(labStep / 8) * 100}}%;"></view>
+      </view>
+      <text class="lab-steps-text">步骤 {{labStep}}/8</text>
+    </view>
+  </view>
+
+  <!-- Step 0: 序言 -->
+  <view wx:if="{{labStep === 0}}" class="lab-overlay lab-overlay-intro">
+    <view class="lab-intro-deco-top">
+      <view class="lab-deco-glow"></view>
+      <view class="lab-deco-particles">
+        <view class="lab-particle p1"></view>
+        <view class="lab-particle p2"></view>
+        <view class="lab-particle p3"></view>
+        <view class="lab-particle p4"></view>
+      </view>
+    </view>
+    <view class="lab-intro-content">
+      <view class="lab-intro-silhouette"></view>
+      <view class="lab-intro-icons">
+        <text class="lab-icon-physics">ħ</text>
+        <text class="lab-icon-atom">⚛</text>
+        <text class="lab-icon-physics">λ</text>
+      </view>
+      <text class="lab-intro-title anim-fade-in">镜像实验室</text>
+      <view class="lab-intro-line anim-fade-in delay-2"></view>
+      <view class="lab-intro-card anim-fade-in delay-3">
+        <text class="lab-intro-card-year">1956</text>
+        <text class="lab-intro-card-text">物理学界深信：自然规律在镜子里应该一样</text>
+        <view class="lab-intro-card-formula">
+          <text class="formula-left">P</text>
+          <text class="formula-op">=</text>
+          <text class="formula-right">P'</text>
+        </view>
+        <text class="lab-intro-card-note">这就是「宇称守恒」</text>
+      </view>
+      <view class="lab-intro-gap"></view>
+      <text class="lab-intro-line-text anim-fade-in delay-6">吴健雄设计了一个精妙的实验</text>
+      <text class="lab-intro-line-text anim-fade-in delay-7">来验证这个"常识"是否正确</text>
+      <view class="lab-intro-gap"></view>
+      <view class="lab-start-btn anim-fade-in delay-8" bindtap="nextStep">
+        <text>开始实验 ▶</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 1: 认识钴-60 -->
+  <view wx:if="{{labStep === 1}}" class="lab-overlay lab-overlay-step">
+    <view class="lab-step-content">
+      <view class="lab-step-header">
+        <text class="lab-step-num">第一步</text>
+        <view class="lab-step-tag">认识</view>
+      </view>
+      <text class="lab-step-title-text">认识钴-60 原子核</text>
+      <text class="lab-step-desc">钴-60 是一种放射性同位素，会进行 β 衰变，释放电子。点击下方卡片了解更多信息。</text>
+      <view class="lab-info-cards">
+        <view class="lab-info-card" bindtap="showNucleusInfo" data-type="structure">
+          <view class="lab-info-card-icon">⚛</view>
+          <text class="lab-info-card-title">原子结构</text>
+          <text class="lab-info-card-desc">27个质子 + 33个中子</text>
+        </view>
+        <view class="lab-info-card" bindtap="showNucleusInfo" data-type="decay">
+          <view class="lab-info-card-icon">☢</view>
+          <text class="lab-info-card-title">β衰变</text>
+          <text class="lab-info-card-desc">释放电子和反中微子</text>
+        </view>
+      </view>
+      <view class="lab-nucleus-hint">
+        <text class="lab-hint-text">观察上方Canvas中的原子核动画</text>
+      </view>
+      <view class="lab-step-nav">
+        <view class="lab-nav-btn lab-nav-prev {{labStep <= 0 ? 'lab-nav-disabled' : ''}}" bindtap="prevStep">
+          <text>◀ 上一步</text>
+        </view>
+        <view class="lab-nav-btn lab-nav-next" bindtap="nextStep">
+          <text>下一步 ▶</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 2: 冷却钴-60 -->
+  <view wx:if="{{labStep === 2}}" class="lab-overlay lab-overlay-step lab-step-2-layout">
+    <view class="lab-step-content">
+      <view class="lab-step-header">
+        <text class="lab-step-num">第二步</text>
+        <view class="lab-step-tag lab-tag-cool">冷却</view>
+      </view>
+      <text class="lab-step-title-text">将钴-60 冷却到极低温</text>
+      <text class="lab-step-desc">降温使原子核自旋方向趋于一致（极化），这是实验的关键。</text>
+      <view class="lab-temp-panel step-control-panel">
+        <view class="lab-temp-display">
+          <view class="lab-temp-value-row">
+            <text class="lab-temp-number">{{300 - labTemperature}}</text>
+            <text class="lab-temp-unit">K</text>
+          </view>
+          <text class="lab-temp-label">{{labTemperature >= 300 ? '室温 300K' : (labTemperature > 0 ? '温度正在下降' : '达到绝对零度！')}}</text>
+        </view>
+        <slider
+          class="lab-slider"
+          min="0"
+          max="300"
+          value="{{labTemperature}}"
+          activeColor="#64c8ff"
+          backgroundColor="rgba(100, 200, 255, 0.15)"
+          block-size="28"
+          block-color="#64c8ff"
+          show-value="{{false}}"
+          bindchange="onTempChange"
+          bindchanging="onTempChanging"
+        />
+        <view class="lab-slider-labels">
+          <text>室温 300K</text>
+          <text>0.01K ←</text>
+        </view>
+      </view>
+      <view class="lab-step-nav">
+        <view class="lab-nav-btn lab-nav-prev" bindtap="prevStep">
+          <text>◀ 上一步</text>
+        </view>
+        <view class="lab-nav-btn lab-nav-next {{labCanAdvance ? '' : 'lab-nav-disabled'}}" bindtap="onTempNextTap">
+          <text>{{labCanAdvance ? '下一步 ▶' : '降到 0K 解锁 ▶'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 3: 加磁场 -->
+  <view wx:if="{{labStep === 3}}" class="lab-overlay lab-overlay-step lab-step-3-layout">
+    <view class="lab-step-content">
+      <view class="lab-step-header">
+        <text class="lab-step-num">第三步</text>
+        <view class="lab-step-tag lab-tag-field">磁场</view>
+      </view>
+      <text class="lab-step-title-text">施加强磁场极化原子核</text>
+      <text class="lab-step-desc">磁场帮助极化原子核，让自旋方向完全一致。</text>
+      <view class="lab-temp-panel step-control-panel">
+        <view class="lab-temp-display">
+          <text class="lab-temp-number">{{labFieldStrength}}</text>
+          <text class="lab-temp-unit">%</text>
+          <text class="lab-temp-label">{{labFieldStrength >= 80 ? '磁场足够强！' : (labFieldStrength >= 40 ? '磁场正在增强' : '无磁场')}}</text>
+        </view>
+        <slider
+          class="lab-slider"
+          min="0"
+          max="100"
+          value="{{labFieldStrength}}"
+          activeColor="#ff69b4"
+          backgroundColor="rgba(255, 105, 180, 0.15)"
+          block-size="28"
+          block-color="#ff69b4"
+          show-value="{{false}}"
+          bindchange="onFieldChange"
+          bindchanging="onFieldChanging"
+        />
+        <view class="lab-slider-labels">
+          <text>无磁场</text>
+          <text>100% →</text>
+        </view>
+      </view>
+      <view class="lab-step-nav">
+        <view class="lab-nav-btn lab-nav-prev" bindtap="prevStep">
+          <text>◀ 上一步</text>
+        </view>
+        <view class="lab-nav-btn lab-nav-next {{labCanAdvance ? '' : 'lab-nav-disabled'}}" bindtap="onFieldNextTap">
+          <text>{{labCanAdvance ? '下一步 ▶' : '磁场达到 80% 解锁 ▶'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 4: 观察电子发射 -->
+  <view wx:if="{{labStep === 4}}" class="lab-step-4-wrapper">
+    <view class="lab-step4-header">
+      <view class="lab-step-header">
+        <text class="lab-step-num">第四步</text>
+        <view class="lab-step-tag lab-tag-observe">观察</view>
+      </view>
+      <text class="lab-step4-title">实验结果：电子向上发射</text>
+      <text class="lab-step4-desc">实验数据表明，约 70% 的电子从上方飞出</text>
+    </view>
+
+    <view class="lab-step4-data">
+      <view class="lab-step4-stats">
+        <view class="lab-step4-stats-row">
+          <view class="lab-step4-stat active">
+            <text class="lab-step4-stat-arrow up">↑ 向上</text>
+            <text class="lab-step4-stat-value">70%</text>
+          </view>
+          <view class="lab-step4-stat">
+            <text class="lab-step4-stat-arrow down">↓ 向下</text>
+            <text class="lab-step4-stat-value">30%</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="lab-step4-detail-card">
+        <text class="lab-step4-detail-text">1956 年，吴健雄将钴-60 冷却到极低温，使其自旋方向趋于一致。</text>
+        <text class="lab-step4-detail-text">在β衰变中，约 70% 的电子向一个方向飞出，而非均匀分布。</text>
+        <text class="lab-step4-detail-text">这意味着：在弱相互作用中，镜子里的物理规律和外面不一样。</text>
+      </view>
+
+      <view class="lab-step4-result-note">
+        <text class="lab-step4-note-text">电子在弱相互作用中表现出明显的方向偏好——这违背了当时物理学的预期。</text>
+      </view>
+
+      <view class="lab-step4-nav">
+        <view class="lab-nav-btn lab-nav-prev" bindtap="prevStep">
+          <text>◀ 上一步</text>
+        </view>
+        <view class="lab-nav-btn lab-nav-next" bindtap="nextStep">
+          <text>下一步 ▶</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 5: 镜像对比 -->
+  <view wx:if="{{labStep === 5}}" class="lab-overlay lab-overlay-step lab-step-5-layout">
+    <view class="lab-step-content">
+      <view class="lab-step-header">
+        <text class="lab-step-num">第五步</text>
+        <view class="lab-step-tag lab-tag-mirror">镜像</view>
+      </view>
+      <text class="lab-step-title-text">把实验放进镜子里</text>
+      <text class="lab-step-desc">如果宇称守恒，镜子里的电子应该向相反方向飞。</text>
+      <view class="lab-mirror-panel step-5-mirror">
+        <view class="lab-mirror-box lab-mirror-real">
+          <text class="lab-mirror-label">真实实验</text>
+          <text class="lab-mirror-result">电子 ↑ 向上发射</text>
+        </view>
+        <view class="lab-mirror-divider">
+          <text class="lab-mirror-divider-text">镜面</text>
+        </view>
+        <view class="lab-mirror-box lab-mirror-image">
+          <text class="lab-mirror-label">镜像世界</text>
+          <text class="lab-mirror-result">电子 ↓ 向下发射</text>
+        </view>
+      </view>
+      <view class="lab-step-nav">
+        <view class="lab-nav-btn lab-nav-prev" bindtap="prevStep">
+          <text>◀ 上一步</text>
+        </view>
+        <view class="lab-nav-btn lab-nav-next" bindtap="nextStep">
+          <text>下一步 ▶</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 6: 揭示结果 -->
+  <view wx:if="{{labStep === 6}}" class="lab-overlay lab-overlay-step lab-step-6-layout">
+    <view class="lab-step-content">
+      <view class="lab-step-header">
+        <text class="lab-step-num">第六步</text>
+        <view class="lab-step-tag lab-tag-reveal">揭示</view>
+      </view>
+      <text class="lab-step-title-text">实际结果是什么？</text>
+      <text class="lab-step-desc">点击揭晓按钮，查看实验最终结果。</text>
+      <view class="lab-reveal-panel step-6-reveal">
+        <text class="lab-reveal-question">镜子里外的电子发射方向一样吗？</text>
+      </view>
+      <view class="lab-step-nav">
+        <view class="lab-nav-btn lab-nav-prev" bindtap="prevStep">
+          <text>◀ 上一步</text>
+        </view>
+        <view class="lab-nav-btn lab-nav-reveal" bindtap="revealResult">
+          <text>✦ 揭晓结果</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 7: 实验结果展示页 -->
+  <view wx:if="{{labStep === 7}}" class="lab-overlay lab-overlay-step lab-overlay-result">
+    <view class="lab-step-content lab-result-content">
+      <!-- 完成标志 -->
+      <view class="lab-result-badge-wrap anim-result-1">
+        <view class="lab-result-icon">✓</view>
+        <view class="lab-result-badge-ring"></view>
+      </view>
+
+      <!-- 标题 -->
+      <text class="lab-result-main-title anim-result-2">实验完成</text>
+      <view class="lab-result-line anim-result-2"></view>
+
+      <!-- 实验结果卡片 -->
+      <view class="lab-result-summary-card anim-result-3">
+        <view class="lab-summary-header">
+          <text class="lab-summary-year">1957</text>
+          <view class="lab-summary-divider"></view>
+        </view>
+        <text class="lab-summary-text">吴健雄的实验证实了：</text>
+        <view class="lab-summary-highlight">
+          <text class="lab-summary-main">宇称不守恒</text>
+          <view class="lab-summary-underline"></view>
+        </view>
+        <text class="lab-summary-sub">在弱相互作用中，镜像不再对称</text>
+      </view>
+
+      <!-- 诺贝尔奖信息 -->
+      <view class="lab-nobel-info anim-result-4">
+        <view class="lab-nobel-icon">🏆</view>
+        <view class="lab-nobel-text">
+          <text class="lab-nobel-names">杨振宁 · 李政道</text>
+          <text class="lab-nobel-award">1957年诺贝尔物理学奖</text>
+        </view>
+      </view>
+
+      <!-- 吴健雄引言 -->
+      <view class="lab-quote-card anim-result-5">
+        <text class="lab-quote-mark">"</text>
+        <text class="lab-quote-text">以实验为镜</text>
+        <text class="lab-quote-text">照见宇宙的奥秘</text>
+        <text class="lab-quote-mark">"</text>
+        <text class="lab-quote-author">—— 吴健雄</text>
+      </view>
+
+      <!-- 获得的徽章 -->
+      <view class="lab-badge-earned anim-result-6">
+        <view class="lab-badge-icon">⚛️</view>
+        <view class="lab-badge-text">
+          <text class="lab-badge-title">追光终章</text>
+          <text class="lab-badge-desc">完成镜像实验室</text>
+        </view>
+      </view>
+
+      <!-- 进入书信页按钮 -->
+      <view class="lab-result-btn-wrap anim-result-7">
+        <view class="lab-result-btn" bindtap="nextStep">
+          <text>查看寄语 ✉</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 8: 完成 - 健雄书院寄语 -->
+  <view wx:if="{{labStep === 8}}" class="lab-overlay lab-overlay-step lab-overlay-complete">
+    <view class="lab-complete-letter">
+      <!-- 信件头部 -->
+      <view class="lab-letter-header anim-letter-1">
+        <view class="lab-letter-seal">⚛</view>
+        <text class="lab-letter-title">致健雄书院的后辈们</text>
+        <view class="lab-letter-line"></view>
+      </view>
+
+      <!-- 信件内容 - 逐行浮现 -->
+      <view class="lab-letter-content">
+        <text class="lab-letter-text anim-letter-2">亲爱的后辈们：</text>
+        <text class="lab-letter-text anim-letter-3">你们好。</text>
+        <view class="lab-letter-para"></view>
+        <text class="lab-letter-text anim-letter-4">六十五年前，我在实验室里</text>
+        <text class="lab-letter-text anim-letter-5">证实了宇称不守恒。</text>
+        <view class="lab-letter-para"></view>
+        <text class="lab-letter-text anim-letter-6">那是一个寒冷的冬夜，</text>
+        <text class="lab-letter-text anim-letter-7">但我心中燃烧着对真理的渴望。</text>
+        <view class="lab-letter-para"></view>
+        <text class="lab-letter-text anim-letter-8">科学之路从不平坦，</text>
+        <text class="lab-letter-text anim-letter-9">质疑与坚持同样重要。</text>
+        <view class="lab-letter-para"></view>
+        <text class="lab-letter-text anim-letter-10">愿你们永远保持好奇，</text>
+        <text class="lab-letter-text anim-letter-11">在探索中找到自己的光。</text>
+        <view class="lab-letter-para"></view>
+        <text class="lab-letter-text anim-letter-12">追光不息，</text>
+        <text class="lab-letter-text anim-letter-13">我们终将在真理的殿堂相遇。</text>
+      </view>
+
+      <!-- 署名 -->
+      <view class="lab-letter-signature anim-letter-14">
+        <view class="lab-signature-line"></view>
+        <text class="lab-signature-name">吴健雄</text>
+        <text class="lab-signature-date">一九九七年 于纽约</text>
+      </view>
+
+      <!-- 返回展馆按钮 -->
+      <view class="lab-complete-btn-wrap anim-letter-15">
+        <view class="lab-complete-btn" bindtap="backToExhibitWithBadge">
+          <text>返回展馆 🏛️</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
