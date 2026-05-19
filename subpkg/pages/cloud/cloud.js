@@ -65,12 +65,48 @@ var NODE_YEARS = {
   'node_8': '1997',
 };
 
+// ─── 外侧节点照片 FileID ───
+var NODE_PHOTOS = {
+  'node_1': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/1.jpg',
+  'node_2': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/2.png',
+  'node_3': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/3.png',
+  'node_4': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/4.png',
+  'node_5': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/5.png',
+  'node_6': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/6.png',
+  'node_7': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/7.png',
+  'node_8': 'cloud://cloud1-0g0wg0plf9fb9ed2.636c-cloud1-0g0wg0plf9fb9ed2-1421412578/云图外侧8节点图片/8.png',
+};
+
+// ─── 外侧节点照片说明（待补充） ───
+var NODE_PHOTO_CAPTIONS = {
+  'node_1': '图1：浏河古镇街景',
+  'node_2': '图2：江苏省立第二女子师范学校',
+  'node_3': '图3：国立中央大学（正门）',
+  'node_4': '图4：中央研究院院徽',
+  'node_5': '图5：先生在伯克利实验照',
+  'node_6': '图6：与美国NBS学者的合影',
+  'node_7': '图7：与李政道等众多学者的合影',
+  'node_8': '图8：墓志铭“一个永远的中国人”',
+};
+
+// ─── 外侧节点简介（状态 0-4 点击时弹出） ───
+var NODE_DESCRIPTIONS = {
+  'node_1': '吴健雄出生于江苏省太仓县浏河镇，自幼聪慧好学。',
+  'node_2': '考入江苏省立第二女子师范学校，开始接受现代教育的熏陶。',
+  'node_3': '以优异成绩考入国立中央大学物理系，正式踏上科学之路。',
+  'node_4': '进入中央研究院物理研究所，开启核物理实验研究生涯。',
+  'node_5': '赴美国加州大学伯克利分校深造，师从多位物理学大师。',
+  'node_6': '作为唯一华人女性参与曼哈顿计划，解决关键核反应难题。',
+  'node_7': '以精巧实验验证宇称不守恒理论，推动现代物理学发展。',
+  'node_8': '吴健雄逝世，其科学遗产与精神激励一代代后人不断前行。',
+};
+
 // ─── 时间线刻度点年份（段间里程碑） ───
 var TIMELINE_DOT_YEARS = {
   'node_1->node_2': ['1915', '1918', '1921'],
   'node_2->node_3': ['1925', '1927', '1928'],
   'node_3->node_4': ['1930', '1932', '1933'],
-  'node_4->node_5': ['1934', '1935', '1936'],
+  'node_4->node_5': ['1935'],
   'node_5->node_6': ['1938', '1940', '1942'],
   'node_6->node_7': ['1948', '1952', '1954'],
   'node_7->node_8': ['1965', '1975', '1990'],
@@ -94,6 +130,7 @@ Page({
     canvasHeight: 0,
     animating: false,
     hoveredNode: null,
+    selectedNode: null,
     cloudReady: false,
     isDev: false,
   },
@@ -113,6 +150,8 @@ Page({
         self.buildFromCloud(res.data.nodes, res.data.connections || []);
         self.setData({ cloudReady: true });
         console.log('[cloud] 云端数据加载完成, 节点:', res.data.nodes.length, '连线:', (res.data.connections || []).length);
+        // 预取照片临时链接，避免点击时延迟
+        self._prefetchPhotos();
         // 初始化 Canvas 连线
         setTimeout(function () { self.drawLines(); }, 200);
       } else {
@@ -838,6 +877,11 @@ Page({
       ctx.globalAlpha = 1;
     }
 
+    // 节点简介弹窗虚线连接
+    if (this.data.selectedNode) {
+      this.drawPopupDashLine(ctx);
+    }
+
     ctx.restore();
   },
 
@@ -1146,10 +1190,11 @@ Page({
           ctx.stroke();
           // 刻度点仅在状态 0~3 显示
           if (zs <= 3) {
-            var dotCount = 4;
-            var dotYears = TIMELINE_DOT_YEARS[pair.fromNodeId + '->' + pair.toNodeId] || [];
-            for (var d = 1; d < dotCount; d++) {
-              var tt = d / dotCount;
+            var connKey = pair.fromNodeId + '->' + pair.toNodeId;
+            var dotYears = TIMELINE_DOT_YEARS[connKey] || [];
+            // node_4->node_5 特殊处理：仅中点一个刻度
+            if (connKey === 'node_4->node_5') {
+              var tt = 0.5;
               var u = 1 - tt;
               var dotX = u * u * ax + 2 * u * tt * cpX + tt * tt * bx;
               var dotY = u * u * ay + 2 * u * tt * cpY + tt * tt * by;
@@ -1157,17 +1202,46 @@ Page({
               ctx.arc(dotX, dotY, 2.5, 0, Math.PI * 2);
               ctx.fillStyle = 'rgba(225, 220, 200, 0.85)';
               ctx.fill();
-              // 刻度年份仅在状态 0~1 显示
-              if (zs <= 1) {
-                var dotYear = dotYears[d - 1];
-                if (dotYear) {
-                  var dotFontSize = Math.round(9 * scale);
-                  if (dotFontSize < 7) dotFontSize = 7;
-                  ctx.font = dotFontSize + 'px sans-serif';
-                  ctx.textAlign = 'left';
-                  ctx.textBaseline = 'top';
-                  ctx.fillStyle = 'rgba(225, 220, 200, 0.5)';
-                  ctx.fillText(dotYear, dotX + 6 * scale, dotY + 4 * scale);
+              if (zs <= 1 && dotYears[0]) {
+                var dotFontSize = Math.round(9 * scale);
+                if (dotFontSize < 7) dotFontSize = 7;
+                ctx.font = dotFontSize + 'px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'rgba(225, 220, 200, 0.5)';
+                // 偏移朝向画面中心（线内侧）
+                var toCx = cx - dotX;
+                var toCy = cy - dotY;
+                var toCDist = Math.sqrt(toCx * toCx + toCy * toCy);
+                var labelOffX = 0, labelOffY = 0;
+                if (toCDist > 1) {
+                  labelOffX = (toCx / toCDist) * 14 * scale;
+                  labelOffY = (toCy / toCDist) * 14 * scale;
+                }
+                ctx.fillText(dotYears[0], dotX + labelOffX, dotY + labelOffY);
+              }
+            } else {
+              var dotCount = 4;
+              for (var d = 1; d < dotCount; d++) {
+                var tt2 = d / dotCount;
+                var u2 = 1 - tt2;
+                var dotX2 = u2 * u2 * ax + 2 * u2 * tt2 * cpX + tt2 * tt2 * bx;
+                var dotY2 = u2 * u2 * ay + 2 * u2 * tt2 * cpY + tt2 * tt2 * by;
+                ctx.beginPath();
+                ctx.arc(dotX2, dotY2, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(225, 220, 200, 0.85)';
+                ctx.fill();
+                if (zs <= 1) {
+                  var dotYear = dotYears[d - 1];
+                  if (dotYear) {
+                    var dotFontSize2 = Math.round(9 * scale);
+                    if (dotFontSize2 < 7) dotFontSize2 = 7;
+                    ctx.font = dotFontSize2 + 'px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.textBaseline = 'top';
+                    ctx.fillStyle = 'rgba(225, 220, 200, 0.5)';
+                    ctx.fillText(dotYear, dotX2 + 6 * scale, dotY2 + 4 * scale);
+                  }
                 }
               }
             }
@@ -1506,6 +1580,7 @@ Page({
   handleTouchMove(e) {
     var touches = e.touches;
     if (touches.length === 2) {
+      this.dismissPopup();
       var dx = touches[0].clientX - touches[1].clientX;
       var dy = touches[0].clientY - touches[1].clientY;
       var distance = Math.sqrt(dx * dx + dy * dy);
@@ -1526,6 +1601,10 @@ Page({
       this.data.offsetY += deltaY;
       this.data.lastTouchX = touches[0].clientX;
       this.data.lastTouchY = touches[0].clientY;
+      // 拖拽偏移超过阈值时关闭弹窗
+      if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+        this.dismissPopup();
+      }
       this.drawFrame();
     }
   },
@@ -1546,7 +1625,7 @@ Page({
     this.drawFrame();
   },
 
-  // Canvas 坐标检测节点点击 → 跳转章节
+  // Canvas 坐标检测节点点击 → 状态 0-4 外侧节点弹窗 / 状态 5+ 跳转章节
   _onCanvasTap(touchX, touchY) {
     var r = this._rpxToPx || 0.5;
     var scale = this.data.mapScale;
@@ -1568,7 +1647,66 @@ Page({
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < minDist) { minDist = dist; closest = n; }
     }
-    if (!closest) return;
+    if (!closest) {
+      this.dismissPopup();
+      return;
+    }
+
+    var zs = this.data.zoomState;
+    // 状态 0-4：外侧八节点点击弹出简介窗
+    if (zs <= 4 && closest.nodeId !== 'node_0') {
+      var nx = (closest.baseX + closest.fx) * r;
+      var ny = (closest.baseY + closest.fy) * r;
+      var screenX = cx + (nx - cx + ox) * scale;
+      var screenY = cy + (ny - cy + oy) * scale;
+      // 弹窗定位在节点上方
+      var popupW = 300 * r;
+      var popupH = 280 * r;
+      var gap = 30 * r;
+      var pLeft = screenX - popupW / 2;
+      var pTop = screenY - 18 * r * scale - popupH - gap;
+      // 锚点（弹窗底部中心，虚线连接终点）
+      var anchorX = screenX;
+      var anchorY = pTop + popupH;
+      var photoFileID = NODE_PHOTOS[closest.nodeId] || '';
+      var photoCaption = NODE_PHOTO_CAPTIONS[closest.nodeId] || '';
+      // 优先使用预取缓存，否则异步获取
+      var cachedUrl = this._photoTempUrls && this._photoTempUrls[closest.nodeId];
+      var photoUrl = cachedUrl || '';
+      this.setData({
+        selectedNode: {
+          id: closest.id,
+          nodeId: closest.nodeId,
+          title: closest.title,
+          description: NODE_DESCRIPTIONS[closest.nodeId] || '',
+          photoUrl: photoUrl,
+          photoCaption: photoCaption,
+          nodeScreenX: screenX,
+          nodeScreenY: screenY,
+          popupLeft: pLeft,
+          popupTop: pTop,
+          anchorX: anchorX,
+          anchorY: anchorY,
+        }
+      });
+      if (!cachedUrl && photoFileID) {
+        var self = this;
+        cloudUtil.call('getFilePreviewUrl', { fileID: photoFileID }, 8000).then(function (res) {
+          if (res.code === 0 && res.data && res.data.tempFileURL) {
+            var sel = self.data.selectedNode;
+            sel.photoUrl = res.data.tempFileURL;
+            self.setData({ selectedNode: sel });
+          }
+        }).catch(function (err) {
+          console.error('[cloud] getFilePreviewUrl 异常:', err);
+        });
+      }
+      return;
+    }
+
+    // 关闭弹窗
+    this.dismissPopup();
+
     if (!closest.unlocked) {
       wx.showToast({ title: '尚未解锁', icon: 'none' });
       return;
@@ -1580,6 +1718,81 @@ Page({
         wx.showToast({ title: '页面跳转失败', icon: 'none' });
       }
     });
+  },
+
+  // 关闭节点简介弹窗
+  dismissPopup() {
+    if (this.data.selectedNode) {
+      this.setData({ selectedNode: null });
+    }
+  },
+
+  // 页面加载时预取全部照片临时链接，避免点击延迟
+  _prefetchPhotos() {
+    var fileIDs = [];
+    var keys = [];
+    for (var k in NODE_PHOTOS) {
+      if (NODE_PHOTOS.hasOwnProperty(k) && NODE_PHOTOS[k]) {
+        fileIDs.push(NODE_PHOTOS[k]);
+        keys.push(k);
+      }
+    }
+    if (fileIDs.length === 0) return;
+    var self = this;
+    self._photoTempUrls = {};
+    // 逐个预取（getFilePreviewUrl 云函数每次只接受单个 fileID）
+    var pending = fileIDs.length;
+    for (var i = 0; i < fileIDs.length; i++) {
+      (function (idx) {
+        cloudUtil.call('getFilePreviewUrl', { fileID: fileIDs[idx] }, 8000).then(function (res) {
+          if (res.code === 0 && res.data && res.data.tempFileURL) {
+            self._photoTempUrls[keys[idx]] = res.data.tempFileURL;
+          }
+        }).catch(function (err) {
+          console.error('[cloud] 预取照片失败:', keys[idx], err);
+        }).finally(function () {
+          pending--;
+          if (pending === 0) {
+            console.log('[cloud] 照片预取完成, 共', Object.keys(self._photoTempUrls).length, '张');
+          }
+        });
+      })(i);
+    }
+  },
+
+  // 绘制弹窗虚线连接（节点 → 弹窗）
+  drawPopupDashLine(ctx) {
+    var sel = this.data.selectedNode;
+    if (!sel) return;
+    var scale = this.data.mapScale;
+    // 从节点上边缘到弹窗锚点画虚线
+    var startX = sel.nodeScreenX;
+    var startY = sel.nodeScreenY - 14 * (this._rpxToPx || 0.5) * scale;
+    var endX = sel.anchorX;
+    var endY = sel.anchorY;
+    var dx = endX - startX;
+    var dy = endY - startY;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) return;
+    var ux = dx / dist;
+    var uy = dy / dist;
+    var dashLen = 4;
+    var gapLen = 3;
+    var segLen = dashLen + gapLen;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(180, 200, 220, 0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    var pos = 0;
+    while (pos < dist) {
+      var s = pos;
+      var e = Math.min(pos + dashLen, dist);
+      ctx.moveTo(startX + ux * s, startY + uy * s);
+      ctx.lineTo(startX + ux * e, startY + uy * e);
+      pos += segLen;
+    }
+    ctx.stroke();
+    ctx.restore();
   },
 
   // ─── 节点点击 → 进入对应章节故事 ───
@@ -1617,6 +1830,7 @@ Page({
 
   // ─── 缩放控制（目标值交由动画循环平滑插值） ───
   zoomIn() {
+    this.dismissPopup();
     var baseScale = this._interpTarget !== undefined ? this._interpTarget : this.data.mapScale;
     var target = Math.min(baseScale * 1.18, this.data.scaleMax);
     var start = this.data.mapScale + (target - this.data.mapScale) * 0.7;
@@ -1629,6 +1843,7 @@ Page({
   },
 
   zoomOut() {
+    this.dismissPopup();
     var baseScale = this._interpTarget !== undefined ? this._interpTarget : this.data.mapScale;
     var target = Math.max(baseScale / 1.18, this.data.scaleMin);
     var start = this.data.mapScale + (target - this.data.mapScale) * 0.7;

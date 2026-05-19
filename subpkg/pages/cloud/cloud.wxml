@@ -6,6 +6,17 @@
           bindtouchmove="handleTouchMove"
           bindtouchend="handleTouchEnd"></canvas>
 
+  <!-- 节点简介弹窗（状态 0-4 点击外侧节点） -->
+  <view wx:if="{{selectedNode}}" class="node-popup"
+        style="left: {{selectedNode.popupLeft}}px; top: {{selectedNode.popupTop}}px;"
+        catchtap="dismissPopup">
+    <view class="popup-arrow"></view>
+    <view class="popup-title">{{selectedNode.title}}</view>
+    <image wx:if="{{selectedNode.photoUrl}}" class="popup-photo" src="{{selectedNode.photoUrl}}" mode="aspectFill"></image>
+    <view wx:if="{{selectedNode.photoCaption}}" class="popup-photo-caption">{{selectedNode.photoCaption}}</view>
+    <view class="popup-desc">{{selectedNode.description}}</view>
+  </view>
+
   <!-- 缩放控制按钮 -->
   <view class="zoom-controls">
     <view class="zoom-btn" bindtap="zoomIn">+</view>

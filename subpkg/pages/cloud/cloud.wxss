@@ -81,6 +81,85 @@
   cursor: pointer;
 }
 
+/* ─── 节点简介弹窗 ─── */
+.node-popup {
+  position: absolute;
+  width: 300rpx;
+  min-height: 80rpx;
+  background: rgba(10, 20, 40, 0.92);
+  border: 1rpx solid rgba(100, 180, 255, 0.35);
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  z-index: 500;
+  box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.5), 0 0 12rpx rgba(68, 170, 255, 0.2);
+  backdrop-filter: blur(8rpx);
+  animation: popupFadeIn 0.2s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.popup-arrow {
+  position: absolute;
+  bottom: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10rpx solid transparent;
+  border-right: 10rpx solid transparent;
+  border-top: 10rpx solid rgba(100, 180, 255, 0.35);
+}
+
+.popup-arrow::after {
+  content: '';
+  position: absolute;
+  top: -12rpx;
+  left: -8rpx;
+  width: 0;
+  height: 0;
+  border-left: 8rpx solid transparent;
+  border-right: 8rpx solid transparent;
+  border-top: 8rpx solid rgba(10, 20, 40, 0.92);
+}
+
+.popup-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #a8d8ff;
+  margin-bottom: 8rpx;
+  line-height: 1.3;
+}
+
+.popup-photo {
+  width: 260rpx;
+  height: 160rpx;
+  border-radius: 8rpx;
+  display: block;
+  margin: 0 auto;
+}
+
+.popup-photo-caption {
+  font-size: 18rpx;
+  color: rgba(180, 200, 220, 0.7);
+  text-align: right;
+  margin: 4rpx 0 8rpx;
+}
+
+.popup-desc {
+  font-size: 22rpx;
+  color: rgba(200, 215, 235, 0.85);
+  line-height: 1.5;
+}
+
 .debug-reset-btn:active {
   transform: scale(1.1);
   box-shadow: 0 6px 20rpx rgba(255, 100, 100, 0.6);
