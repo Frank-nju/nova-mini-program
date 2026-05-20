@@ -97,6 +97,8 @@ Page({
       { id: 'badge_08', icon: '⚛️', name: '实验探索者', condition: '完成吴健雄的镜像实验室实验', section: null, unlocked: false },
     ],
     selectedBadge: null,
+    showCelebration: false,
+    celebrationParticles: [],
 
     // 答题区题库（50题：30道四选一选择题 + 20道判断题）
     quizBank: [
@@ -622,6 +624,7 @@ Page({
     }).catch(err => {
       console.error('徽章发放失败:', err);
     });
+    this._checkAllBadges(badges);
   },
 
   unlockBadgeByBadge(badge) {
@@ -653,6 +656,7 @@ Page({
     }).catch(err => {
       console.error('徽章发放失败:', err);
     });
+    this._checkAllBadges(badges);
   },
 
   // 通过 badgeId 和标记字段发放徽章（用于致敬、数字人、评分等新徽章）
@@ -679,6 +683,18 @@ Page({
     }, 3000);
 
     cloudUtil.grantBadge({ badgeId }).catch(() => {});
+    this._checkAllBadges(badges);
+  },
+
+  _checkAllBadges(badges) {
+    const all = badges || this.data.badges;
+    if (all.every(b => b.unlocked) && !this.data.showCelebration) {
+      this.setData({ showCelebration: true });
+    }
+  },
+
+  dismissCelebration() {
+    this.setData({ showCelebration: false });
   },
 
   toggleClouds() {

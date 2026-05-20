@@ -1635,15 +1635,15 @@ Page({
     var ch = this.data.canvasHeight;
     var cx = cw / 2;
     var cy = ch / 2;
-    var wx = ((touchX - cx) / scale + cx - ox) / r;
-    var wy = ((touchY - cy) / scale + cy - oy) / r;
+    var worldX = ((touchX - cx) / scale + cx - ox) / r;
+    var worldY = ((touchY - cy) / scale + cy - oy) / r;
     var closest = null;
     var minDist = 60;
     var nodes = this.data.nodes;
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
-      var dx = n.x - wx;
-      var dy = n.y - wy;
+      var dx = n.x - worldX;
+      var dy = n.y - worldY;
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist < minDist) { minDist = dist; closest = n; }
     }
@@ -1653,8 +1653,12 @@ Page({
     }
 
     var zs = this.data.zoomState;
-    // 状态 0-4：外侧八节点点击弹出简介窗
+    // 状态 0-4：外侧八节点点击，未解锁提示，已解锁弹出简介窗
     if (zs <= 4 && closest.nodeId !== 'node_0') {
+      if (!closest.unlocked) {
+        wx.showToast({ title: '尚未解锁', icon: 'none' });
+        return;
+      }
       var nx = (closest.baseX + closest.fx) * r;
       var ny = (closest.baseY + closest.fy) * r;
       var screenX = cx + (nx - cx + ox) * scale;
@@ -1708,7 +1712,7 @@ Page({
     this.dismissPopup();
 
     if (!closest.unlocked) {
-      wx.showToast({ title: '尚未解锁', icon: 'none' });
+      wx.showToast({ title: closest.nodeId === 'node_0' ? '外侧节点全部解锁后解锁' : '尚未解锁', icon: 'none' });
       return;
     }
     var section = closest.section || 1;
@@ -1802,7 +1806,7 @@ Page({
     if (!node) return;
 
     if (!node.unlocked) {
-      wx.showToast({ title: '尚未解锁', icon: 'none' });
+      wx.showToast({ title: node.nodeId === 'node_0' ? '外侧节点全部解锁后解锁' : '尚未解锁', icon: 'none' });
       return;
     }
 
