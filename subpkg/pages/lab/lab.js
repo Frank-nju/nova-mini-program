@@ -479,8 +479,18 @@ Page({
 
   backToExhibitWithBadge() {
     this._stopAnim();
-    // 授予追光终章勋章
-    cloudUtil.grantBadge({ badgeId: 'final_chapter' }).catch(() => {});
+    // 立即写入本地缓存，确保返回展馆时立即可见
+    try {
+      const cache = wx.getStorageSync('exhibitProgress') || {};
+      const badges = cache.badges || [];
+      if (badges.indexOf('badge_08') === -1) {
+        badges.push('badge_08');
+        cache.badges = badges;
+        wx.setStorageSync('exhibitProgress', cache);
+      }
+    } catch (e) {}
+    // 异步上报云端
+    cloudUtil.grantBadge({ badgeId: 'badge_08' }).catch(() => {});
     this._saveLabProgress();
     wx.navigateBack();
   },

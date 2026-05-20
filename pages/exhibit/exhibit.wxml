@@ -357,6 +357,64 @@
     <view class="story-complete-text">{{storyCompleteNotification.text}}</view>
   </view>
 
+  <!-- 全成就庆祝弹窗 -->
+  <view wx:if="{{showCelebration}}" class="celebration-overlay" catchtap="dismissCelebration">
+    <view class="celebration-bg">
+      <!-- 粒子层 -->
+      <view class="celebration-particles">
+        <view class="c-particle p1"></view>
+        <view class="c-particle p2"></view>
+        <view class="c-particle p3"></view>
+        <view class="c-particle p4"></view>
+        <view class="c-particle p5"></view>
+        <view class="c-particle p6"></view>
+        <view class="c-particle p7"></view>
+        <view class="c-particle p8"></view>
+        <view class="c-particle p9"></view>
+        <view class="c-particle p10"></view>
+        <view class="c-particle p11"></view>
+        <view class="c-particle p12"></view>
+        <view class="c-particle p13"></view>
+        <view class="c-particle p14"></view>
+        <view class="c-particle p15"></view>
+        <view class="c-particle p16"></view>
+        <view class="c-particle p17"></view>
+        <view class="c-particle p18"></view>
+        <view class="c-particle p19"></view>
+        <view class="c-particle p20"></view>
+      </view>
+      <!-- 彩带/彩屑层 -->
+      <view class="celebration-confetti">
+        <view class="confetti c1">🎉</view>
+        <view class="confetti c2">🎊</view>
+        <view class="confetti c3">✨</view>
+        <view class="confetti c4">🌟</view>
+        <view class="confetti c5">💫</view>
+        <view class="confetti c6">🎉</view>
+        <view class="confetti c7">🎊</view>
+        <view class="confetti c8">✨</view>
+        <view class="confetti c9">🌟</view>
+        <view class="confetti c10">💫</view>
+        <view class="confetti c11">🎉</view>
+        <view class="confetti c12">🎊</view>
+      </view>
+      <!-- 主内容 -->
+      <view class="celebration-content">
+        <view class="celebration-trophy">🏆</view>
+        <view class="celebration-title">恭喜你！</view>
+        <view class="celebration-subtitle">成功解锁所有成就</view>
+        <view class="celebration-badges-row">
+          <block wx:for="{{badges}}" wx:key="id">
+            <text class="celebration-badge-icon">{{item.icon}}</text>
+          </block>
+        </view>
+        <view class="celebration-close-btn" bindtap="dismissCelebration">
+          <text>太棒了 ✦</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <!-- 徽章成就面板 -->
   <view wx:if="{{showBadgePanel}}" class="panel badge-panel">
     <view class="panel-header">
